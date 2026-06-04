@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memorias de Reuniones — DIGER</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#eef1f7;min-height:100vh}
+
+/* ── HEADER ── */
+.header{background:#fff;padding:14px 2rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.08);position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;right:0;top:0;bottom:0;width:200px;background:linear-gradient(135deg,transparent 30px,#1455a4 30px)}
+.header::after{content:'';position:absolute;right:0;top:0;bottom:0;width:130px;background:linear-gradient(135deg,transparent 30px,#0a2d6e 30px)}
+.header img{height:60px;width:auto;position:relative;z-index:1}
+.header-right{position:relative;z-index:1;display:flex;align-items:center;gap:10px}
+.admin-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.3)}
+.btn-back{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:7px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;transition:background .2s}
+.btn-back:hover{background:rgba(255,255,255,.35)}
+
+/* ── VIEWS ── */
+.view{display:none}
+.view.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CONTAINER ── */
+.container{max-width:860px;margin:0 auto;padding:2rem 1rem 3rem}
+
+/* ── TOP BAR ── */
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px}
+.page-title{font-size:20px;font-weight:800;color:#0a2d6e;margin:0}
+
+/* ── LISTA DE MEMORIAS ── */
+.mem-list{display:grid;gap:12px}
+.mem-item{background:#fff;border:1.5px solid #dde4f0;border-radius:12px;padding:15px 18px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;box-shadow:0 2px 8px rgba(10,45,110,.05);transition:box-shadow .2s}
+.mem-item:hover{box-shadow:0 4px 16px rgba(10,45,110,.1)}
+.mem-titulo{font-size:15px;font-weight:700;color:#0a2d6e;margin-bottom:3px}
+.mem-meta{font-size:12px;color:#6b7fa3;display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}
+.mem-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#e8f0ff;color:#1455a4;border:1px solid #c0d0f0;margin-bottom:5px}
+.mem-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.empty-state{text-align:center;padding:3rem 1rem;color:#9aadcc;font-size:14px}
+.empty-state .es-icon{font-size:40px;margin-bottom:.75rem}
+
+/* ── CARDS ── */
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:1.4rem;margin-bottom:1.1rem;box-shadow:0 2px 8px rgba(10,45,110,.06)}
+.stitle{font-size:11px;font-weight:700;color:#6b7fa3;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1.1rem;padding-bottom:.6rem;border-bottom:2px solid #eef1f7;display:flex;align-items:center;gap:6px}
+
+/* ── DOC HEADER ── */
+.doc-header{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:1.5rem;margin-bottom:1.1rem;text-align:center;box-shadow:0 2px 8px rgba(10,45,110,.06)}
+.doc-header .gov{font-size:13px;font-weight:800;color:#0a2d6e;text-transform:uppercase;letter-spacing:.04em}
+.doc-header .sub{font-size:11.5px;font-weight:700;color:#1455a4;text-transform:uppercase;margin-top:2px}
+.doc-header .form-title{font-size:14px;font-weight:800;color:#1a1a1a;margin-top:8px;text-transform:uppercase}
+
+/* ── STEP BAR ── */
+.step-bar{display:flex;align-items:center;justify-content:center;margin-bottom:2rem;gap:0}
+.step-item{display:flex;flex-direction:column;align-items:center;position:relative;flex:1;max-width:160px}
+.step-item:not(:last-child)::after{content:'';position:absolute;top:20px;left:calc(50% + 22px);right:calc(-50% + 22px);height:2px;background:#d0d8e8;transition:background .4s;z-index:0}
+.step-item.done:not(:last-child)::after{background:#0a2d6e}
+.step-circle{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:2px solid #d0d8e8;background:#fff;color:#9aadcc;transition:all .4s;z-index:1;position:relative}
+.step-item.active .step-circle{border-color:#1455a4;background:#1455a4;color:#fff;box-shadow:0 0 0 5px rgba(20,85,164,.15)}
+.step-item.done .step-circle{border-color:#0a2d6e;background:#0a2d6e;color:#fff}
+.step-item.done .step-circle::after{content:'✓';font-size:16px}
+.step-item.done .step-circle span{display:none}
+.step-label{font-size:11px;color:#9aadcc;margin-top:6px;text-align:center;font-weight:500;transition:color .4s}
+.step-item.active .step-label{color:#1455a4;font-weight:700}
+.step-item.done .step-label{color:#0a2d6e}
+
+/* ── FIELDS ── */
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:12.5px;color:#4a5568;margin-bottom:4px;font-weight:600}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13.5px;font-family:inherit;background:#fafbfd;color:#1a1a1a;transition:border .2s,box-shadow .2s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#1455a4;background:#fff;box-shadow:0 0 0 3px rgba(20,85,164,.1)}
+.field textarea{min-height:80px;resize:vertical;line-height:1.6}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* ── DOC TABLE ── */
+.dtable{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:.5rem}
+.dtable td{border:1px solid #c8d5ee;padding:7px 10px;vertical-align:top}
+.dtable td.lbl{background:linear-gradient(135deg,#1455a4,#0a4d8c);color:#fff;font-weight:700;font-size:11.5px;white-space:nowrap;width:1%}
+.dtable td.lbl2{background:#d0e8f5;color:#0a2d6e;font-weight:700;font-size:11.5px;white-space:nowrap;width:1%}
+.dtable input,.dtable textarea,.dtable select{width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:13px;color:#1a1a1a;padding:2px 0}
+.dtable textarea{min-height:55px;resize:vertical}
+.dtable select option{background:#fff;color:#1a1a1a}
+
+/* ── PARTICIPANTS TABLE ── */
+.ptable{width:100%;border-collapse:collapse;font-size:12.5px}
+.ptable th{background:linear-gradient(135deg,#1455a4,#0a4d8c);color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:8px;text-align:center}
+.ptable th:first-child{width:34px}
+.ptable td{border:1px solid #d0d8e8;padding:3px 4px;vertical-align:middle}
+.ptable td:first-child{text-align:center;color:#9aadcc;font-weight:700;font-size:12px;background:#fafbfd}
+.ptable td input{width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:12.5px;padding:5px 6px;transition:background .15s;border-radius:5px}
+.ptable td input:focus{background:#e8f0ff}
+.ptable tr:nth-child(even) td{background:#f8fbff}
+.ptable tr:nth-child(even) td:first-child{background:#f0f4fc}
+
+/* ── AGENDA / PUNTOS ── */
+.punto-card{background:linear-gradient(135deg,#f5f8ff,#eef2fc);border:1.5px solid #c8d5ee;border-radius:12px;padding:14px;margin-bottom:12px;position:relative}
+.punto-num{font-size:11px;font-weight:800;color:#1455a4;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:8px;border-bottom:1.5px solid #c8d5ee;display:flex;justify-content:space-between;align-items:center}
+.btn-rm-punto{background:transparent;border:none;color:#c8d5ee;font-size:16px;cursor:pointer;padding:0 4px;transition:color .2s;line-height:1}
+.btn-rm-punto:hover{color:#dc2626}
+.punto-fields{display:grid;gap:10px}
+.punto-inp{width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:inherit;background:#fff;transition:border .2s}
+.punto-inp:focus{outline:none;border-color:#1455a4;box-shadow:0 0 0 3px rgba(20,85,164,.1)}
+.punto-ta{width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:inherit;background:#fff;resize:vertical;min-height:70px;line-height:1.6;transition:border .2s}
+.punto-ta:focus{outline:none;border-color:#1455a4;box-shadow:0 0 0 3px rgba(20,85,164,.1)}
+
+/* ── COMPROMISOS ── */
+.comp-card{background:#fff;border:1.5px solid #c8d5ee;border-radius:10px;padding:13px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+.comp-fields{display:grid;gap:7px}
+.comp-inp{width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:inherit;background:#fafbfd;transition:border .2s}
+.comp-inp:focus{outline:none;border-color:#1455a4}
+.comp-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ── VALIDACIÓN ── */
+.val-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:.5rem}
+.val-box{border:1px solid #c8d5ee;border-radius:10px;padding:16px;text-align:center}
+.val-role{background:linear-gradient(135deg,#1455a4,#0a4d8c);color:#fff;font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:7px;margin-bottom:14px;display:inline-block}
+.val-sign{height:70px;border-bottom:1.5px solid #c8d5ee;margin-bottom:8px}
+.val-hint{font-size:11px;color:#9aadcc;margin-bottom:12px}
+.val-name{width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;text-align:center}
+.val-name:focus{outline:none;border-color:#1455a4}
+
+/* ── RESUMEN / DETALLE ── */
+.res-section{margin-bottom:1rem}
+.res-section h4{font-size:11px;font-weight:800;color:#1455a4;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+.res-row{font-size:12.5px;color:#4a5568;padding:3px 0;border-bottom:1px solid #f0f4fa}
+.res-row span{color:#0a2d6e;font-weight:600}
+.detalle-pre{background:#f8fbff;border:1px solid #dde4f0;border-radius:10px;padding:1rem;font-size:12.5px;line-height:1.8;white-space:pre-wrap;font-family:'Segoe UI',system-ui,sans-serif;color:#2d3748;max-height:460px;overflow-y:auto}
+.detalle-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:1rem}
+.detalle-meta .dm{font-size:13px;color:#4a5568;padding:4px 0;border-bottom:1px solid #f0f4fa}
+.detalle-meta .dm strong{color:#0a2d6e}
+
+/* ── SUCCESS ── */
+.okbox{text-align:center;padding:2.5rem 1rem}
+.check-wrap{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#1455a4,#0a2d6e);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;animation:popIn .5s cubic-bezier(.175,.885,.32,1.275);box-shadow:0 8px 30px rgba(10,45,110,.3)}
+.check-wrap svg{width:42px;height:42px;stroke:#fff;stroke-width:3;fill:none;stroke-dasharray:60;stroke-dashoffset:60;animation:drawCheck .5s .3s ease forwards}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes drawCheck{to{stroke-dashoffset:0}}
+.okbox h2{font-size:22px;font-weight:700;color:#0a2d6e;margin-bottom:.5rem}
+.okbox p{color:#6b7fa3;font-size:13.5px;margin-bottom:1.5rem;line-height:1.6}
+
+/* ── BUTTONS ── */
+.btnp{background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;border:none;border-radius:11px;padding:11px 26px;font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .2s;box-shadow:0 4px 14px rgba(10,45,110,.25)}
+.btnp:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(10,45,110,.35)}
+.btnp:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btns{background:#fff;border:1.5px solid #c8d5ee;border-radius:11px;padding:11px 26px;font-size:13.5px;cursor:pointer;color:#4a5568;font-weight:600;transition:all .2s}
+.btns:hover{background:#f0f4ff;border-color:#1455a4;color:#1455a4}
+.btn-sm{padding:7px 14px;font-size:12px;border-radius:8px}
+.btn-add-sec{padding:8px 18px;background:#fff;border:1.5px dashed #c8d5ee;border-radius:9px;color:#6b7fa3;font-size:12.5px;cursor:pointer;font-weight:700;width:100%;margin-top:4px;transition:all .2s}
+.btn-add-sec:hover{border-color:#1455a4;color:#1455a4;background:#f5f8ff}
+.btn-danger{background:#fff;border:1.5px solid #fecaca;border-radius:8px;color:#dc2626;font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer;transition:all .2s}
+.btn-danger:hover{background:#fff5f5}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem}
+
+/* ── FORM STEPS ── */
+.fstep{display:none;animation:slideIn .3s ease}
+.fstep.active{display:block}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── MOBILE ── */
+@media(max-width:600px){
+  .container{padding:1rem .75rem 2rem}
+  .card{padding:1.1rem}
+  .row2,.row3,.val-grid,.comp-row,.detalle-meta{grid-template-columns:1fr}
+  .step-label{display:none}
+  .header{padding:12px 1rem}
+  .header img{height:46px}
+  .mem-item{grid-template-columns:1fr}
+}
+@media print{
+  .header,.step-bar,.nav,.btnp,.btns,.btn-danger,.btn-add-sec,.top-bar,.btn-rm-punto{display:none!important}
+  .view,.fstep{display:block!important}
+  body{background:#fff}
+  .container{max-width:100%;padding:0}
+  .card{box-shadow:none;border-color:#ddd;page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="logo_diger-14.png" alt="Gobierno de Honduras — DIGER">
+  <div class="header-right">
+    <span class="admin-badge" id="admin-badge">⚙ Administrador</span>
+    <a class="btn-back" href="index.html">← Portal</a>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ══ VISTA: LISTA ══ -->
+<div class="view active" id="view-list">
+  <div class="top-bar">
+    <h2 class="page-title">📝 Memorias de Reuniones</h2>
+    <button class="btnp" onclick="mostrarForm()">+ Nueva memoria</button>
+  </div>
+  <div id="mem-list-cont">
+    <div class="empty-state">
+      <div class="es-icon">📝</div>
+      <p>No hay memorias registradas aún.<br>Haga clic en <strong>+ Nueva memoria</strong> para comenzar.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VISTA: FORMULARIO ══ -->
+<div class="view" id="view-form">
+  <div class="top-bar">
+    <h2 class="page-title">Nueva memoria de reunión</h2>
+    <button class="btns btn-sm" onclick="volverLista()">← Volver a lista</button>
+  </div>
+
+  <div class="doc-header">
+    <div class="gov">Gobierno de la República de Honduras</div>
+    <div class="sub">Dirección de Gestión por Resultados (DIGER)</div>
+    <div class="form-title">Memoria de Reunión — Plataforma SOL</div>
+  </div>
+
+  <!-- STEP BAR -->
+  <div class="step-bar">
+    <div class="step-item active" id="si1"><div class="step-circle"><span>1</span></div><div class="step-label">Datos generales</div></div>
+    <div class="step-item" id="si2"><div class="step-circle"><span>2</span></div><div class="step-label">Participantes</div></div>
+    <div class="step-item" id="si3"><div class="step-circle"><span>3</span></div><div class="step-label">Agenda</div></div>
+    <div class="step-item" id="si4"><div class="step-circle"><span>4</span></div><div class="step-label">Compromisos</div></div>
+    <div class="step-item" id="si5"><div class="step-circle"><span>5</span></div><div class="step-label">Cierre</div></div>
+  </div>
+
+  <!-- ── PASO 1: DATOS GENERALES ── -->
+  <div class="fstep active" id="step1">
+    <div class="card">
+      <div class="stitle">1. 📋 Datos generales de la reunión</div>
+      <table class="dtable">
+        <tr>
+          <td class="lbl">Fecha:</td>
+          <td><input type="date" id="g-fecha"></td>
+          <td class="lbl">Hora inicio:</td>
+          <td><input type="time" id="g-hora-ini"></td>
+          <td class="lbl">Hora fin:</td>
+          <td><input type="time" id="g-hora-fin"></td>
+        </tr>
+        <tr>
+          <td class="lbl">Modalidad:</td>
+          <td>
+            <select id="g-modalidad">
+              <option value="">— Seleccione —</option>
+              <option>Presencial</option><option>Virtual</option><option>Híbrida</option>
+            </select>
+          </td>
+          <td class="lbl">Plataforma / Lugar:</td>
+          <td colspan="3"><input type="text" id="g-lugar" placeholder="Sala / Teams / Zoom / dirección"></td>
+        </tr>
+        <tr>
+          <td class="lbl">Institución:</td>
+          <td colspan="5"><input type="text" id="g-inst" placeholder="Nombre completo de la institución"></td>
+        </tr>
+        <tr>
+          <td class="lbl">Tipo de reunión:</td>
+          <td>
+            <select id="g-tipo">
+              <option value="">— Seleccione —</option>
+              <option>Seguimiento</option>
+              <option>Levantamiento de información</option>
+              <option>Capacitación</option>
+              <option>Coordinación técnica</option>
+              <option>Revisión de avances</option>
+              <option>Cierre de proyecto</option>
+              <option>Otro</option>
+            </select>
+          </td>
+          <td class="lbl">No. de reunión:</td>
+          <td colspan="3"><input type="text" id="g-num" placeholder="Ej: Reunión No. 3"></td>
+        </tr>
+        <tr>
+          <td class="lbl" style="vertical-align:top;padding-top:10px">Objetivo de la reunión:</td>
+          <td colspan="5"><textarea id="g-objetivo" placeholder="Describa brevemente el objetivo de esta reunión..."></textarea></td>
+        </tr>
+        <tr>
+          <td class="lbl" colspan="6" style="background:linear-gradient(135deg,#0d8ca0,#0a6070)">Responsable DIGER:</td>
+        </tr>
+        <tr>
+          <td class="lbl2">Nombre:</td><td><input type="text" id="r-nombre" placeholder="Nombre completo"></td>
+          <td class="lbl2">Cargo:</td><td><input type="text" id="r-cargo" placeholder="Cargo"></td>
+          <td class="lbl2">Correo:</td><td><input type="email" id="r-correo" placeholder="correo@diger.gob.hn"></td>
+        </tr>
+      </table>
+    </div>
+    <div class="nav">
+      <span style="font-size:12px;color:#9aadcc">* Campos obligatorios</span>
+      <button class="btnp" onclick="goStep(2)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- ── PASO 2: PARTICIPANTES ── -->
+  <div class="fstep" id="step2">
+    <div class="card">
+      <div class="stitle">2. 👥 Participantes</div>
+      <div style="overflow-x:auto">
+        <table class="ptable">
+          <thead>
+            <tr>
+              <th>N.</th>
+              <th>Nombre completo</th>
+              <th>Cargo / Función</th>
+              <th>Institución</th>
+              <th>Correo electrónico</th>
+              <th>Teléfono</th>
+            </tr>
+          </thead>
+          <tbody id="ptbody"></tbody>
+        </table>
+      </div>
+      <button onclick="addParticipante()" style="margin-top:10px;padding:7px 16px;background:#fff;border:1.5px solid #c8d5ee;border-radius:8px;color:#6b7fa3;font-size:12px;cursor:pointer;font-weight:700" onmouseover="this.style.borderColor='#1455a4';this.style.color='#1455a4'" onmouseout="this.style.borderColor='#c8d5ee';this.style.color='#6b7fa3'">+ Agregar participante</button>
+    </div>
+    <div class="nav">
+      <button class="btns" onclick="goStep(1)">← Anterior</button>
+      <button class="btnp" onclick="goStep(3)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- ── PASO 3: AGENDA / PUNTOS TRATADOS ── -->
+  <div class="fstep" id="step3">
+    <div class="card">
+      <div class="stitle">3. 📌 Agenda y puntos tratados</div>
+      <div id="puntos-cont"></div>
+      <button class="btn-add-sec" onclick="addPunto()">+ Agregar punto de agenda</button>
+    </div>
+    <div class="nav">
+      <button class="btns" onclick="goStep(2)">← Anterior</button>
+      <button class="btnp" onclick="goStep(4)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- ── PASO 4: COMPROMISOS ── -->
+  <div class="fstep" id="step4">
+    <div class="card">
+      <div class="stitle">4. ✅ Compromisos y acuerdos</div>
+      <div id="comp-cont"></div>
+      <button class="btn-add-sec" onclick="addCompromiso()">+ Agregar compromiso</button>
+    </div>
+
+    <div class="card">
+      <div class="stitle">5. 📅 Próxima reunión</div>
+      <table class="dtable">
+        <tr>
+          <td class="lbl">Fecha tentativa:</td>
+          <td><input type="date" id="prox-fecha"></td>
+          <td class="lbl">Hora:</td>
+          <td><input type="time" id="prox-hora"></td>
+        </tr>
+        <tr>
+          <td class="lbl">Modalidad:</td>
+          <td>
+            <select id="prox-modalidad">
+              <option value="">— Por confirmar —</option>
+              <option>Presencial</option><option>Virtual</option><option>Híbrida</option>
+            </select>
+          </td>
+          <td class="lbl">Lugar / Plataforma:</td>
+          <td><input type="text" id="prox-lugar" placeholder="Por confirmar"></td>
+        </tr>
+        <tr>
+          <td class="lbl" style="vertical-align:top;padding-top:10px">Temas previstos:</td>
+          <td colspan="3"><textarea id="prox-temas" placeholder="Temas a tratar en la próxima reunión..."></textarea></td>
+        </tr>
+      </table>
+    </div>
+    <div class="nav">
+      <button class="btns" onclick="goStep(3)">← Anterior</button>
+      <button class="btnp" onclick="goStep(5)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- ── PASO 5: CIERRE + RESUMEN ── -->
+  <div class="fstep" id="step5">
+    <div class="card">
+      <div class="stitle">6. ✍ Validación y cierre</div>
+      <div class="val-grid">
+        <div class="val-box">
+          <div class="val-role">Responsable DIGER</div>
+          <div class="val-sign"></div>
+          <p class="val-hint">(Firma y sello)</p>
+          <input class="val-name" type="text" id="val-diger" placeholder="Nombre y cargo">
+        </div>
+        <div class="val-box">
+          <div class="val-role">Representante de la Institución</div>
+          <div class="val-sign"></div>
+          <p class="val-hint">(Firma y sello)</p>
+          <input class="val-name" type="text" id="val-inst" placeholder="Nombre y cargo">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stitle">📋 Observaciones finales</div>
+      <div class="field" style="margin:0">
+        <textarea id="obs-finales" placeholder="Observaciones generales, aclaraciones o notas adicionales sobre la reunión..." style="min-height:90px"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stitle">👁 Resumen de la memoria</div>
+      <div id="resumen"></div>
+    </div>
+
+    <div class="card">
+      <div class="stitle">💾 Guardar memoria</div>
+      <p style="font-size:13.5px;color:#4a5568;line-height:1.7">Al hacer clic en <strong>Guardar</strong>, la memoria quedará registrada en la lista y podrá descargarla en cualquier momento.</p>
+    </div>
+    <div class="nav">
+      <button class="btns" onclick="goStep(4)">← Anterior</button>
+      <button class="btnp" id="btn-guardar" onclick="guardar()">💾 Guardar memoria</button>
+    </div>
+  </div>
+
+  <!-- ── PASO 6: ÉXITO ── -->
+  <div class="fstep" id="step6">
+    <div class="card">
+      <div class="okbox">
+        <div class="check-wrap"><svg viewBox="0 0 52 52"><polyline points="14,27 22,35 38,17"/></svg></div>
+        <h2>¡Memoria guardada!</h2>
+        <p>La memoria de reunión quedó registrada y está disponible en la lista para su consulta y descarga.</p>
+        <button class="btnp" onclick="descargar()" style="margin-bottom:12px">⬇ Descargar (.txt)</button><br>
+        <button class="btns" onclick="volverLista()" style="margin-top:10px;font-size:13px">← Ver todas las memorias</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /view-form -->
+
+<!-- ══ VISTA: DETALLE ══ -->
+<div class="view" id="view-detalle">
+  <div class="top-bar">
+    <h2 class="page-title" id="d-titulo">Detalle de memoria</h2>
+    <button class="btns btn-sm" onclick="volverLista()">← Volver a lista</button>
+  </div>
+  <div class="card">
+    <div class="stitle">📋 Información general</div>
+    <div class="detalle-meta" id="d-meta"></div>
+  </div>
+  <div class="card">
+    <div class="stitle">📄 Contenido completo</div>
+    <div class="detalle-pre" id="d-pre"></div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:.5rem">
+    <button class="btnp btn-sm" onclick="descargarDetalle()">⬇ Descargar .txt</button>
+    <button class="btn-danger btn-sm" onclick="eliminarMemoria()">🗑 Eliminar memoria</button>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const SESSION_KEY = 'diger_sol_session';
+const STORAGE_KEY = 'diger_memorias';
+var pN = 0, puntoN = 0, compN = 0;
+var currentDetalleId = null;
+
+// ── AUTH ──────────────────────────────────────────────
+(function(){
+  try{
+    var s = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    if(s && s.role === 'admin'){
+      document.getElementById('admin-badge').textContent = '⚙ ' + s.email;
+      renderLista();
+      return;
+    }
+  }catch{}
+  document.body.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Segoe UI,sans-serif;background:#eef1f7">'+
+    '<div style="text-align:center;background:#fff;border-radius:16px;padding:2.5rem 2rem;box-shadow:0 12px 40px rgba(0,0,0,.1);max-width:380px">'+
+    '<div style="font-size:40px;margin-bottom:1rem">🔒</div>'+
+    '<h2 style="color:#0a2d6e;margin:0 0 .5rem">Acceso restringido</h2>'+
+    '<p style="color:#6b7fa3;font-size:13px;margin-bottom:1.5rem">Este módulo es exclusivo para administradores DIGER.</p>'+
+    '<a href="index.html" style="display:inline-block;background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;padding:11px 24px;border-radius:9px;text-decoration:none;font-weight:700;font-size:14px">← Ir al portal</a>'+
+    '</div></div>';
+})();
+
+// ── STORAGE ───────────────────────────────────────────
+function loadMems(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY))||[]; }catch{ return []; } }
+function saveMems(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+// ── LISTA ─────────────────────────────────────────────
+function renderLista(){
+  var mems = loadMems();
+  var cont = document.getElementById('mem-list-cont');
+  if(!mems.length){
+    cont.innerHTML='<div class="empty-state"><div class="es-icon">📝</div><p>No hay memorias registradas aún.<br>Haga clic en <strong>+ Nueva memoria</strong> para comenzar.</p></div>';
+    return;
+  }
+  cont.innerHTML='<div class="mem-list">'+mems.slice().reverse().map(function(m){
+    return '<div class="mem-item">'+
+      '<div>'+
+        '<div class="mem-badge">'+esc(m.tipo||'Reunión')+'</div>'+
+        '<div class="mem-titulo">'+esc(m.inst)+' — '+esc(m.num||'')+'</div>'+
+        '<div class="mem-meta">'+
+          '<span>📅 '+esc(m.fecha)+'</span>'+
+          '<span>🏛 '+esc(m.inst)+'</span>'+
+          '<span>👥 '+esc(m.participantes)+' participantes</span>'+
+          '<span style="color:#c8d5ee;font-size:11px">Guardado: '+esc(m.fecha_guardado)+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="mem-actions">'+
+        '<button class="btnp btn-sm" onclick="verDetalle(\''+m.id+'\')">Ver detalle</button>'+
+      '</div>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+
+// ── DETALLE ───────────────────────────────────────────
+function verDetalle(id){
+  var mems = loadMems();
+  var m = mems.find(function(x){ return x.id===id; });
+  if(!m) return;
+  currentDetalleId = id;
+  document.getElementById('d-titulo').textContent = m.inst+' — '+m.fecha;
+  document.getElementById('d-meta').innerHTML=
+    '<div class="dm"><strong>Institución:</strong> '+esc(m.inst)+'</div>'+
+    '<div class="dm"><strong>Fecha:</strong> '+esc(m.fecha)+'</div>'+
+    '<div class="dm"><strong>Tipo:</strong> '+esc(m.tipo||'—')+'</div>'+
+    '<div class="dm"><strong>N° Reunión:</strong> '+esc(m.num||'—')+'</div>'+
+    '<div class="dm"><strong>Participantes:</strong> '+esc(m.participantes)+'</div>'+
+    '<div class="dm"><strong>Compromisos:</strong> '+esc(m.ncomp)+'</div>'+
+    '<div class="dm"><strong>Responsable DIGER:</strong> '+esc(m.responsable||'—')+'</div>'+
+    '<div class="dm"><strong>Guardado:</strong> '+esc(m.fecha_guardado)+'</div>';
+  document.getElementById('d-pre').textContent = m.texto;
+  cambiarVista('view-detalle');
+}
+
+function eliminarMemoria(){
+  if(!confirm('¿Eliminar esta memoria de reunión?')) return;
+  saveMems(loadMems().filter(function(m){ return m.id!==currentDetalleId; }));
+  currentDetalleId=null; volverLista();
+}
+
+function descargarDetalle(){
+  var m = loadMems().find(function(x){ return x.id===currentDetalleId; });
+  if(!m) return;
+  var a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(m.texto);
+  a.download='memoria_'+m.inst.replace(/[\s\/]/g,'_').substring(0,25)+'_'+m.fecha+'.txt';
+  a.click();
+}
+
+// ── VISTAS ────────────────────────────────────────────
+function cambiarVista(id){
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function volverLista(){ renderLista(); cambiarVista('view-list'); }
+function mostrarForm(){ reiniciar(); cambiarVista('view-form'); }
+
+// ── PARTICIPANTES ─────────────────────────────────────
+function buildPtable(n){
+  document.getElementById('ptbody').innerHTML=''; pN=0;
+  for(var i=1;i<=n;i++) addParticipanteRow(i);
+}
+function addParticipante(){ addParticipanteRow(pN+1); }
+function addParticipanteRow(n){
+  pN=Math.max(pN,n);
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td>'+n+'</td>'+
+    '<td><input type="text" id="pn'+n+'" placeholder="Nombre completo"></td>'+
+    '<td><input type="text" id="pc'+n+'" placeholder="Cargo / función"></td>'+
+    '<td><input type="text" id="pi'+n+'" placeholder="Institución"></td>'+
+    '<td><input type="email" id="pe'+n+'" placeholder="correo@inst.gob.hn"></td>'+
+    '<td><input type="text" id="pt'+n+'" placeholder="+504"></td>';
+  document.getElementById('ptbody').appendChild(tr);
+}
+
+// ── AGENDA / PUNTOS ───────────────────────────────────
+function addPunto(){
+  puntoN++;
+  var n=puntoN;
+  var div=document.createElement('div');
+  div.className='punto-card'; div.id='punto-'+n;
+  div.innerHTML=
+    '<div class="punto-num">Punto '+n+' de agenda'+
+      '<button class="btn-rm-punto" onclick="rmPunto('+n+')" title="Eliminar punto">×</button>'+
+    '</div>'+
+    '<div class="punto-fields">'+
+      '<input class="punto-inp" type="text" id="pt-titulo-'+n+'" placeholder="Título del punto">'+
+      '<textarea class="punto-ta" id="pt-desc-'+n+'" placeholder="Descripción o desarrollo del punto..."></textarea>'+
+      '<textarea class="punto-ta" id="pt-acuerdos-'+n+'" placeholder="Acuerdos o decisiones tomadas en este punto..." style="min-height:55px"></textarea>'+
+    '</div>';
+  document.getElementById('puntos-cont').appendChild(div);
+}
+function rmPunto(n){
+  var el=document.getElementById('punto-'+n);
+  if(el) el.remove();
+}
+
+// ── COMPROMISOS ───────────────────────────────────────
+function addCompromiso(){
+  compN++;
+  var n=compN;
+  var div=document.createElement('div');
+  div.className='comp-card'; div.id='comp-'+n;
+  div.innerHTML=
+    '<div class="comp-fields">'+
+      '<input class="comp-inp" type="text" id="co-desc-'+n+'" placeholder="Descripción del compromiso o acuerdo">'+
+      '<div class="comp-row">'+
+        '<input class="comp-inp" type="text" id="co-resp-'+n+'" placeholder="Responsable">'+
+        '<input class="comp-inp" type="date" id="co-fecha-'+n+'">'+
+      '</div>'+
+      '<input class="comp-inp" type="text" id="co-inst-'+n+'" placeholder="Institución responsable">'+
+    '</div>'+
+    '<button class="btn-rm-punto" onclick="rmComp('+n+')" title="Eliminar compromiso" style="margin-top:4px">×</button>';
+  document.getElementById('comp-cont').appendChild(div);
+}
+function rmComp(n){ var el=document.getElementById('comp-'+n); if(el) el.remove(); }
+
+// ── INIT ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function(){
+  buildPtable(5);
+  var fd=document.getElementById('g-fecha');
+  if(fd) fd.valueAsDate=new Date();
+  // Un punto y un compromiso de ejemplo
+  addPunto(); addCompromiso();
+});
+
+// ── GETTERS ──────────────────────────────────────────
+function gv(id){ var el=document.getElementById(id); return el?(el.value||'').trim():''; }
+
+// ── STEPS ─────────────────────────────────────────────
+function goStep(n){
+  if(n>=2){
+    if(!gv('g-fecha'))  { alert('Por favor ingrese la fecha.'); return; }
+    if(!gv('g-inst'))   { alert('Por favor ingrese la institución.'); return; }
+    if(!gv('g-tipo'))   { alert('Por favor seleccione el tipo de reunión.'); return; }
+    if(!gv('g-objetivo')){ alert('Por favor ingrese el objetivo de la reunión.'); return; }
+  }
+  if(n===5) buildResumen();
+  document.querySelectorAll('.fstep').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('step'+n).classList.add('active');
+  var si=['si1','si2','si3','si4','si5'];
+  si.forEach(function(sid,j){
+    var el=document.getElementById(sid);
+    if(j<n-1) el.className='step-item done';
+    else if(j===n-1) el.className='step-item active';
+    else el.className='step-item';
+  });
+  window.scrollTo(0,0);
+}
+
+// ── RESUMEN ───────────────────────────────────────────
+function buildResumen(){
+  var partsHtml='';
+  var pcnt=0;
+  for(var i=1;i<=pN;i++){
+    var nm=gv('pn'+i);
+    if(nm){ pcnt++; partsHtml+='<div class="res-row">'+i+'. <span>'+esc(nm)+'</span> — '+esc(gv('pi'+i))+'</div>'; }
+  }
+  var puntosHtml='';
+  for(var p=1;p<=puntoN;p++){
+    var el=document.getElementById('punto-'+p);
+    if(!el) continue;
+    var tit=gv('pt-titulo-'+p);
+    if(tit) puntosHtml+='<div class="res-row"><span>'+p+'. '+esc(tit)+'</span></div>';
+  }
+  var compHtml='';
+  for(var c=1;c<=compN;c++){
+    var cel=document.getElementById('comp-'+c);
+    if(!cel) continue;
+    var cd=gv('co-desc-'+c);
+    if(cd) compHtml+='<div class="res-row"><span>'+esc(cd)+'</span> — '+esc(gv('co-resp-'+c))+(gv('co-fecha-'+c)?' · '+esc(gv('co-fecha-'+c)):'')+' ['+esc(gv('co-inst-'+c)||'—')+']</div>';
+  }
+  document.getElementById('resumen').innerHTML=
+    '<div class="res-section"><h4>Datos generales</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px">'+
+      '<div class="res-row">Fecha: <span>'+gv('g-fecha')+'</span></div>'+
+      '<div class="res-row">Tipo: <span>'+gv('g-tipo')+'</span></div>'+
+      '<div class="res-row" style="grid-column:1/-1">Institución: <span>'+gv('g-inst')+'</span></div>'+
+      '<div class="res-row" style="grid-column:1/-1">Objetivo: <span>'+gv('g-objetivo')+'</span></div>'+
+    '</div></div>'+
+    '<div class="res-section"><h4>Participantes ('+pcnt+')</h4>'+(partsHtml||'<div class="res-row" style="color:#9aadcc">Sin registrar</div>')+'</div>'+
+    (puntosHtml?'<div class="res-section"><h4>Puntos de agenda</h4>'+puntosHtml+'</div>':'')+
+    (compHtml?'<div class="res-section"><h4>Compromisos</h4>'+compHtml+'</div>':'');
+}
+
+// ── TEXTO COMPLETO ────────────────────────────────────
+function buildTexto(){
+  var ahora=new Date().toLocaleDateString('es-HN')+' '+new Date().toLocaleTimeString('es-HN');
+  var partsLn=''; var pcnt=0;
+  for(var i=1;i<=pN;i++){
+    var nm=gv('pn'+i);
+    if(nm){ pcnt++; partsLn+='  '+i+'. '+nm+' | '+gv('pc'+i)+' | '+gv('pi'+i)+' | '+gv('pe'+i)+' | '+gv('pt'+i)+'\n'; }
+  }
+  var puntosLn='';
+  for(var p=1;p<=puntoN;p++){
+    var el=document.getElementById('punto-'+p);
+    if(!el) continue;
+    var tit=gv('pt-titulo-'+p);
+    if(tit){
+      puntosLn+='  Punto '+p+': '+tit+'\n';
+      var desc=gv('pt-desc-'+p);
+      if(desc) puntosLn+='    Desarrollo: '+desc+'\n';
+      var acu=gv('pt-acuerdos-'+p);
+      if(acu) puntosLn+='    Acuerdos: '+acu+'\n';
+      puntosLn+='\n';
+    }
+  }
+  var compLn=''; var ccnt=0;
+  for(var c=1;c<=compN;c++){
+    var cel=document.getElementById('comp-'+c);
+    if(!cel) continue;
+    var cd=gv('co-desc-'+c);
+    if(cd){
+      ccnt++;
+      compLn+='  '+ccnt+'. '+cd+'\n     Responsable: '+gv('co-resp-'+c)+' | Institución: '+(gv('co-inst-'+c)||'—')+' | Fecha límite: '+(gv('co-fecha-'+c)||'—')+'\n\n';
+    }
+  }
+  return 'MEMORIA DE REUNIÓN — DIGER / PLATAFORMA SOL\n'+
+    '=============================================================\n\n'+
+    'DATOS GENERALES\n-------------------------------------------------------------\n'+
+    'Fecha: '+gv('g-fecha')+'  |  Hora inicio: '+(gv('g-hora-ini')||'—')+'  |  Hora fin: '+(gv('g-hora-fin')||'—')+'\n'+
+    'Modalidad: '+(gv('g-modalidad')||'—')+'  |  Lugar: '+(gv('g-lugar')||'—')+'\n'+
+    'Institución: '+gv('g-inst')+'\n'+
+    'Tipo de reunión: '+(gv('g-tipo')||'—')+'  |  N° de reunión: '+(gv('g-num')||'—')+'\n'+
+    'Objetivo: '+gv('g-objetivo')+'\n'+
+    'Responsable DIGER: '+(gv('r-nombre')||'—')+' | Cargo: '+(gv('r-cargo')||'—')+'\n\n'+
+    'PARTICIPANTES ('+pcnt+')\n-------------------------------------------------------------\n'+(partsLn||'  (No registrados)\n')+'\n'+
+    'AGENDA Y PUNTOS TRATADOS\n-------------------------------------------------------------\n'+(puntosLn||'  (No registrados)\n')+'\n'+
+    'COMPROMISOS Y ACUERDOS ('+ccnt+')\n-------------------------------------------------------------\n'+(compLn||'  (Ninguno registrado)\n')+'\n'+
+    'PRÓXIMA REUNIÓN\n-------------------------------------------------------------\n'+
+    'Fecha tentativa: '+(gv('prox-fecha')||'—')+'  |  Hora: '+(gv('prox-hora')||'—')+'\n'+
+    'Modalidad: '+(gv('prox-modalidad')||'—')+'  |  Lugar: '+(gv('prox-lugar')||'—')+'\n'+
+    'Temas previstos: '+(gv('prox-temas')||'—')+'\n\n'+
+    'VALIDACIÓN\n-------------------------------------------------------------\n'+
+    'Responsable DIGER: '+(gv('val-diger')||'—')+'\n'+
+    'Representante Institución: '+(gv('val-inst')||'—')+'\n\n'+
+    'Observaciones: '+(gv('obs-finales')||'—')+'\n\n'+
+    '=============================================================\n'+
+    'Guardado el '+ahora;
+}
+
+// ── GUARDAR ───────────────────────────────────────────
+function guardar(){
+  var btn=document.getElementById('btn-guardar');
+  btn.textContent='Guardando...'; btn.disabled=true;
+  var txt=buildTexto();
+  window._txt=txt;
+  var ahora=new Date();
+  var pcnt=0;
+  for(var i=1;i<=pN;i++){ if(gv('pn'+i)) pcnt++; }
+  var ccnt=0;
+  for(var c=1;c<=compN;c++){ var cel=document.getElementById('comp-'+c); if(cel&&gv('co-desc-'+c)) ccnt++; }
+  var registro={
+    id:'MEM-'+ahora.getTime(),
+    fecha:gv('g-fecha'),
+    inst:gv('g-inst'),
+    tipo:gv('g-tipo'),
+    num:gv('g-num'),
+    objetivo:gv('g-objetivo'),
+    responsable:gv('r-nombre'),
+    participantes:pcnt,
+    ncomp:ccnt,
+    fecha_guardado:ahora.toLocaleDateString('es-HN')+' '+ahora.toLocaleTimeString('es-HN'),
+    texto:txt
+  };
+  var mems=loadMems();
+  mems.push(registro);
+  saveMems(mems);
+  document.querySelectorAll('.fstep').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('step6').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── DESCARGAR ─────────────────────────────────────────
+function descargar(){
+  if(!window._txt) return;
+  var a=document.createElement('a');
+  var inst=gv('g-inst').replace(/[\s\/]/g,'_').substring(0,25)||'memoria';
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(window._txt);
+  a.download='memoria_'+inst+'_'+gv('g-fecha')+'.txt';
+  a.click();
+}
+
+// ── REINICIAR ─────────────────────────────────────────
+function reiniciar(){
+  document.querySelectorAll('#view-form input:not([type=file]),#view-form textarea,#view-form select').forEach(function(el){ el.value=''; });
+  document.getElementById('puntos-cont').innerHTML='';
+  document.getElementById('comp-cont').innerHTML='';
+  pN=0; puntoN=0; compN=0;
+  buildPtable(5);
+  var fd=document.getElementById('g-fecha');
+  if(fd) fd.valueAsDate=new Date();
+  addPunto(); addCompromiso();
+  var btn=document.getElementById('btn-guardar');
+  if(btn){ btn.textContent='💾 Guardar memoria'; btn.disabled=false; }
+  document.querySelectorAll('.fstep').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('step1').classList.add('active');
+  ['si1','si2','si3','si4','si5'].forEach(function(sid,j){
+    document.getElementById(sid).className=j===0?'step-item active':'step-item';
+  });
+}
+
+// ── UTILS ─────────────────────────────────────────────
+function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
