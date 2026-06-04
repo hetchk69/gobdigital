@@ -451,7 +451,14 @@ input[type=file].hidden{display:none}
           <tbody id="ptbody"></tbody>
         </table>
       </div>
-      <button onclick="addParticipante()" style="margin-top:10px;padding:7px 16px;background:#fff;border:1.5px solid #c8d5ee;border-radius:8px;color:#6b7fa3;font-size:12px;cursor:pointer;font-weight:700" onmouseover="this.style.borderColor='#1455a4';this.style.color='#1455a4'" onmouseout="this.style.borderColor='#c8d5ee';this.style.color='#6b7fa3'">+ Agregar fila</button>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap">
+        <button onclick="addParticipante()" style="padding:7px 16px;background:#fff;border:1.5px solid #c8d5ee;border-radius:8px;color:#6b7fa3;font-size:12px;cursor:pointer;font-weight:700" onmouseover="this.style.borderColor='#1455a4';this.style.color='#1455a4'" onmouseout="this.style.borderColor='#c8d5ee';this.style.color='#6b7fa3'">+ Agregar fila</button>
+        <label style="display:inline-flex;align-items:center;gap:7px;padding:7px 16px;background:#fff;border:1.5px solid #c8d5ee;border-radius:8px;color:#6b7fa3;font-size:12px;cursor:pointer;font-weight:700;transition:all .2s" onmouseover="this.style.borderColor='#16a34a';this.style.color='#16a34a'" onmouseout="this.style.borderColor='#c8d5ee';this.style.color='#6b7fa3'">
+          <span>📊</span> Subir lista Excel
+          <input type="file" id="excel-inp" accept=".xlsx,.xls,.csv" class="hidden" onchange="mostrarArchivoExcel(this)">
+        </label>
+        <span id="excel-nombre" style="font-size:12px;color:#16a34a;font-weight:600;display:none"></span>
+      </div>
     </div>
 
     <!-- Evidencia fotográfica -->
@@ -465,7 +472,8 @@ input[type=file].hidden{display:none}
               <img id="f1-img" src="" alt="">
               <div class="foto-placeholder" id="f1-ph"><div class="icon">🖼</div><p>Clic para subir imagen</p></div>
             </div>
-            <input type="file" class="hidden" id="f1-inp" accept="image/*" onchange="previewFoto(this,'f1-img','f1-ph')">
+            <input type="file" class="hidden" id="f1-inp" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp" onchange="previewFoto(this,'f1-img','f1-ph')">
+            <p style="font-size:10.5px;color:#9aadcc;margin-bottom:6px">JPG, PNG, WEBP, GIF, BMP</p>
             <input class="foto-inp-desc" type="text" id="f1-desc" placeholder="Descripción de la fotografía...">
           </div>
         </div>
@@ -476,7 +484,8 @@ input[type=file].hidden{display:none}
               <img id="f2-img" src="" alt="">
               <div class="foto-placeholder" id="f2-ph"><div class="icon">🖼</div><p>Clic para subir imagen</p></div>
             </div>
-            <input type="file" class="hidden" id="f2-inp" accept="image/*" onchange="previewFoto(this,'f2-img','f2-ph')">
+            <input type="file" class="hidden" id="f2-inp" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp" onchange="previewFoto(this,'f2-img','f2-ph')">
+            <p style="font-size:10.5px;color:#9aadcc;margin-bottom:6px">JPG, PNG, WEBP, GIF, BMP</p>
             <input class="foto-inp-desc" type="text" id="f2-desc" placeholder="Descripción de la fotografía...">
           </div>
         </div>
@@ -641,6 +650,17 @@ function addParticipanteRow(n) {
     '<td><input type="text" id="pt'+n+'" placeholder="+504"></td>' +
     '<td><input type="text" id="pf'+n+'" placeholder=""></td>';
   tbody.appendChild(tr);
+}
+
+// ── EXCEL ─────────────────────────────────────────────
+function mostrarArchivoExcel(inp) {
+  var lbl = document.getElementById('excel-nombre');
+  if(inp.files && inp.files[0]) {
+    lbl.textContent = '✓ ' + inp.files[0].name;
+    lbl.style.display = 'inline';
+  } else {
+    lbl.style.display = 'none';
+  }
 }
 
 // ── FOTO PREVIEW ──────────────────────────────────────
