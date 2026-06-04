@@ -71,6 +71,22 @@
     .copy-ok{font-size:12px;font-weight:700;color:var(--verde);min-width:60px}
     .link-hint{font-size:12px;color:#166534;margin-top:8px}
 
+    /* QR */
+    .qr-section{margin-top:14px;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+    .qr-box{background:#fff;border:2px solid #bbf7d0;border-radius:12px;padding:14px;text-align:center;flex-shrink:0}
+    .qr-box canvas{display:block;border-radius:6px}
+    .qr-label{font-size:11px;font-weight:700;color:var(--verde);margin-top:8px;text-transform:uppercase;letter-spacing:.06em}
+    .qr-actions{display:flex;flex-direction:column;gap:8px;justify-content:center}
+    .btn-qr{padding:8px 16px;border-radius:7px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s;border:none;white-space:nowrap}
+    .btn-qr-print{background:var(--verde);color:#fff}
+    .btn-qr-print:hover{opacity:.88}
+    .btn-qr-dl{background:#fff;border:1.5px solid var(--verde)!important;color:var(--verde)}
+    .btn-qr-dl:hover{background:var(--verde-c)}
+    @media print{
+      .qr-print-area{page-break-inside:avoid}
+      .qr-print-area *{visibility:visible}
+    }
+
     /* Live badge */
     .live-badge{display:inline-flex;align-items:center;gap:5px;background:#dcfce7;color:var(--verde);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
     .live-dot{width:7px;height:7px;border-radius:50%;background:var(--verde);animation:pulse 1.5s infinite}
@@ -164,13 +180,23 @@
     </div>
 
     <div class="link-card">
-      <div class="link-label">🔗 Link para participantes</div>
+      <div class="link-label">🔗 Link y QR para participantes</div>
       <div class="link-row">
         <input class="link-inp" id="d-link" type="text" readonly>
         <button class="btn-copy" onclick="copiarLink()">Copiar</button>
         <span class="copy-ok" id="copy-ok"></span>
       </div>
-      <p class="link-hint">Comparta este link o genere un QR. Los participantes pueden registrarse desde cualquier dispositivo.</p>
+      <div class="qr-section qr-print-area">
+        <div class="qr-box">
+          <img id="qr-img" src="" alt="QR" width="200" height="200" style="display:block;border-radius:6px">
+          <div class="qr-label">Escanear para registrarse</div>
+        </div>
+        <div class="qr-actions">
+          <button class="btn-qr btn-qr-print" onclick="imprimirQR()">🖨 Imprimir QR</button>
+          <button class="btn-qr btn-qr-dl" onclick="descargarQR()">⬇ Descargar QR</button>
+        </div>
+      </div>
+      <p class="link-hint" style="margin-top:10px">Proyecte o imprima el QR para que los participantes se registren desde su celular.</p>
     </div>
 
     <div class="card">
@@ -332,7 +358,9 @@ async function abrirDetalle(id){
     '<strong>ID:</strong> <code style="background:#eef1f7;padding:2px 7px;border-radius:4px;font-size:12px">'+id+'</code>';
 
   var base = window.location.origin + window.location.pathname.replace(/[^\/]*$/,'');
-  document.getElementById('d-link').value = base+'lista_asistencia.html#'+id;
+  var linkUrl = base+'lista_asistencia.html#'+id;
+  document.getElementById('d-link').value = linkUrl;
+  generarQR(linkUrl);
   document.getElementById('btn-toggle-estado').textContent = r.activa ? 'Cerrar formulario' : 'Reabrir formulario';
 
   await cargarAsistencias(id);
@@ -446,13 +474,59 @@ async function descargarExcel(){
   document.body.appendChild(a);a.click();URL.revokeObjectURL(a.href);a.remove();
 }
 
-// ── LINK ──────────────────────────────────────────────
+// ── LINK + QR ─────────────────────────────────────────
 function copiarLink(){
   var inp=document.getElementById('d-link');
   inp.select();document.execCommand('copy');
   var ok=document.getElementById('copy-ok');
   ok.textContent='✓ Copiado';
   setTimeout(function(){ok.textContent='';},2500);
+}
+
+function generarQR(url){
+  var encoded = encodeURIComponent(url);
+  var src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=0b4567&bgcolor=f0fdf4&data=' + encoded;
+  document.getElementById('qr-img').src = src;
+  document.getElementById('qr-img').setAttribute('data-url', url);
+}
+
+function imprimirQR(){
+  var url    = document.getElementById('d-link').value;
+  var titulo = document.getElementById('d-titulo').textContent;
+  var qrSrc  = document.getElementById('qr-img').src;
+  var win    = window.open('','_blank','width=520,height=680');
+  win.document.write(
+    '<html><head><title>QR — '+titulo+'</title>'+
+    '<style>'+
+    'body{font-family:"Segoe UI",Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fff;padding:2rem;text-align:center}'+
+    '.band{width:100%;height:10px;background:linear-gradient(90deg,#78cbd7 0 33%,#0b4567 33% 66%,#1d6fa8 66% 100%);position:fixed;top:0;left:0}'+
+    'h2{color:#0b4567;font-size:22px;margin:0 0 6px}'+
+    '.sub{color:#64748b;font-size:13px;margin:0 0 22px;max-width:320px;line-height:1.5}'+
+    'img{border:4px solid #bbf7d0;border-radius:14px;padding:12px;box-shadow:0 4px 20px rgba(11,69,103,.12)}'+
+    '.url{font-size:10.5px;color:#94a3b8;margin-top:16px;word-break:break-all;max-width:300px}'+
+    '.footer{position:fixed;bottom:16px;font-size:11px;color:#cbd5e1}'+
+    '</style></head><body>'+
+    '<div class="band"></div>'+
+    '<h2>'+titulo+'</h2>'+
+    '<p class="sub">Escanee el código QR con su celular para registrar su asistencia</p>'+
+    '<img src="'+qrSrc+'" width="240" height="240">'+
+    '<div class="url">'+url+'</div>'+
+    '<div class="footer">DIGER — Plataforma SOL</div>'+
+    '<script>window.onload=function(){window.print();}<\/script>'+
+    '</body></html>'
+  );
+  win.document.close();
+}
+
+function descargarQR(){
+  var url    = document.getElementById('d-link').value;
+  var titulo = document.getElementById('d-titulo').textContent.replace(/\s+/g,'_').slice(0,30);
+  var encoded = encodeURIComponent(url);
+  var a = document.createElement('a');
+  a.href = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&color=0b4567&bgcolor=ffffff&data=' + encoded;
+  a.download = 'QR_' + titulo + '.png';
+  a.target = '_blank';
+  a.click();
 }
 
 // ── NAV ───────────────────────────────────────────────
