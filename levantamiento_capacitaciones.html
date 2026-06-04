@@ -520,6 +520,7 @@ input[type=file].hidden{display:none}
 
 </div><!-- /container -->
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
 emailjs.init("xl4HDu62cetiPyDCJ");
@@ -618,11 +619,7 @@ function descargarDetalle() {
   var caps = loadCaps();
   var c = caps.find(function(x){ return x.id === currentDetalleId; });
   if(!c) return;
-  var a = document.createElement('a');
-  var nombre = (c.inst || 'capacitacion').replace(/[\s\/]/g,'_').substring(0,30);
-  a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(c.texto);
-  a.download = 'capacitacion_' + nombre + '_' + c.fecha + '.txt';
-  a.click();
+  generarPDF(c.texto, c.inst, c.fecha);
 }
 
 // ── VISTAS ────────────────────────────────────────────
@@ -840,14 +837,96 @@ function guardarLocalStorage(txt) {
   saveCaps(caps);
 }
 
-// ── DESCARGAR ─────────────────────────────────────────
+// ── DESCARGAR PDF ─────────────────────────────────────
 function descargar() {
   if(!window._txt) return;
-  var a = document.createElement('a');
-  var inst = gv('g-inst').replace(/[\s\/]/g,'_').substring(0,30) || 'capacitacion';
-  a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(window._txt);
-  a.download = 'capacitacion_' + inst + '.txt';
-  a.click();
+  generarPDF(window._txt, gv('g-inst'), gv('g-fecha'));
+}
+
+function generarPDF(texto, inst, fecha){
+  var jsPDFLib = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
+  if(!jsPDFLib){ alert('Error al cargar librería PDF. Intente de nuevo.'); return; }
+  var doc = new jsPDFLib({ orientation:'portrait', unit:'mm', format:'letter' });
+  var pw = doc.internal.pageSize.getWidth();
+  var ph = doc.internal.pageSize.getHeight();
+  var mg = 18, cw = pw - mg*2;
+  var y = 0, pageNum = 1;
+
+  function header(){
+    doc.setFillColor(10,45,110); doc.rect(0,0,pw,22,'F');
+    doc.setFillColor(13,140,160); doc.rect(0,22,pw,3,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text('GOBIERNO DE LA REPÚBLICA DE HONDURAS', pw/2, 8, {align:'center'});
+    doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('Dirección de Gestión por Resultados (DIGER)  |  Gobierno Digital — Talento Digital', pw/2, 14, {align:'center'});
+    doc.setFontSize(6.5); doc.setTextColor(180,200,230);
+    doc.text('Página '+pageNum, pw-mg, ph-8, {align:'right'});
+    doc.setTextColor(150,160,180);
+    doc.text('DIGER — Registro de Capacitación', mg, ph-8);
+    y = 30;
+  }
+
+  function checkPage(need){
+    if(y+need > ph-14){ doc.addPage(); pageNum++; header(); }
+  }
+
+  function secBar(title, rgb){
+    rgb = rgb||[10,45,110];
+    checkPage(10);
+    doc.setFillColor(rgb[0],rgb[1],rgb[2]); doc.rect(mg,y,cw,7,'F');
+    doc.setFillColor(13,140,160); doc.rect(mg,y,3,7,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold');
+    doc.text(title, mg+5, y+5);
+    y+=9; doc.setTextColor(30,30,30);
+  }
+
+  function renderBlock(bloque){
+    if(!bloque.trim()) return;
+    bloque.trim().split('\n').forEach(function(item){
+      item=item.trim(); if(!item||item==='—') return;
+      var ls=doc.splitTextToSize(item, cw-4);
+      var bh=ls.length*4.5+4;
+      checkPage(bh);
+      doc.setFillColor(248,251,255); doc.rect(mg,y,cw,bh,'F');
+      doc.setDrawColor(200,213,238); doc.setLineWidth(0.2); doc.rect(mg,y,cw,bh,'S');
+      doc.setFontSize(7.8); doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
+      doc.text(ls, mg+3, y+4.5); y+=bh;
+    });
+  }
+
+  header();
+  doc.setTextColor(10,45,110); doc.setFontSize(15); doc.setFont('helvetica','bold');
+  doc.text('FORMATO DE REGISTRO DE CAPACITACIONES', pw/2, y, {align:'center'}); y+=5;
+  doc.setDrawColor(13,140,160); doc.setLineWidth(0.5); doc.line(mg,y,pw-mg,y); y+=7;
+
+  var colorMap = {
+    'GENERALES':[10,45,110], 'CAPACITACIÓN':[20,85,164],
+    'PARTICIPANTES':[13,140,160], 'DOCUMENTOS':[60,100,160],
+    'RESULTADOS':[16,100,60], 'VALIDACIÓN':[120,60,20]
+  };
+
+  var lines = texto.split('\n');
+  var bloque = '';
+  lines.forEach(function(line){
+    if(line.match(/^={5,}/)||line.match(/^-{5,}/)) return;
+    var key = Object.keys(colorMap).find(function(k){ return line.indexOf(k)>=0 && line.trim().length < 60; });
+    if(key){
+      renderBlock(bloque); bloque='';
+      secBar(line.trim(), colorMap[key]);
+    } else {
+      bloque+=line+'\n';
+    }
+  });
+  renderBlock(bloque);
+
+  checkPage(14); y+=4;
+  doc.setDrawColor(200,213,238); doc.setLineWidth(0.3); doc.line(mg,y,pw-mg,y); y+=5;
+  doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(150,160,180);
+  doc.text('Documento generado automáticamente por el Sistema DIGER — Plataforma SOL', pw/2, y, {align:'center'});
+
+  var nombre=(inst||'capacitacion').replace(/[\s\/]/g,'_').substring(0,28);
+  doc.save('Capacitacion_'+nombre+'_'+(fecha||new Date().toISOString().split('T')[0])+'.pdf');
 }
 
 // ── REINICIAR ─────────────────────────────────────────

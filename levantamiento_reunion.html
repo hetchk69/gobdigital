@@ -349,6 +349,7 @@ async function abrirDetalle(id){
   var {data:r, error} = await sb.from('reuniones').select('*').eq('id',id).single();
   if(error||!r){ volverLista(); return; }
 
+  window._currentReunion = r;
   document.getElementById('d-titulo').textContent = r.titulo;
   document.getElementById('d-info').innerHTML =
     '<strong>Tema:</strong> '+esc(r.tema)+'<br>'+
@@ -494,26 +495,137 @@ function imprimirQR(){
   var url    = document.getElementById('d-link').value;
   var titulo = document.getElementById('d-titulo').textContent;
   var qrSrc  = document.getElementById('qr-img').src;
-  var win    = window.open('','_blank','width=520,height=680');
+  var r      = window._currentReunion || {};
+  var fecha  = r.fecha ? r.fecha + (r.hora ? ' &nbsp;·&nbsp; ' + r.hora : '') : '';
+  var lugar  = r.lugar || '';
+  var tema   = r.tema  || '';
+  var hoy    = new Date().toLocaleDateString('es-HN');
+
+  var win = window.open('','_blank','width=620,height=920');
   win.document.write(
-    '<html><head><title>QR — '+titulo+'</title>'+
-    '<style>'+
-    'body{font-family:"Segoe UI",Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fff;padding:2rem;text-align:center}'+
-    '.band{width:100%;height:10px;background:linear-gradient(90deg,#78cbd7 0 33%,#0b4567 33% 66%,#1d6fa8 66% 100%);position:fixed;top:0;left:0}'+
-    'h2{color:#0b4567;font-size:22px;margin:0 0 6px}'+
-    '.sub{color:#64748b;font-size:13px;margin:0 0 22px;max-width:320px;line-height:1.5}'+
-    'img{border:4px solid #bbf7d0;border-radius:14px;padding:12px;box-shadow:0 4px 20px rgba(11,69,103,.12)}'+
-    '.url{font-size:10.5px;color:#94a3b8;margin-top:16px;word-break:break-all;max-width:300px}'+
-    '.footer{position:fixed;bottom:16px;font-size:11px;color:#cbd5e1}'+
-    '</style></head><body>'+
-    '<div class="band"></div>'+
-    '<h2>'+titulo+'</h2>'+
-    '<p class="sub">Escanee el código QR con su celular para registrar su asistencia</p>'+
-    '<img src="'+qrSrc+'" width="240" height="240">'+
-    '<div class="url">'+url+'</div>'+
-    '<div class="footer">DIGER — Plataforma SOL</div>'+
-    '<script>window.onload=function(){window.print();}<\/script>'+
-    '</body></html>'
+'<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'+
+'<title>QR — '+titulo+'</title>'+
+'<style>'+
+'*{box-sizing:border-box;margin:0;padding:0}'+
+'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
+'body{font-family:"Segoe UI",Arial,sans-serif;background:#fff;display:flex;flex-direction:column;min-height:100vh}'+
+
+/* Header */
+'.hdr{background:linear-gradient(135deg,#0a2d6e 0%,#1455a4 55%,#1a7fc4 100%);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}'+
+'.hdr::after{content:"";position:absolute;right:-30px;top:-30px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06)}'+
+'.hdr::before{content:"";position:absolute;left:38%;bottom:-50px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.04)}'+
+'.hdr-left{position:relative;z-index:1}'+
+'.hdr-gov{font-size:8.5px;font-weight:700;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.09em}'+
+'.hdr-org{font-size:15px;font-weight:800;color:#fff;margin:3px 0 2px}'+
+'.hdr-sub{font-size:8.5px;color:rgba(255,255,255,.55);font-weight:600;text-transform:uppercase;letter-spacing:.06em}'+
+'.hdr-right{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-end;gap:5px}'+
+'.live-pill{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;display:flex;align-items:center;gap:5px}'+
+'.live-dot{width:7px;height:7px;border-radius:50%;background:#4ade80}'+
+'.hdr-date{font-size:9px;color:rgba(255,255,255,.5)}'+
+
+/* Accent bar */
+'.accent{height:4px;background:linear-gradient(90deg,#1a7fc4,#0a2d6e)}'+
+
+/* Body */
+'.body{flex:1;display:flex;flex-direction:column;align-items:center;padding:26px 28px 18px}'+
+
+/* Tag */
+'.tag{background:#e8f0ff;color:#0a2d6e;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:4px 14px;border-radius:20px;border:1px solid #c0d0f0;margin-bottom:14px}'+
+
+/* Title */
+'.evt-title{font-size:21px;font-weight:800;color:#0a2d6e;text-align:center;line-height:1.3;margin-bottom:6px;max-width:460px}'+
+'.evt-tema{font-size:12px;color:#6b7fa3;text-align:center;max-width:400px;line-height:1.5;margin-bottom:14px}'+
+
+/* Chips */
+'.chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:22px}'+
+'.chip{display:flex;align-items:center;gap:5px;font-size:11px;color:#2d3748;font-weight:600;background:#f5f8ff;border:1px solid #dde4f0;padding:5px 13px;border-radius:20px}'+
+
+/* QR */
+'.qr-wrap{background:linear-gradient(145deg,#0a2d6e,#1455a4);border-radius:26px;padding:4px;box-shadow:0 16px 48px rgba(10,45,110,.3);margin-bottom:22px}'+
+'.qr-inner{background:#fff;border-radius:22px;padding:18px;display:flex;flex-direction:column;align-items:center}'+
+'.qr-inner img{width:230px;height:230px;display:block;border-radius:6px}'+
+'.qr-lbl{font-size:9px;font-weight:800;color:#9aadcc;text-transform:uppercase;letter-spacing:.12em;margin-top:10px}'+
+
+/* Instruction */
+'.instr{background:#f5f8ff;border:1.5px solid #c8d5ee;border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;max-width:420px;width:100%;margin-bottom:18px}'+
+'.instr-icon{font-size:32px;flex-shrink:0}'+
+'.instr-body{font-size:11.5px;color:#4a5568;line-height:1.65}'+
+'.instr-body strong{color:#0a2d6e;font-size:13px;display:block;margin-bottom:3px;font-weight:800}'+
+
+/* Steps */
+'.steps{display:flex;gap:0;max-width:380px;width:100%;margin-bottom:18px}'+
+'.step-num{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}'+
+'.step-num:not(:last-child)::after{content:"";position:absolute;top:13px;left:50%;width:100%;height:2px;background:#dde4f0;z-index:0}'+
+'.step-circle{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;box-shadow:0 3px 10px rgba(10,45,110,.25)}'+
+'.step-text{font-size:9px;color:#6b7fa3;margin-top:5px;text-align:center;font-weight:600;line-height:1.4;max-width:70px}'+
+
+/* URL */
+'.url-box{font-size:8.5px;color:#9aadcc;word-break:break-all;text-align:center;max-width:400px;padding:0 8px;margin-bottom:10px}'+
+
+/* Footer */
+'.footer{border-top:2px solid #eef1f7;padding:12px 28px;display:flex;align-items:center;justify-content:space-between}'+
+'.foot-left{display:flex;flex-direction:column;gap:2px}'+
+'.foot-brand{font-size:10px;font-weight:800;color:#0a2d6e;text-transform:uppercase;letter-spacing:.08em}'+
+'.foot-sub{font-size:8.5px;color:#9aadcc}'+
+'.foot-right{font-size:8.5px;color:#c8d5ee;text-align:right}'+
+'</style></head><body>'+
+
+'<div class="hdr">'+
+  '<div class="hdr-left">'+
+    '<div class="hdr-gov">Gobierno de la República de Honduras</div>'+
+    '<div class="hdr-org">DIGER &mdash; Plataforma SOL</div>'+
+    '<div class="hdr-sub">Dirección de Gestión por Resultados</div>'+
+  '</div>'+
+  '<div class="hdr-right">'+
+    '<div class="live-pill"><span class="live-dot"></span>Formulario activo</div>'+
+    '<div class="hdr-date">'+hoy+'</div>'+
+  '</div>'+
+'</div>'+
+'<div class="accent"></div>'+
+
+'<div class="body">'+
+  '<div class="tag">📱 Registro de Asistencia</div>'+
+  '<div class="evt-title">'+titulo+'</div>'+
+  (tema ? '<div class="evt-tema">'+tema+'</div>' : '')+
+  '<div class="chips">'+
+    (fecha ? '<div class="chip">📅 '+fecha+'</div>' : '')+
+    (lugar ? '<div class="chip">📍 '+lugar+'</div>' : '')+
+  '</div>'+
+
+  '<div class="qr-wrap">'+
+    '<div class="qr-inner">'+
+      '<img src="'+qrSrc+'" alt="Código QR">'+
+      '<div class="qr-lbl">Escanear para registrarse</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="steps">'+
+    '<div class="step-num"><div class="step-circle">1</div><div class="step-text">Abrir cámara del celular</div></div>'+
+    '<div class="step-num"><div class="step-circle">2</div><div class="step-text">Apuntar al código QR</div></div>'+
+    '<div class="step-num"><div class="step-circle">3</div><div class="step-text">Completar el formulario</div></div>'+
+  '</div>'+
+
+  '<div class="instr">'+
+    '<div class="instr-icon">📲</div>'+
+    '<div class="instr-body">'+
+      '<strong>¿Cómo registrar su asistencia?</strong>'+
+      'Use la cámara de su celular para escanear el código. Se abrirá el formulario automáticamente. Complete sus datos y presione <strong>Registrar</strong>.'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="url-box">'+url+'</div>'+
+'</div>'+
+
+'<div class="footer">'+
+  '<div class="foot-left">'+
+    '<div class="foot-brand">DIGER &mdash; Gobierno Digital</div>'+
+    '<div class="foot-sub">Plataforma SOL &mdash; Talento Digital</div>'+
+  '</div>'+
+  '<div class="foot-right">Generado el '+hoy+'<br>Honduras</div>'+
+'</div>'+
+
+'<script>window.onload=function(){window.print();}<\/script>'+
+'</body></html>'
   );
   win.document.close();
 }
