@@ -419,7 +419,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
         <div class="check-wrap"><svg viewBox="0 0 52 52"><polyline points="14,27 22,35 38,17"/></svg></div>
         <h2>¡Memoria guardada!</h2>
         <p>La memoria de reunión quedó registrada y está disponible en la lista para su consulta y descarga.</p>
-        <button class="btnp" onclick="descargar()" style="margin-bottom:12px">⬇ Descargar (.txt)</button><br>
+        <button class="btnp" onclick="descargar()" style="margin-bottom:12px">⬇ Descargar PDF</button><br>
         <button class="btns" onclick="volverLista()" style="margin-top:10px;font-size:13px">← Ver todas las memorias</button>
       </div>
     </div>
@@ -442,7 +442,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
     <div class="detalle-pre" id="d-pre"></div>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:.5rem">
-    <button class="btnp btn-sm" onclick="descargarDetalle()">⬇ Descargar .txt</button>
+    <button class="btnp btn-sm" onclick="descargarDetalle()">⬇ Descargar PDF</button>
     <button class="btn-danger btn-sm" onclick="eliminarMemoria()">🗑 Eliminar memoria</button>
   </div>
 </div>
@@ -769,155 +769,121 @@ function descargar(){
   generarPDF(window._txt, gv('g-inst'), gv('g-fecha'));
 }
 
+// Normaliza caracteres para que jsPDF no falle con acentos
+function normPDF(str){
+  return String(str||'')
+    .replace(/[ÁÀÄÂÃ]/g,'A').replace(/[áàäâã]/g,'a')
+    .replace(/[ÉÈËÊ]/g,'E').replace(/[éèëê]/g,'e')
+    .replace(/[ÍÌÏÎ]/g,'I').replace(/[íìïî]/g,'i')
+    .replace(/[ÓÒÖÔÕ]/g,'O').replace(/[óòöôõ]/g,'o')
+    .replace(/[ÚÙÜÛ]/g,'U').replace(/[úùüû]/g,'u')
+    .replace(/[Ñ]/g,'N').replace(/[ñ]/g,'n')
+    .replace(/[—–]/g,'-').replace(/[«»“”]/g,'"')
+    .replace(/[·]/g,'*');
+}
+
 function generarPDF(texto, inst, fecha){
-  var jsPDFLib = window.jspdf ? window.jspdf.jsPDF : (window.jsPDF);
-  if(!jsPDFLib){ alert('Error al cargar librería PDF. Intente de nuevo.'); return; }
-  var doc = new jsPDFLib({ orientation:'portrait', unit:'mm', format:'letter' });
-  var pw = doc.internal.pageSize.getWidth();
-  var ph = doc.internal.pageSize.getHeight();
-  var mg = 18, cw = pw - mg*2;
-  var y = 0, pageNum = 1;
-
-  function header(){
-    doc.setFillColor(10,45,110);
-    doc.rect(0,0,pw,22,'F');
-    doc.setFillColor(20,85,164);
-    doc.rect(0,22,pw,3,'F');
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('GOBIERNO DE LA REPÚBLICA DE HONDURAS', pw/2, 8, {align:'center'});
-    doc.setFontSize(7); doc.setFont('helvetica','normal');
-    doc.text('Dirección de Gestión por Resultados (DIGER)  |  Gobierno Digital — Talento Digital', pw/2, 14, {align:'center'});
-    doc.setFontSize(6.5); doc.setTextColor(180,200,230);
-    doc.text('Página '+pageNum, pw-mg, ph-8, {align:'right'});
-    doc.setTextColor(150,160,180);
-    doc.text('DIGER — Memoria de Reunión', mg, ph-8);
-    y = 30;
+  var jsPDFLib = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+  if(!jsPDFLib){
+    alert('Libreria PDF no disponible. Descargando como texto.');
+    var a=document.createElement('a');
+    a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(texto);
+    a.download='Memoria_'+((inst||'mem').replace(/[\s\/]/g,'_').substring(0,25))+'_'+(fecha||'')+'.txt';
+    a.click(); return;
   }
 
-  function checkPage(need){
-    if(y + need > ph-14){ doc.addPage(); pageNum++; header(); }
-  }
+  try {
+    var doc = new jsPDFLib({ orientation:'portrait', unit:'mm', format:'letter' });
+    var pw = doc.internal.pageSize.getWidth();
+    var ph = doc.internal.pageSize.getHeight();
+    var mg = 18, cw = pw - mg*2;
+    var y = 0, pageNum = 1;
 
-  function secBar(title, rgb){
-    rgb = rgb||[20,85,164];
-    checkPage(10);
-    doc.setFillColor(rgb[0],rgb[1],rgb[2]);
-    doc.rect(mg,y,cw,7,'F');
-    doc.setFillColor(rgb[0]-10,rgb[1]-10,rgb[2]+20);
-    doc.rect(mg,y,3,7,'F');
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(8); doc.setFont('helvetica','bold');
-    doc.text(title, mg+5, y+5);
-    y+=9; doc.setTextColor(30,30,30);
-  }
+    function header(){
+      doc.setFillColor(10,45,110); doc.rect(0,0,pw,22,'F');
+      doc.setFillColor(20,85,164); doc.rect(0,22,pw,3,'F');
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(9); doc.setFont('helvetica','bold');
+      doc.text('GOBIERNO DE LA REPUBLICA DE HONDURAS', pw/2, 8, {align:'center'});
+      doc.setFontSize(7); doc.setFont('helvetica','normal');
+      doc.text('Direccion de Gestion por Resultados (DIGER)  |  Gobierno Digital - Talento Digital', pw/2, 14, {align:'center'});
+      doc.setFontSize(6.5); doc.setTextColor(180,200,230);
+      doc.text('Pagina '+pageNum, pw-mg, ph-8, {align:'right'});
+      doc.setTextColor(150,160,180);
+      doc.text('DIGER - Memoria de Reunion', mg, ph-8);
+      y = 30;
+    }
 
-  function field(label, value, lw){
-    lw = lw||48;
-    var lines = doc.splitTextToSize(String(value||'—'), cw-lw-2);
-    var rh = Math.max(6, lines.length*4.5+2);
-    checkPage(rh);
-    doc.setFillColor(237,242,255); doc.rect(mg,y,lw,rh,'F');
-    doc.setFillColor(248,251,255); doc.rect(mg+lw,y,cw-lw,rh,'F');
-    doc.setDrawColor(200,213,238); doc.setLineWidth(0.2);
-    doc.rect(mg,y,cw,rh,'S');
-    doc.line(mg+lw,y,mg+lw,y+rh);
-    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(70,90,140);
-    doc.text(label, mg+2, y+rh/2+1.5);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(30,30,30);
-    doc.text(lines, mg+lw+2, y+4.5);
-    y+=rh;
-  }
+    function checkPage(need){
+      if(y+need > ph-14){ doc.addPage(); pageNum++; header(); }
+    }
 
-  function textBlock(txt){
-    if(!txt || txt==='—') return;
-    var lines = doc.splitTextToSize(txt, cw-4);
-    checkPage(lines.length*5+4);
-    doc.setFillColor(248,251,255); doc.rect(mg,y,cw,lines.length*5+4,'F');
-    doc.setDrawColor(200,213,238); doc.rect(mg,y,cw,lines.length*5+4,'S');
-    doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
-    doc.text(lines, mg+3, y+4.5);
-    y+=lines.length*5+6;
-  }
+    function secBar(title, rgb){
+      checkPage(10);
+      doc.setFillColor(rgb[0],rgb[1],rgb[2]); doc.rect(mg,y,cw,7,'F');
+      doc.setFillColor(20,85,164); doc.rect(mg,y,3,7,'F');
+      doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+      doc.text(normPDF(title), mg+5, y+5);
+      y+=9; doc.setTextColor(30,30,30);
+    }
 
-  /* ── Portada / encabezado ── */
-  header();
-  doc.setTextColor(10,45,110); doc.setFontSize(16); doc.setFont('helvetica','bold');
-  doc.text('MEMORIA DE REUNIÓN', pw/2, y, {align:'center'}); y+=5;
-  doc.setDrawColor(20,85,164); doc.setLineWidth(0.5);
-  doc.line(mg,y,pw-mg,y); y+=7;
+    function renderLine(item){
+      var ls = doc.splitTextToSize(normPDF(item), cw-4);
+      var bh = ls.length*4.8+3;
+      checkPage(bh+1);
+      doc.setFillColor(248,251,255); doc.rect(mg,y,cw,bh,'F');
+      doc.setDrawColor(210,220,238); doc.setLineWidth(0.15); doc.rect(mg,y,cw,bh,'S');
+      doc.setFontSize(7.8); doc.setFont('helvetica','normal'); doc.setTextColor(35,35,35);
+      doc.text(ls, mg+3, y+4.2);
+      y+=bh;
+    }
 
-  /* Parsear secciones del texto */
-  var lines = texto.split('\n');
-  var seccion = '', bloque = '';
+    /* Encabezado del doc */
+    header();
+    doc.setTextColor(10,45,110); doc.setFontSize(15); doc.setFont('helvetica','bold');
+    doc.text('MEMORIA DE REUNION', pw/2, y, {align:'center'}); y+=5;
+    doc.setDrawColor(20,85,164); doc.setLineWidth(0.5); doc.line(mg,y,pw-mg,y); y+=7;
 
-  function volcarBloque(){
-    if(!bloque.trim()) return;
-    var items = bloque.trim().split('\n');
-    items.forEach(function(item){
-      item = item.trim();
-      if(!item || item==='—') return;
-      if(item.match(/^[1-9]\d*\./)||item.match(/^-/)){
-        checkPage(6);
-        doc.setFillColor(248,251,255);
-        doc.rect(mg,y,cw,6,'F');
-        doc.setDrawColor(200,213,238); doc.setLineWidth(0.2);
-        doc.line(mg,y,mg+cw,y);
-        doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
-        var wrapped=doc.splitTextToSize(item, cw-4);
-        if(y+wrapped.length*4.5+4 > ph-14){ doc.addPage(); pageNum++; header(); }
-        var bh=wrapped.length*4.5+4;
-        doc.setFillColor(248,251,255); doc.rect(mg,y,cw,bh,'F');
-        doc.setDrawColor(200,213,238); doc.rect(mg,y,cw,bh,'S');
-        doc.text(wrapped, mg+3, y+4.5);
-        y+=bh;
+    /* Parsear y renderizar */
+    var SECCIONES = {
+      'DATOS GENERALES':[10,45,110],
+      'PARTICIPANTES':[13,140,160],
+      'AGENDA':[20,85,164],
+      'COMPROMISOS':[16,100,60],
+      'PROXIMA REUNION':[80,40,120],
+      'VALIDACION':[120,60,20],
+      'OBSERVACIONES':[60,60,80]
+    };
+
+    texto.split('\n').forEach(function(line){
+      if(!line.trim()) return;
+      if(line.match(/^={5,}/)||line.match(/^-{5,}/)) return;
+      var norm = normPDF(line).trim().toUpperCase();
+      var secKey = Object.keys(SECCIONES).find(function(k){ return norm.indexOf(k)>=0 && norm.length<80; });
+      if(secKey){
+        y+=2; secBar(normPDF(line), SECCIONES[secKey]); y+=1;
       } else {
-        var ls=doc.splitTextToSize(item, cw-4);
-        var bh2=ls.length*4.5+4;
-        checkPage(bh2);
-        doc.setFillColor(250,252,255); doc.rect(mg,y,cw,bh2,'F');
-        doc.setDrawColor(210,220,238); doc.rect(mg,y,cw,bh2,'S');
-        doc.setFontSize(7.8); doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40);
-        doc.text(ls, mg+3, y+4.5);
-        y+=bh2;
+        renderLine(line);
       }
     });
-    bloque='';
+
+    /* Pie */
+    checkPage(14); y+=5;
+    doc.setDrawColor(200,213,238); doc.setLineWidth(0.3); doc.line(mg,y,pw-mg,y); y+=5;
+    doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(150,160,180);
+    doc.text('Generado por el Sistema DIGER - Plataforma SOL', pw/2, y, {align:'center'});
+
+    var nombre = normPDF(inst||'memoria').replace(/[\s\/]/g,'_').substring(0,25);
+    doc.save('Memoria_'+nombre+'_'+(fecha||new Date().toISOString().split('T')[0])+'.pdf');
+
+  } catch(e){
+    console.error('Error PDF:', e);
+    alert('Error generando PDF: '+e.message+'\nDescargando como texto.');
+    var a=document.createElement('a');
+    a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(texto);
+    a.download='Memoria_'+((inst||'mem').replace(/[\s\/]/g,'_').substring(0,25))+'_'+(fecha||'')+'.txt';
+    a.click();
   }
-
-  lines.forEach(function(line){
-    if(line.match(/^={5,}/)) return;
-    if(line.match(/^-{5,}/)) return;
-    if(line.match(/^(DATOS GENERALES|PARTICIPANTES|AGENDA|COMPROMISOS|PRÓXIMA REUNIÓN|VALIDACIÓN|OBSERVACIONES)/)){
-      volcarBloque();
-      var colors = {
-        'DATOS GENERALES':[10,45,110],
-        'PARTICIPANTES':[13,140,160],
-        'AGENDA':[20,85,164],
-        'COMPROMISOS':[16,100,60],
-        'PRÓXIMA REUNIÓN':[80,40,120],
-        'VALIDACIÓN':[120,60,20],
-        'OBSERVACIONES':[60,60,80]
-      };
-      var key = Object.keys(colors).find(function(k){ return line.indexOf(k)>=0; });
-      secBar(line.trim(), colors[key]||[20,85,164]);
-      seccion = key||'';
-    } else {
-      bloque += line + '\n';
-    }
-  });
-  volcarBloque();
-
-  /* Pie de última página */
-  checkPage(14);
-  y+=4;
-  doc.setDrawColor(200,213,238); doc.setLineWidth(0.3);
-  doc.line(mg,y,pw-mg,y); y+=5;
-  doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(150,160,180);
-  doc.text('Documento generado automáticamente por el Sistema DIGER — Plataforma SOL', pw/2, y, {align:'center'});
-
-  var nombre = (inst||'memoria').replace(/[\s\/]/g,'_').substring(0,25);
-  doc.save('Memoria_'+nombre+'_'+(fecha||new Date().toISOString().split('T')[0])+'.pdf');
 }
 
 // ── REINICIAR ─────────────────────────────────────────
