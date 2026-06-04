@@ -4,293 +4,222 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Lista de asistencia — DIGER</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --azul-profundo: #0b4567;
-      --azul: #1d6fa8;
-      --celeste: #78cbd7;
-      --fondo: #f3f6f8;
-      --texto: #172b3a;
-      --linea: #d7e1e8;
-      --suave: #eef5f8;
-      --blanco: #ffffff;
-      --error: #b42318;
-      --verde: #16a34a;
+    :root{
+      --azul:#0b4567;--azul-m:#1d6fa8;--celeste:#78cbd7;
+      --fondo:#f3f6f8;--texto:#172b3a;--linea:#d7e1e8;
+      --suave:#eef5f8;--blanco:#fff;--error:#b42318;--verde:#16a34a;
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--fondo); color: var(--texto); font-family: "Segoe UI", Arial, Helvetica, sans-serif; }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--fondo);color:var(--texto);font-family:"Segoe UI",Arial,sans-serif}
+    .top-band{height:12px;background:linear-gradient(90deg,var(--celeste) 0 33%,var(--azul) 33% 66%,var(--azul-m) 66% 100%)}
+    .shell{width:min(680px,calc(100% - 28px));margin:24px auto 40px}
 
-    .top-band { height: 12px; background: linear-gradient(90deg, var(--celeste) 0 33%, var(--azul-profundo) 33% 66%, var(--azul) 66% 100%); }
+    .header,.form-card{background:var(--blanco);border:1px solid var(--linea);border-radius:8px;box-shadow:0 12px 30px rgba(23,43,58,.08)}
+    .header{padding:22px 24px;border-top:8px solid var(--azul);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center}
+    .brand-logo{width:min(280px,100%);max-height:64px;object-fit:contain;object-position:left;display:block}
+    .doc-meta{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+    .meta-pill{border:1px solid var(--linea);border-radius:999px;color:var(--azul);font-size:12px;font-weight:700;padding:6px 10px;white-space:nowrap}
 
-    .shell { width: min(680px, calc(100% - 28px)); margin: 24px auto 40px; }
+    .form-card{margin-top:18px;overflow:hidden}
+    .form-title{padding:22px 24px 16px;border-bottom:1px solid var(--linea)}
+    .form-title h1{font-size:22px;color:var(--azul);margin:0 0 4px}
+    .form-title p{font-size:13px;color:#64748b;margin:0}
 
-    .header, .form-card {
-      background: var(--blanco); border: 1px solid var(--linea);
-      border-radius: 8px; box-shadow: 0 12px 30px rgba(23,43,58,.08);
+    .event-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:18px 24px;background:var(--suave);border-bottom:1px solid var(--linea)}
+    .event-full{grid-column:1/-1}
+    .question-list{display:grid;gap:16px;padding:20px 24px}
+    .field{display:grid;gap:7px}
+    .field label{font-size:14px;font-weight:700;color:var(--azul)}
+    .question{border-left:4px solid var(--azul-m);padding-left:14px}
+    .required{color:var(--error)}
+
+    input{width:100%;min-height:42px;border:1px solid #b8c7d2;border-radius:4px;background:var(--blanco);color:var(--texto);font:15px "Segoe UI",Arial,sans-serif;padding:8px 10px}
+    input:focus{border-color:var(--azul-m);box-shadow:0 0 0 2px rgba(29,111,168,.14);outline:0}
+    input[readonly]{background:#e9eff3;color:#60717c;cursor:default}
+
+    .status{min-height:20px;margin:0 24px;font-size:13px;font-weight:700;color:var(--azul)}
+    .status.error{color:var(--error)}
+    .button-row{display:flex;flex-wrap:wrap;gap:10px;padding:4px 24px 24px}
+    button{appearance:none;border:1px solid var(--azul);border-radius:4px;min-height:40px;padding:9px 22px;background:var(--azul);color:white;cursor:pointer;font:700 14px "Segoe UI",Arial,sans-serif;transition:opacity .2s}
+    button:hover{opacity:.88}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    button.secondary{background:white;color:var(--azul)}
+
+    /* Loader */
+    .loader-wrap{text-align:center;padding:3rem 2rem}
+    .spinner{display:inline-block;width:32px;height:32px;border:3px solid #dde4f0;border-top-color:var(--azul-m);border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Éxito */
+    .success-wrap{text-align:center;padding:3rem 2rem}
+    .success-icon{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:36px;box-shadow:0 8px 24px rgba(22,163,74,.3);animation:popIn .45s cubic-bezier(.175,.885,.32,1.275)}
+    @keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+    .success-wrap h2{color:var(--azul);font-size:22px;margin:0 0 .5rem}
+    .success-wrap p{color:#64748b;font-size:14px;max-width:340px;margin:0 auto 1.5rem;line-height:1.6}
+    .btn-nuevo{background:var(--azul);color:#fff;padding:10px 22px;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;border:none}
+
+    @media(max-width:600px){
+      .shell{width:calc(100% - 18px);margin-top:12px}
+      .header{grid-template-columns:1fr}.doc-meta{justify-content:flex-start}
+      .event-grid{grid-template-columns:1fr}
     }
-    .header {
-      padding: 22px 24px; border-top: 8px solid var(--azul-profundo);
-      display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 20px; align-items: center;
-    }
-    .brand-logo { width: min(280px,100%); max-height: 64px; object-fit: contain; object-position: left center; display: block; }
-    .doc-meta { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-    .meta-pill { border: 1px solid var(--linea); border-radius: 999px; color: var(--azul-profundo); font-size: 12px; font-weight: 700; padding: 6px 10px; white-space: nowrap; }
-
-    .form-card { margin-top: 18px; overflow: hidden; }
-
-    .form-title { padding: 22px 24px 16px; border-bottom: 1px solid var(--linea); }
-    .form-title h1 { font-size: 22px; color: var(--azul-profundo); margin: 0 0 4px; }
-    .form-title p { font-size: 13px; color: #64748b; margin: 0; }
-
-    .event-grid {
-      display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 14px; padding: 18px 24px; background: var(--suave); border-bottom: 1px solid var(--linea);
-    }
-    .event-full { grid-column: 1 / -1; }
-
-    .question-list { display: grid; gap: 16px; padding: 20px 24px; }
-    .field { display: grid; gap: 7px; }
-    .field label { font-size: 14px; font-weight: 700; color: var(--azul-profundo); }
-    .question { border-left: 4px solid var(--azul); padding-left: 14px; }
-    .required { color: var(--error); }
-
-    input {
-      width: 100%; min-height: 42px; border: 1px solid #b8c7d2; border-radius: 4px;
-      background: var(--blanco); color: var(--texto); font: 15px "Segoe UI", Arial, Helvetica, sans-serif; padding: 8px 10px;
-    }
-    input:focus { border-color: var(--azul); box-shadow: 0 0 0 2px rgba(29,111,168,.14); outline: 0; }
-    input[readonly] { background: #e9eff3; color: #60717c; cursor: default; }
-
-    .status { min-height: 20px; margin: 0 24px; font-size: 13px; font-weight: 700; color: var(--azul-profundo); }
-    .status.error { color: var(--error); }
-
-    .button-row { display: flex; flex-wrap: wrap; gap: 10px; padding: 4px 24px 24px; }
-    button {
-      appearance: none; border: 1px solid var(--azul-profundo); border-radius: 4px;
-      min-height: 40px; padding: 9px 22px; background: var(--azul-profundo); color: white;
-      cursor: pointer; font: 700 14px "Segoe UI", Arial, Helvetica, sans-serif; transition: opacity .2s;
-    }
-    button:hover { opacity: .88; }
-    button.secondary { background: white; color: var(--azul-profundo); }
-
-    /* Pantalla de éxito */
-    .success-box {
-      text-align: center; padding: 3rem 2rem; display: none;
-    }
-    .success-icon {
-      width: 80px; height: 80px; border-radius: 50%;
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 1.25rem; font-size: 36px;
-      box-shadow: 0 8px 24px rgba(22,163,74,.3);
-      animation: popIn .45s cubic-bezier(.175,.885,.32,1.275);
-    }
-    @keyframes popIn { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
-    .success-box h2 { color: var(--azul-profundo); font-size: 22px; margin: 0 0 .5rem; }
-    .success-box p { color: #64748b; font-size: 14px; max-width: 340px; margin: 0 auto 1.5rem; line-height: 1.6; }
-    .btn-nuevo { display: inline-block; background: var(--azul-profundo); color: #fff; padding: 10px 22px; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
-
-    @media (max-width: 600px) {
-      .shell { width: calc(100% - 18px); margin-top: 12px; }
-      .header { grid-template-columns: 1fr; }
-      .doc-meta { justify-content: flex-start; }
-      .event-grid { grid-template-columns: 1fr; }
-    }
-    @media print {
-      .top-band, .button-row { display: none !important; }
-      .shell { width: 100%; margin: 0; }
-      .header, .form-card { border: 0; box-shadow: none; }
+    @media print{
+      .top-band,.button-row{display:none!important}
+      .shell{width:100%;margin:0}.header,.form-card{border:0;box-shadow:none}
     }
   </style>
 </head>
 <body>
-  <div class="top-band"></div>
+<div class="top-band"></div>
+<div class="shell">
 
-  <main class="shell">
-    <header class="header">
-      <img class="brand-logo" src="logo_diger-14.png" alt="Gobierno Digital DIGER">
-      <div class="doc-meta">
-        <span class="meta-pill">Version: 01</span>
-        <span class="meta-pill">Codigo: LIST-001</span>
-      </div>
-    </header>
+  <header class="header">
+    <img class="brand-logo" src="logo_diger-14.png" alt="DIGER">
+    <div class="doc-meta">
+      <span class="meta-pill">Version: 01</span>
+      <span class="meta-pill">Codigo: LIST-001</span>
+    </div>
+  </header>
 
-    <section class="form-card" id="form-section">
-      <div class="form-title">
-        <h1>Lista de asistencia</h1>
-        <p>Complete sus datos para registrar su asistencia.</p>
-      </div>
+  <!-- CARGANDO -->
+  <div class="form-card" id="section-loader">
+    <div class="loader-wrap">
+      <div class="spinner"></div>
+      <p style="margin-top:1rem;color:#64748b;font-size:14px">Cargando formulario...</p>
+    </div>
+  </div>
 
-      <!-- Info del evento (readonly, cargada por el admin) -->
-      <div class="event-grid">
-        <div class="field event-full">
-          <label>Título del tema</label>
-          <input id="tema-titulo" type="text" readonly placeholder="—">
-        </div>
-        <div class="field">
-          <label>Tema / motivo</label>
-          <input id="tema" type="text" readonly placeholder="—">
-        </div>
-        <div class="field">
-          <label>Fecha y hora</label>
-          <input id="fecha-hora" type="text" readonly placeholder="—">
-        </div>
-      </div>
+  <!-- FORMULARIO -->
+  <div class="form-card" id="section-form" style="display:none">
+    <div class="form-title">
+      <h1>Lista de asistencia</h1>
+      <p>Complete sus datos para registrar su asistencia.</p>
+    </div>
+    <div class="event-grid">
+      <div class="field event-full"><label>Título del tema</label><input id="ev-titulo" type="text" readonly></div>
+      <div class="field"><label>Tema / motivo</label><input id="ev-tema" type="text" readonly></div>
+      <div class="field"><label>Fecha y hora</label><input id="ev-fecha" type="text" readonly></div>
+    </div>
+    <div class="question-list">
+      <div class="field question"><label for="nombre">Nombre completo <span class="required">*</span></label><input id="nombre" type="text" autocomplete="name" placeholder="Su nombre completo"></div>
+      <div class="field question"><label for="correo">Correo electrónico <span class="required">*</span></label><input id="correo" type="email" autocomplete="email" placeholder="correo@ejemplo.com"></div>
+      <div class="field question"><label for="institucion">Institución <span class="required">*</span></label><input id="institucion" type="text" placeholder="Nombre de su institución"></div>
+      <div class="field question"><label for="telefono">Teléfono</label><input id="telefono" type="tel" autocomplete="tel" placeholder="+504 9999-9999"></div>
+    </div>
+    <div class="status" id="status" role="status"></div>
+    <div class="button-row">
+      <button type="button" id="btn-enviar" onclick="enviarAsistencia()">Registrar asistencia</button>
+      <button type="button" class="secondary" onclick="limpiarForm()">Limpiar</button>
+    </div>
+  </div>
 
-      <!-- Formulario del participante -->
-      <div class="question-list">
-        <div class="field question">
-          <label for="nombre">Nombre completo <span class="required">*</span></label>
-          <input id="nombre" type="text" autocomplete="name" placeholder="Su nombre completo" required>
-        </div>
-        <div class="field question">
-          <label for="correo">Correo electrónico <span class="required">*</span></label>
-          <input id="correo" type="email" autocomplete="email" placeholder="correo@ejemplo.com" required>
-        </div>
-        <div class="field question">
-          <label for="institucion">Institución <span class="required">*</span></label>
-          <input id="institucion" type="text" list="instituciones-list" placeholder="Nombre de su institución" required>
-          <datalist id="instituciones-list"></datalist>
-        </div>
-        <div class="field question">
-          <label for="telefono">Teléfono</label>
-          <input id="telefono" type="tel" autocomplete="tel" placeholder="+504 9999-9999">
-        </div>
-      </div>
+  <!-- ÉXITO -->
+  <div class="form-card" id="section-exito" style="display:none">
+    <div class="success-wrap">
+      <div class="success-icon">✓</div>
+      <h2>¡Asistencia registrada!</h2>
+      <p>Su registro fue guardado correctamente. Gracias por participar.</p>
+      <button class="btn-nuevo" onclick="nuevoRegistro()">Registrar otra persona</button>
+    </div>
+  </div>
 
-      <div class="status" id="status" role="status"></div>
+  <!-- ERROR -->
+  <div class="form-card" id="section-error" style="display:none">
+    <div style="text-align:center;padding:3rem 2rem">
+      <div style="font-size:44px;margin-bottom:1rem">⚠️</div>
+      <h2 style="color:var(--azul);font-size:20px;margin:0 0 .5rem">Formulario no disponible</h2>
+      <p id="error-msg" style="color:#64748b;font-size:14px;max-width:320px;margin:0 auto"></p>
+    </div>
+  </div>
 
-      <div class="button-row">
-        <button type="button" id="save-entry">Registrar asistencia</button>
-        <button type="button" class="secondary" id="clear-form">Limpiar</button>
-      </div>
-    </section>
+</div>
 
-    <!-- Pantalla de éxito -->
-    <section class="form-card" id="success-section" style="display:none">
-      <div class="success-box" style="display:block">
-        <div class="success-icon">✓</div>
-        <h2>¡Asistencia registrada!</h2>
-        <p>Su registro fue guardado correctamente. Gracias por participar.</p>
-        <button class="btn-nuevo" onclick="nuevoRegistro()">Registrar otra persona</button>
-      </div>
-    </section>
-  </main>
+<script>
+const SUPABASE_URL = 'https://gnpvqiyantdtksfvqtqk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  <script>
-    const DB_KEY     = 'diger_reuniones';
-    const REC_PREFIX = 'diger_rec_';
+var reunionId   = window.location.hash.slice(1) || null;
+var reunionData = null;
 
-    // Leer ID del hash (#XXXXXX) — funciona en GitHub Pages y cualquier servidor
-    const reunionId = window.location.hash.slice(1) || null;
+function mostrar(seccion){
+  ['loader','form','exito','error'].forEach(function(s){
+    document.getElementById('section-'+s).style.display = s===seccion?'block':'none';
+  });
+}
 
-    let records = loadRecords();
+function mostrarError(msg){
+  document.getElementById('error-msg').textContent = msg;
+  mostrar('error');
+}
 
-    function loadRecords() {
-      if(!reunionId) return [];
-      try { return JSON.parse(localStorage.getItem(REC_PREFIX + reunionId)) || []; } catch { return []; }
-    }
-    function saveRecords() {
-      if(!reunionId) return;
-      localStorage.setItem(REC_PREFIX + reunionId, JSON.stringify(records));
-    }
+// ── CARGAR REUNIÓN ────────────────────────────────────
+async function cargarReunion(){
+  if(!reunionId){ mostrarError('Link inválido. No se encontró el identificador del formulario.'); return; }
+  var {data, error} = await sb.from('reuniones').select('*').eq('id', reunionId).single();
+  if(error||!data){ mostrarError('Este formulario no existe o fue eliminado.'); return; }
+  if(!data.activa){ mostrarError('Este formulario está cerrado. Ya no acepta nuevos registros.'); return; }
+  reunionData = data;
+  document.getElementById('ev-titulo').value = data.titulo || '';
+  document.getElementById('ev-tema').value   = data.tema   || '';
+  document.getElementById('ev-fecha').value  = (data.fecha||'') + (data.hora?' — '+data.hora:'');
+  mostrar('form');
+}
 
-    function loadEventInfo() {
-      if(!reunionId){
-        mostrarError('Link inválido. No se encontró el formulario.');
-        return;
-      }
-      try {
-        const db = JSON.parse(localStorage.getItem(DB_KEY)) || {};
-        const r  = db[reunionId];
-        if(!r){
-          mostrarError('Este formulario no existe o fue eliminado.');
-          return;
-        }
-        if(!r.activa){
-          mostrarError('Este formulario está cerrado. Ya no acepta nuevos registros.');
-          return;
-        }
-        document.getElementById('tema-titulo').value = r.titulo  || '';
-        document.getElementById('tema').value        = r.tema    || '';
-        document.getElementById('fecha-hora').value  = (r.fecha||'') + (r.hora?' — '+r.hora:'');
-      } catch {
-        mostrarError('Error al cargar el formulario.');
-      }
-    }
+// ── ENVIAR ASISTENCIA ─────────────────────────────────
+async function enviarAsistencia(){
+  var nombre      = document.getElementById('nombre').value.trim();
+  var correo      = document.getElementById('correo').value.trim();
+  var institucion = document.getElementById('institucion').value.trim();
+  var telefono    = document.getElementById('telefono').value.trim();
+  var st          = document.getElementById('status');
+  var btn         = document.getElementById('btn-enviar');
+  st.classList.remove('error'); st.textContent='';
 
-    function mostrarError(msg){
-      document.getElementById('form-section').style.display = 'none';
-      document.getElementById('success-section').style.display = 'block';
-      document.getElementById('success-section').innerHTML =
-        '<div style="text-align:center;padding:3rem 2rem">' +
-        '<div style="font-size:44px;margin-bottom:1rem">⚠️</div>' +
-        '<h2 style="color:#0b4567;font-size:20px;margin:0 0 .5rem">Formulario no disponible</h2>' +
-        '<p style="color:#64748b;font-size:14px;max-width:320px;margin:0 auto">' + msg + '</p>' +
-        '</div>';
-    }
+  if(!nombre||!correo||!institucion){
+    st.textContent='Complete los campos obligatorios.'; st.classList.add('error'); return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){
+    st.textContent='Ingrese un correo electrónico válido.'; st.classList.add('error'); return;
+  }
 
-    function normalizeInstitution(v) { return v.trim().replace(/\s+/g, ' '); }
+  btn.disabled=true; btn.textContent='Enviando...';
 
-    function renderInstSuggestions() {
-      const unique = [...new Set(records.map(r => r.institucion).filter(Boolean))].sort();
-      const dl = document.getElementById('instituciones-list');
-      dl.innerHTML = unique.map(i => `<option value="${i}"></option>`).join('');
-    }
+  var {error} = await sb.from('asistencias').insert({
+    reunion_id  : reunionId,
+    nombre      : nombre,
+    correo      : correo,
+    institucion : institucion,
+    telefono    : telefono
+  });
 
-    function setStatus(msg, isError = false) {
-      const el = document.getElementById('status');
-      el.textContent = msg;
-      el.classList.toggle('error', isError);
-    }
+  btn.disabled=false; btn.textContent='Registrar asistencia';
 
-    function validateEntry(entry) {
-      if (!entry.nombre || !entry.correo || !entry.institucion) return 'Complete los campos obligatorios.';
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(entry.correo)) return 'Ingrese un correo electrónico válido.';
-      return '';
-    }
+  if(error){
+    st.textContent='Error al registrar. Intente de nuevo.'; st.classList.add('error'); return;
+  }
+  mostrar('exito');
+}
 
-    function addEntry() {
-      const entry = {
-        id          : Date.now(),
-        nombre      : document.getElementById('nombre').value.trim(),
-        correo      : document.getElementById('correo').value.trim(),
-        institucion : normalizeInstitution(document.getElementById('institucion').value),
-        telefono    : document.getElementById('telefono').value.trim(),
-        registrado  : new Date().toLocaleString('es-HN')
-      };
-      const error = validateEntry(entry);
-      if (error) { setStatus(error, true); return; }
+function limpiarForm(){
+  ['nombre','correo','institucion','telefono'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('status').textContent='';
+  document.getElementById('nombre').focus();
+}
 
-      records.push(entry);
-      saveRecords();
-      renderInstSuggestions();
+function nuevoRegistro(){
+  limpiarForm();
+  mostrar('form');
+}
 
-      // Mostrar éxito
-      document.getElementById('form-section').style.display = 'none';
-      document.getElementById('success-section').style.display = 'block';
-    }
+document.addEventListener('keydown', function(ev){
+  if(ev.key==='Enter' && document.getElementById('section-form').style.display!=='none') enviarAsistencia();
+});
 
-    function clearForm() {
-      ['nombre','correo','institucion','telefono'].forEach(id => { document.getElementById(id).value = ''; });
-      setStatus('');
-      document.getElementById('nombre').focus();
-    }
-
-    function nuevoRegistro() {
-      clearForm();
-      document.getElementById('success-section').style.display = 'none';
-      document.getElementById('form-section').style.display = 'block';
-    }
-
-    document.getElementById('save-entry').addEventListener('click', addEntry);
-    document.getElementById('clear-form').addEventListener('click', clearForm);
-    document.addEventListener('keydown', ev => {
-      if (ev.key === 'Enter' && document.getElementById('form-section').style.display !== 'none') addEntry();
-    });
-
-    loadEventInfo();
-    renderInstSuggestions();
-  </script>
+// ── INIT ──────────────────────────────────────────────
+cargarReunion();
+</script>
 </body>
 </html>

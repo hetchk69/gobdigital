@@ -389,6 +389,15 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
       <button class="btns" onclick="addRow()" style="font-size:13px;padding:8px 18px;margin-top:4px">+ Agregar miembro</button>
     </div>
 
+    <!-- ASISTENTES DE REUNIONES -->
+    <div class="card" id="card-asistentes" style="display:none">
+      <div class="stitle">🗓 Participantes en reuniones DIGER</div>
+      <p style="font-size:12.5px;color:#6b7fa3;margin-bottom:12px;line-height:1.6">
+        Personas de esta institución que han participado en reuniones registradas. Puede importarlas al equipo.
+      </p>
+      <div id="asistentes-list"></div>
+    </div>
+
     <div class="nav">
       <span style="font-size:12px;color:#9aadcc">* Campos obligatorios</span>
       <button class="btnp" onclick="goStep(2)">Continuar →</button>
@@ -456,6 +465,7 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
 
@@ -706,7 +716,89 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.rpill input[type=radio]').forEach(function(input) {
     input.addEventListener('change', function() { pill(this); });
   });
+  // Cargar asistentes al cambiar institución
+  document.getElementById('inst').addEventListener('change', function() {
+    cargarAsistentesInst(this.value);
+  });
 });
+
+// ── SUPABASE — ASISTENTES ────────────────────────────
+var _sb = supabase.createClient(
+  'https://gnpvqiyantdtksfvqtqk.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw'
+);
+
+async function cargarAsistentesInst(inst) {
+  var card = document.getElementById('card-asistentes');
+  var list = document.getElementById('asistentes-list');
+  if (!inst) { card.style.display = 'none'; return; }
+
+  list.innerHTML = '<p style="font-size:12px;color:#9aadcc;padding:6px 0">Buscando...</p>';
+  card.style.display = 'block';
+
+  var { data, error } = await _sb
+    .from('asistencias')
+    .select('nombre, correo, telefono, institucion, created_at')
+    .ilike('institucion', '%' + inst + '%')
+    .order('created_at', { ascending: false });
+
+  if (error || !data || data.length === 0) {
+    list.innerHTML = '<p style="font-size:12.5px;color:#9aadcc;padding:4px 0">No se encontraron participantes de <strong>' + inst + '</strong> en las reuniones registradas.</p>';
+    return;
+  }
+
+  // Deduplicar por correo (más reciente primero)
+  var vistos = {};
+  var unicos = data.filter(function(r) {
+    if (vistos[r.correo]) return false;
+    vistos[r.correo] = true;
+    return true;
+  });
+
+  list.innerHTML = unicos.map(function(r, i) {
+    var fecha = r.created_at ? new Date(r.created_at).toLocaleDateString('es-HN') : '';
+    return '<div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:9px 12px;background:#f5f8ff;border:1px solid #dde8f8;border-radius:9px;margin-bottom:7px">' +
+      '<div>' +
+        '<div style="font-size:13.5px;font-weight:600;color:#0a2d6e">' + esc(r.nombre) + '</div>' +
+        '<div style="font-size:12px;color:#6b7fa3;margin-top:2px">' +
+          esc(r.correo) + (r.telefono ? ' · ' + esc(r.telefono) : '') +
+          (fecha ? ' <span style="color:#9aadcc">· ' + fecha + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<button onclick="importarAsistente(' + i + ')" data-idx="' + i + '" ' +
+        'style="font-size:11.5px;padding:5px 12px;background:#fff;border:1.5px solid #1455a4;color:#1455a4;border-radius:7px;cursor:pointer;font-weight:700;white-space:nowrap;transition:all .2s" ' +
+        'onmouseover="this.style.background=\'#1455a4\';this.style.color=\'#fff\'" ' +
+        'onmouseout="this.style.background=\'#fff\';this.style.color=\'#1455a4\'">' +
+        '+ Al equipo' +
+      '</button>' +
+    '</div>';
+  }).join('');
+
+  // Guardar para importar
+  window._asistentesData = unicos;
+}
+
+function importarAsistente(idx) {
+  var r = (window._asistentesData || [])[idx];
+  if (!r) return;
+  eqN++;
+  var cont = document.getElementById('equipo');
+  var d = document.createElement('div');
+  d.className = 'row3';
+  d.style.marginBottom = '8px';
+  d.innerHTML =
+    '<input type="text" id="ef' + eqN + '" value="Participante" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit">' +
+    '<input type="text" id="en' + eqN + '" value="' + esc(r.nombre) + '" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit">' +
+    '<input type="text" id="ec' + eqN + '" value="' + esc(r.correo + (r.telefono ? ' / ' + r.telefono : '')) + '" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit">';
+  cont.appendChild(d);
+  // Feedback visual en el botón
+  var btn = document.querySelector('[data-idx="' + idx + '"]');
+  if (btn) { btn.textContent = '✓ Importado'; btn.style.background = '#e8f0ff'; btn.disabled = true; }
+}
+
+function esc(v) {
+  return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 </script>
 </body>

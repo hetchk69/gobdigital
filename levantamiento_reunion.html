@@ -4,19 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Reuniones — Administrador DIGER</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --azul: #0b4567; --azul-m: #1d6fa8; --celeste: #78cbd7;
-      --fondo: #f3f6f8; --texto: #172b3a; --linea: #d7e1e8;
-      --suave: #eef5f8; --blanco: #fff; --error: #b42318;
-      --verde: #16a34a; --verde-c: #dcfce7;
+    :root{
+      --azul:#0b4567;--azul-m:#1d6fa8;--celeste:#78cbd7;
+      --fondo:#f3f6f8;--texto:#172b3a;--linea:#d7e1e8;
+      --suave:#eef5f8;--blanco:#fff;--error:#b42318;
+      --verde:#16a34a;--verde-c:#dcfce7;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--fondo);color:var(--texto);font-family:"Segoe UI",Arial,sans-serif}
     .top-band{height:12px;background:linear-gradient(90deg,var(--celeste) 0 33%,var(--azul) 33% 66%,var(--azul-m) 66% 100%)}
     .shell{width:min(960px,calc(100% - 28px));margin:24px auto 48px}
 
-    /* HEADER */
     .site-header{background:var(--blanco);border:1px solid var(--linea);border-radius:8px;border-top:8px solid var(--azul);padding:20px 24px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;box-shadow:0 8px 24px rgba(23,43,58,.07);margin-bottom:20px}
     .brand-logo{width:min(260px,100%);max-height:60px;object-fit:contain;object-position:left;display:block}
     .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
@@ -25,19 +25,17 @@
     .btn-back{padding:7px 14px;background:var(--blanco);border:1.5px solid var(--linea);border-radius:6px;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s}
     .btn-back:hover{border-color:var(--azul-m);color:var(--azul-m)}
 
-    /* VISTAS */
     .view{display:none}.view.active{display:block;animation:fadeUp .3s ease}
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-    /* CARDS */
     .card{background:var(--blanco);border:1px solid var(--linea);border-radius:10px;padding:1.4rem;box-shadow:0 4px 16px rgba(23,43,58,.06);margin-bottom:16px}
     .card-title{font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1.1rem;padding-bottom:.55rem;border-bottom:2px solid var(--fondo);display:flex;align-items:center;gap:7px}
 
-    /* REUNIONES LISTA */
     .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
     .page-title{font-size:20px;font-weight:800;color:var(--azul);margin:0}
     .btn-primary{padding:10px 20px;background:var(--azul);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s}
     .btn-primary:hover{opacity:.88}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed}
     .btn-secondary{padding:9px 16px;background:var(--blanco);border:1.5px solid var(--linea);border-radius:7px;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
     .btn-secondary:hover{border-color:var(--azul-m);color:var(--azul-m)}
     .btn-danger{padding:7px 12px;background:var(--blanco);border:1.5px solid #fecaca;border-radius:6px;color:var(--error);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
@@ -49,7 +47,6 @@
     .reunion-item.activa{border-color:#bbf7d0;background:#f0fdf4}
     .ri-titulo{font-size:15px;font-weight:700;color:var(--azul);margin-bottom:3px}
     .ri-meta{font-size:12px;color:#64748b;display:flex;gap:14px;flex-wrap:wrap}
-    .ri-meta span{display:flex;align-items:center;gap:4px}
     .ri-estado{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:6px}
     .ri-estado.activa{background:var(--verde-c);color:var(--verde)}
     .ri-estado.cerrada{background:#f1f5f9;color:#64748b}
@@ -57,7 +54,6 @@
     .empty-state{text-align:center;padding:3rem 1rem;color:#64748b;font-size:14px}
     .empty-state .es-icon{font-size:40px;margin-bottom:.75rem}
 
-    /* FORMULARIO CREAR */
     .field{margin-bottom:1rem}.field:last-child{margin-bottom:0}
     .field label{display:block;font-size:13px;font-weight:700;color:var(--texto);margin-bottom:5px}
     .field input,.field textarea{width:100%;padding:10px 13px;border:1.5px solid var(--linea);border-radius:8px;font-size:14px;font-family:inherit;background:#fafbfd;color:var(--texto);transition:border .2s,box-shadow .2s}
@@ -65,20 +61,22 @@
     .field textarea{min-height:76px;resize:vertical;line-height:1.6}
     .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     .form-actions{display:flex;gap:10px;margin-top:1.25rem}
-    .field-hint{font-size:11.5px;color:#64748b;margin-top:3px}
 
-    /* LINK COMPARTIR */
     .link-card{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:1.2rem 1.4rem;margin-bottom:16px}
     .link-label{font-size:11px;font-weight:800;color:var(--verde);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;align-items:center;gap:5px}
     .link-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     .link-inp{flex:1;min-width:180px;padding:9px 12px;border:1.5px solid #bbf7d0;border-radius:7px;font-size:12.5px;background:#fff;color:#166534;font-family:monospace}
-    .btn-copy{padding:9px 16px;background:var(--verde);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+    .btn-copy{padding:9px 16px;background:var(--verde);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
     .btn-copy:hover{opacity:.88}
     .copy-ok{font-size:12px;font-weight:700;color:var(--verde);min-width:60px}
     .link-hint{font-size:12px;color:#166534;margin-top:8px}
 
-    /* REGISTROS */
-    .stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+    /* Live badge */
+    .live-badge{display:inline-flex;align-items:center;gap:5px;background:#dcfce7;color:var(--verde);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+    .live-dot{width:7px;height:7px;border-radius:50%;background:var(--verde);animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+    .stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
     .stat-chip{background:#e8f0ff;color:var(--azul);font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;border:1px solid #c0d0f0}
 
     .summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
@@ -93,13 +91,20 @@
     tbody tr:hover td{background:#fafbff}
     .empty-row{padding:1rem;color:#64748b;font-size:13px}
 
+    /* Loader */
+    .loader{text-align:center;padding:2rem;color:#64748b;font-size:14px}
+    .spinner{display:inline-block;width:28px;height:28px;border:3px solid #dde4f0;border-top-color:var(--azul-m);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:.5rem}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .err-msg{background:#fff5f5;border:1px solid #fecaca;color:var(--error);border-radius:8px;padding:8px 12px;font-size:12px;margin-top:8px;display:none}
+
     @media(max-width:640px){
       .site-header{grid-template-columns:1fr}.header-right{justify-content:flex-start}
       .row2{grid-template-columns:1fr}.ri-actions{justify-content:flex-start}
       .link-row{flex-direction:column}.link-inp{min-width:0}
     }
     @media print{
-      .top-band,.site-header,.card:first-child,.btn-primary,.btn-secondary,.btn-danger,.ri-actions,.form-actions,.link-card{display:none!important}
+      .top-band,.site-header,.btn-primary,.btn-secondary,.btn-danger,.ri-actions,.form-actions,.link-card{display:none!important}
       body{background:#fff}.shell{width:100%;margin:0}
     }
   </style>
@@ -108,7 +113,6 @@
 <div class="top-band"></div>
 <div class="shell">
 
-  <!-- HEADER -->
   <div class="site-header">
     <img class="brand-logo" src="logo_diger-14.png" alt="DIGER">
     <div class="header-right">
@@ -118,16 +122,18 @@
     </div>
   </div>
 
-  <!-- ══ VISTA: LISTA DE REUNIONES ══ -->
+  <!-- ══ VISTA: LISTA ══ -->
   <div class="view active" id="view-list">
     <div class="top-bar">
       <h2 class="page-title">📋 Reuniones y asistencias</h2>
       <button class="btn-primary" onclick="mostrarCrear()">+ Nueva reunión</button>
     </div>
-    <div id="reuniones-list"></div>
+    <div id="reuniones-list">
+      <div class="loader"><div class="spinner"></div><br>Cargando reuniones...</div>
+    </div>
   </div>
 
-  <!-- ══ VISTA: CREAR REUNIÓN ══ -->
+  <!-- ══ VISTA: CREAR ══ -->
   <div class="view" id="view-crear">
     <div class="top-bar">
       <h2 class="page-title">Nueva reunión</h2>
@@ -135,44 +141,28 @@
     </div>
     <div class="card">
       <div class="card-title">📝 Datos del evento</div>
-      <div class="field">
-        <label>Título del tema *</label>
-        <input type="text" id="c-titulo" placeholder="Ej: Taller de digitalización de trámites">
-      </div>
-      <div class="field">
-        <label>Tema / motivo *</label>
-        <textarea id="c-tema" placeholder="Descripción del motivo de la reunión o capacitación..."></textarea>
-      </div>
+      <div class="field"><label>Título del tema *</label><input type="text" id="c-titulo" placeholder="Ej: Taller de digitalización de trámites"></div>
+      <div class="field"><label>Tema / motivo *</label><textarea id="c-tema" placeholder="Descripción del motivo de la reunión..."></textarea></div>
       <div class="row2">
-        <div class="field">
-          <label>Fecha *</label>
-          <input type="date" id="c-fecha">
-        </div>
-        <div class="field">
-          <label>Hora</label>
-          <input type="time" id="c-hora">
-        </div>
+        <div class="field"><label>Fecha *</label><input type="date" id="c-fecha"></div>
+        <div class="field"><label>Hora</label><input type="time" id="c-hora"></div>
       </div>
-      <div class="field">
-        <label>Lugar</label>
-        <input type="text" id="c-lugar" placeholder="Ej: Sala de reuniones DIGER, Tegucigalpa">
-      </div>
-      <div id="crear-err" style="font-size:12px;color:var(--error);margin-top:6px;display:none"></div>
+      <div class="field"><label>Lugar</label><input type="text" id="c-lugar" placeholder="Ej: Sala de reuniones DIGER, Tegucigalpa"></div>
+      <div class="err-msg" id="crear-err"></div>
       <div class="form-actions">
-        <button class="btn-primary" onclick="crearReunion()">✔ Crear formulario</button>
+        <button class="btn-primary" id="btn-crear" onclick="crearReunion()">✔ Crear formulario</button>
         <button class="btn-secondary" onclick="volverLista()">Cancelar</button>
       </div>
     </div>
   </div>
 
-  <!-- ══ VISTA: DETALLE DE REUNIÓN ══ -->
+  <!-- ══ VISTA: DETALLE ══ -->
   <div class="view" id="view-detalle">
     <div class="top-bar">
       <h2 class="page-title" id="d-titulo">Reunión</h2>
       <button class="btn-secondary" onclick="volverLista()">← Volver</button>
     </div>
 
-    <!-- Link para participantes -->
     <div class="link-card">
       <div class="link-label">🔗 Link para participantes</div>
       <div class="link-row">
@@ -180,22 +170,23 @@
         <button class="btn-copy" onclick="copiarLink()">Copiar</button>
         <span class="copy-ok" id="copy-ok"></span>
       </div>
-      <p class="link-hint">Comparta este link o genere un QR para que los participantes registren su asistencia.</p>
+      <p class="link-hint">Comparta este link o genere un QR. Los participantes pueden registrarse desde cualquier dispositivo.</p>
     </div>
 
-    <!-- Info del evento -->
     <div class="card">
       <div class="card-title">📅 Datos del evento</div>
-      <div id="d-info" style="font-size:13.5px;line-height:2;color:var(--texto)"></div>
+      <div id="d-info" style="font-size:13.5px;line-height:2"></div>
       <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn-secondary" onclick="toggleEstado()" id="btn-toggle-estado">Cerrar formulario</button>
+        <button class="btn-secondary" id="btn-toggle-estado" onclick="toggleEstado()">Cerrar formulario</button>
         <button class="btn-danger" onclick="eliminarReunion()">Eliminar reunión</button>
       </div>
     </div>
 
-    <!-- Registros -->
     <div class="card">
-      <div class="card-title" id="d-reg-title">✅ Registros capturados</div>
+      <div class="card-title" id="d-reg-title">
+        ✅ Registros capturados (0)
+        <span class="live-badge" id="live-badge"><span class="live-dot"></span>En vivo</span>
+      </div>
       <div class="stats-row" id="d-stats"></div>
       <div class="summary" id="d-summary"></div>
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
@@ -213,250 +204,276 @@
     </div>
   </div>
 
-</div><!-- /shell -->
+</div>
 
 <script>
-const SESSION_KEY = 'diger_sol_session';
-const DB_KEY      = 'diger_reuniones';   // { id: { titulo, tema, fecha, hora, lugar, activa, creada } }
-const REC_PREFIX  = 'diger_rec_';        // diger_rec_{id} → array de registros
+// ── SUPABASE ──────────────────────────────────────────
+const SUPABASE_URL = 'https://gnpvqiyantdtksfvqtqk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-var currentId = null;
-var adminEmail = '';
+const SESSION_KEY = 'diger_sol_session';
+var adminEmail  = '';
+var currentId   = null;
+var realtimeCh  = null;
+var asistenciasCache = [];
 
 // ── AUTH ─────────────────────────────────────────────
 (function(){
-  try {
+  try{
     var s = JSON.parse(sessionStorage.getItem(SESSION_KEY));
-    if(s && s.role === 'admin'){
+    if(s && s.role==='admin'){
       adminEmail = s.email;
       document.getElementById('session-email').textContent = s.email;
       renderLista();
       return;
     }
-  } catch {}
+  }catch{}
   document.body.innerHTML =
-    '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Segoe UI,sans-serif;background:#f3f6f8">' +
-    '<div style="text-align:center;background:#fff;border-radius:14px;padding:2.5rem 2rem;box-shadow:0 12px 40px rgba(0,0,0,.1);max-width:380px">' +
-    '<div style="font-size:40px;margin-bottom:1rem">🔒</div>' +
-    '<h2 style="color:#0b4567;margin:0 0 .5rem">Acceso restringido</h2>' +
-    '<p style="color:#64748b;font-size:13px;margin-bottom:1.5rem">Ingrese desde el portal principal con un correo @diger.gob.hn.</p>' +
-    '<a href="index.html" style="display:inline-block;background:#0b4567;color:#fff;padding:11px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px">← Ir al portal</a>' +
+    '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Segoe UI,sans-serif;background:#f3f6f8">'+
+    '<div style="text-align:center;background:#fff;border-radius:14px;padding:2.5rem 2rem;box-shadow:0 12px 40px rgba(0,0,0,.1);max-width:380px">'+
+    '<div style="font-size:40px;margin-bottom:1rem">🔒</div>'+
+    '<h2 style="color:#0b4567;margin:0 0 .5rem">Acceso restringido</h2>'+
+    '<p style="color:#64748b;font-size:13px;margin-bottom:1.5rem">Ingrese desde el portal con un correo @diger.gob.hn.</p>'+
+    '<a href="index.html" style="display:inline-block;background:#0b4567;color:#fff;padding:11px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px">← Ir al portal</a>'+
     '</div></div>';
 })();
 
-// ── STORAGE ──────────────────────────────────────────
-function loadDB(){ try{ return JSON.parse(localStorage.getItem(DB_KEY))||{}; }catch{ return {}; } }
-function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
-function loadRecs(id){ try{ return JSON.parse(localStorage.getItem(REC_PREFIX+id))||[]; }catch{ return []; } }
-function saveRecs(id,recs){ localStorage.setItem(REC_PREFIX+id, JSON.stringify(recs)); }
-
-// ── GENERAR ID ───────────────────────────────────────
-function genId(){
-  return Math.random().toString(36).slice(2,8).toUpperCase();
-}
-
-// ── LISTA DE REUNIONES ───────────────────────────────
-function renderLista(){
-  var db   = loadDB();
-  var ids  = Object.keys(db).reverse(); // más reciente primero
+// ── LISTA ─────────────────────────────────────────────
+async function renderLista(){
   var cont = document.getElementById('reuniones-list');
-  if(ids.length === 0){
-    cont.innerHTML =
-      '<div class="empty-state"><div class="es-icon">📋</div>' +
-      '<p>No hay reuniones creadas aún.<br>Haga clic en <strong>+ Nueva reunión</strong> para comenzar.</p></div>';
+  cont.innerHTML = '<div class="loader"><div class="spinner"></div><br>Cargando...</div>';
+  var {data, error} = await sb.from('reuniones').select('*').order('created_at',{ascending:false});
+  if(error){ cont.innerHTML='<div class="empty-state"><p>Error al cargar. Verifique su conexión.</p></div>'; return; }
+  if(!data||data.length===0){
+    cont.innerHTML='<div class="empty-state"><div class="es-icon">📋</div><p>No hay reuniones creadas aún.<br>Haga clic en <strong>+ Nueva reunión</strong> para comenzar.</p></div>';
     return;
   }
-  cont.innerHTML = ids.map(function(id){
-    var r = db[id];
-    var recs = loadRecs(id);
-    var estado = r.activa ? '<span class="ri-estado activa">● Activo</span>' : '<span class="ri-estado cerrada">○ Cerrado</span>';
-    return '<div class="reunion-item' + (r.activa?' activa':'') + '">' +
-      '<div>' +
-        estado +
-        '<div class="ri-titulo">' + esc(r.titulo) + '</div>' +
-        '<div class="ri-meta">' +
-          '<span>📅 ' + (r.fecha||'—') + (r.hora?' · '+r.hora:'') + '</span>' +
-          '<span>📍 ' + esc(r.lugar||'—') + '</span>' +
-          '<span>👥 ' + recs.length + ' registros</span>' +
-          '<span style="color:#94a3b8;font-size:11px">ID: ' + id + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div class="ri-actions">' +
-        '<button class="btn-primary" onclick="abrirDetalle(\'' + id + '\')">Ver detalles</button>' +
-      '</div>' +
+  // Contar asistencias por reunión
+  var {data:counts} = await sb.from('asistencias').select('reunion_id');
+  var cmap = {};
+  (counts||[]).forEach(function(r){ cmap[r.reunion_id]=(cmap[r.reunion_id]||0)+1; });
+
+  cont.innerHTML = data.map(function(r){
+    var est = r.activa
+      ? '<span class="ri-estado activa">● Activo</span>'
+      : '<span class="ri-estado cerrada">○ Cerrado</span>';
+    return '<div class="reunion-item'+(r.activa?' activa':'')+'">'+
+      '<div>'+est+
+        '<div class="ri-titulo">'+esc(r.titulo)+'</div>'+
+        '<div class="ri-meta">'+
+          '<span>📅 '+(r.fecha||'—')+(r.hora?' · '+r.hora:'')+'</span>'+
+          '<span>📍 '+esc(r.lugar||'—')+'</span>'+
+          '<span>👥 '+(cmap[r.id]||0)+' registros</span>'+
+          '<span style="color:#94a3b8;font-size:11px">ID: '+r.id+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="ri-actions">'+
+        '<button class="btn-primary" onclick="abrirDetalle(\''+r.id+'\')">Ver detalles</button>'+
+      '</div>'+
     '</div>';
   }).join('');
 }
 
-// ── CREAR REUNIÓN ─────────────────────────────────────
+// ── CREAR ─────────────────────────────────────────────
 function mostrarCrear(){
-  // Auto-completar fecha actual
   document.getElementById('c-fecha').value = new Date().toISOString().split('T')[0];
-  document.getElementById('c-titulo').value = '';
-  document.getElementById('c-tema').value   = '';
-  document.getElementById('c-hora').value   = '';
-  document.getElementById('c-lugar').value  = '';
-  document.getElementById('crear-err').style.display = 'none';
+  ['c-titulo','c-tema','c-hora','c-lugar'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('crear-err').style.display='none';
   cambiarVista('view-crear');
 }
 
-function crearReunion(){
+async function crearReunion(){
   var titulo = document.getElementById('c-titulo').value.trim();
   var tema   = document.getElementById('c-tema').value.trim();
   var fecha  = document.getElementById('c-fecha').value;
   var err    = document.getElementById('crear-err');
-  err.style.display = 'none';
-  if(!titulo){ err.textContent='El título es obligatorio.'; err.style.display='block'; return; }
-  if(!tema)  { err.textContent='El tema es obligatorio.';  err.style.display='block'; return; }
-  if(!fecha) { err.textContent='La fecha es obligatoria.'; err.style.display='block'; return; }
+  var btn    = document.getElementById('btn-crear');
+  err.style.display='none';
+  if(!titulo){err.textContent='El título es obligatorio.';err.style.display='block';return;}
+  if(!tema)  {err.textContent='El tema es obligatorio.';err.style.display='block';return;}
+  if(!fecha) {err.textContent='La fecha es obligatoria.';err.style.display='block';return;}
 
-  var id  = genId();
-  var db  = loadDB();
-  // Evitar colisiones
-  while(db[id]) id = genId();
+  btn.disabled=true; btn.textContent='Creando...';
 
-  db[id] = {
-    titulo : titulo,
-    tema   : tema,
-    fecha  : fecha,
-    hora   : document.getElementById('c-hora').value || '',
-    lugar  : document.getElementById('c-lugar').value.trim(),
-    activa : true,
-    creada : new Date().toLocaleString('es-HN'),
-    creadaPor: adminEmail
-  };
-  saveDB(db);
+  var id = genId();
+  var {error} = await sb.from('reuniones').insert({
+    id       : id,
+    titulo   : titulo,
+    tema     : tema,
+    fecha    : fecha,
+    hora     : document.getElementById('c-hora').value||'',
+    lugar    : document.getElementById('c-lugar').value.trim(),
+    activa   : true,
+    creada_por: adminEmail
+  });
+
+  btn.disabled=false; btn.textContent='✔ Crear formulario';
+
+  if(error){err.textContent='Error al crear: '+error.message;err.style.display='block';return;}
   abrirDetalle(id);
 }
 
-// ── DETALLE ──────────────────────────────────────────
-function abrirDetalle(id){
+// ── DETALLE ───────────────────────────────────────────
+async function abrirDetalle(id){
   currentId = id;
-  var db = loadDB();
-  var r  = db[id];
-  if(!r){ volverLista(); return; }
+  cambiarVista('view-detalle');
+  document.getElementById('d-titulo').textContent = 'Cargando...';
+
+  var {data:r, error} = await sb.from('reuniones').select('*').eq('id',id).single();
+  if(error||!r){ volverLista(); return; }
 
   document.getElementById('d-titulo').textContent = r.titulo;
   document.getElementById('d-info').innerHTML =
-    '<strong>Tema:</strong> ' + esc(r.tema) + '<br>' +
-    '<strong>Fecha:</strong> ' + esc(r.fecha) + (r.hora?' — '+esc(r.hora):'') + '<br>' +
-    (r.lugar ? '<strong>Lugar:</strong> ' + esc(r.lugar) + '<br>' : '') +
-    '<strong>Creada:</strong> ' + esc(r.creada) + '<br>' +
-    '<strong>ID:</strong> <code style="background:#eef1f7;padding:2px 7px;border-radius:4px;font-size:12px">' + id + '</code>';
+    '<strong>Tema:</strong> '+esc(r.tema)+'<br>'+
+    '<strong>Fecha:</strong> '+esc(r.fecha||'—')+(r.hora?' — '+esc(r.hora):'')+'<br>'+
+    (r.lugar?'<strong>Lugar:</strong> '+esc(r.lugar)+'<br>':'')+
+    '<strong>Creada por:</strong> '+esc(r.creada_por||'—')+'<br>'+
+    '<strong>ID:</strong> <code style="background:#eef1f7;padding:2px 7px;border-radius:4px;font-size:12px">'+id+'</code>';
 
-  var base = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
-  document.getElementById('d-link').value = base + 'lista_asistencia.html#' + id;
-
+  var base = window.location.origin + window.location.pathname.replace(/[^\/]*$/,'');
+  document.getElementById('d-link').value = base+'lista_asistencia.html#'+id;
   document.getElementById('btn-toggle-estado').textContent = r.activa ? 'Cerrar formulario' : 'Reabrir formulario';
 
-  renderRegistros(id);
-  cambiarVista('view-detalle');
+  await cargarAsistencias(id);
+  suscribirRealtime(id);
 }
 
-function renderRegistros(id){
-  var recs   = loadRecs(id);
+async function cargarAsistencias(id){
+  var {data,error} = await sb.from('asistencias').select('*').eq('reunion_id',id).order('created_at',{ascending:true});
+  asistenciasCache = error ? [] : (data||[]);
+  renderTablaAsistencias();
+}
+
+function renderTablaAsistencias(){
+  var recs   = asistenciasCache;
   var tbody  = document.getElementById('d-tbody');
   var empty  = document.getElementById('d-empty');
   var stats  = document.getElementById('d-stats');
   var summ   = document.getElementById('d-summary');
-  var title  = document.getElementById('d-reg-title');
+  document.getElementById('d-reg-title').innerHTML =
+    '✅ Registros capturados ('+recs.length+') '+
+    '<span class="live-badge"><span class="live-dot"></span>En vivo</span>';
 
-  title.textContent = '✅ Registros capturados (' + recs.length + ')';
-  stats.innerHTML   = '<span class="stat-chip">Total: ' + recs.length + '</span>';
+  stats.innerHTML = '<span class="stat-chip">Total: '+recs.length+'</span>';
 
-  // Resumen por institución
-  var counts = recs.reduce(function(a,r){ a[r.institucion]=(a[r.institucion]||0)+1; return a; },{});
-  summ.innerHTML = Object.entries(counts).sort(function(a,b){return a[0].localeCompare(b[0])}).map(function(e){
-    return '<span class="inst-chip"><span class="dot" style="background:' + colorInst(e[0]) + '"></span>' + esc(e[0]) + ': ' + e[1] + '</span>';
+  var counts={};
+  recs.forEach(function(r){ counts[r.institucion]=(counts[r.institucion]||0)+1; });
+  summ.innerHTML = Object.entries(counts).sort(function(a,b){return a[0].localeCompare(b[0]);}).map(function(e){
+    return '<span class="inst-chip"><span class="dot" style="background:'+colorInst(e[0])+'"></span>'+esc(e[0])+': '+e[1]+'</span>';
   }).join('');
 
-  empty.style.display = recs.length ? 'none' : 'block';
+  empty.style.display = recs.length?'none':'block';
   tbody.innerHTML = recs.map(function(r,i){
-    return '<tr style="border-left-color:' + colorInst(r.institucion) + '">' +
-      '<td>' + (i+1) + '</td>' +
-      '<td>' + esc(r.nombre)      + '</td>' +
-      '<td>' + esc(r.correo)      + '</td>' +
-      '<td>' + esc(r.institucion) + '</td>' +
-      '<td>' + esc(r.telefono)    + '</td>' +
-      '<td>' + esc(r.registrado)  + '</td>' +
-      '<td><button class="btn-danger" style="padding:4px 9px;font-size:11px" onclick="eliminarRec(\'' + id + '\',' + r.id + ')">Eliminar</button></td>' +
+    var dt = r.created_at ? new Date(r.created_at).toLocaleString('es-HN') : '—';
+    return '<tr style="border-left-color:'+colorInst(r.institucion)+'">'+
+      '<td>'+(i+1)+'</td>'+
+      '<td>'+esc(r.nombre)+'</td>'+
+      '<td>'+esc(r.correo)+'</td>'+
+      '<td>'+esc(r.institucion)+'</td>'+
+      '<td>'+esc(r.telefono)+'</td>'+
+      '<td>'+dt+'</td>'+
+      '<td><button class="btn-danger" style="padding:4px 9px;font-size:11px" onclick="eliminarRec('+r.id+')">×</button></td>'+
     '</tr>';
   }).join('');
 }
 
-function eliminarRec(id, recId){
-  var recs = loadRecs(id).filter(function(r){ return r.id !== recId; });
-  saveRecs(id, recs);
-  renderRegistros(id);
+// ── REALTIME ──────────────────────────────────────────
+function suscribirRealtime(id){
+  if(realtimeCh){ sb.removeChannel(realtimeCh); }
+  realtimeCh = sb.channel('asistencias-'+id)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'asistencias',filter:'reunion_id=eq.'+id},
+      function(payload){
+        asistenciasCache.push(payload.new);
+        renderTablaAsistencias();
+      }
+    )
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'asistencias',filter:'reunion_id=eq.'+id},
+      function(payload){
+        asistenciasCache = asistenciasCache.filter(function(r){ return r.id !== payload.old.id; });
+        renderTablaAsistencias();
+      }
+    )
+    .subscribe();
 }
 
-function borrarRegistros(){
+// ── ACCIONES ──────────────────────────────────────────
+async function eliminarRec(recId){
+  await sb.from('asistencias').delete().eq('id',recId);
+  // Realtime lo actualiza automáticamente
+}
+
+async function borrarRegistros(){
   if(!confirm('¿Borrar todos los registros de esta reunión?')) return;
-  saveRecs(currentId, []);
-  renderRegistros(currentId);
+  await sb.from('asistencias').delete().eq('reunion_id',currentId);
+  asistenciasCache=[];
+  renderTablaAsistencias();
 }
 
-function toggleEstado(){
-  var db = loadDB();
-  if(!db[currentId]) return;
-  db[currentId].activa = !db[currentId].activa;
-  saveDB(db);
-  document.getElementById('btn-toggle-estado').textContent = db[currentId].activa ? 'Cerrar formulario' : 'Reabrir formulario';
+async function toggleEstado(){
+  var btn = document.getElementById('btn-toggle-estado');
+  var activa = btn.textContent.includes('Cerrar');
+  await sb.from('reuniones').update({activa:!activa}).eq('id',currentId);
+  btn.textContent = activa ? 'Reabrir formulario' : 'Cerrar formulario';
 }
 
-function eliminarReunion(){
+async function eliminarReunion(){
   if(!confirm('¿Eliminar esta reunión y todos sus registros?')) return;
-  var db = loadDB();
-  delete db[currentId];
-  saveDB(db);
-  localStorage.removeItem(REC_PREFIX + currentId);
-  currentId = null;
+  await sb.from('asistencias').delete().eq('reunion_id',currentId);
+  await sb.from('reuniones').delete().eq('id',currentId);
+  if(realtimeCh){ sb.removeChannel(realtimeCh); realtimeCh=null; }
+  currentId=null;
   volverLista();
+}
+
+// ── EXCEL ─────────────────────────────────────────────
+async function descargarExcel(){
+  var {data:r} = await sb.from('reuniones').select('*').eq('id',currentId).single();
+  var recs = asistenciasCache;
+  var rows = recs.map(function(rec,i){
+    var dt = rec.created_at ? new Date(rec.created_at).toLocaleString('es-HN') : '—';
+    return '<tr><td>'+(i+1)+'</td><td>'+esc(rec.nombre)+'</td><td>'+esc(rec.correo)+'</td><td>'+esc(rec.institucion)+'</td><td>'+esc(rec.telefono)+'</td><td>'+dt+'</td></tr>';
+  }).join('');
+  var html = '<html><head><meta charset="utf-8"><style>table{border-collapse:collapse;font-family:Segoe UI,Arial}th,td{border:1px solid #d7e1e8;padding:8px}th{background:#0b4567;color:#fff}</style></head>'+
+    '<body><h2>Lista de asistencia — '+(r?esc(r.titulo):'')+'</h2>'+
+    '<p><strong>Tema:</strong> '+(r?esc(r.tema):'')+'</p>'+
+    '<p><strong>Fecha:</strong> '+(r?esc(r.fecha):'')+(r&&r.hora?' — '+esc(r.hora):'')+'</p>'+
+    '<table><thead><tr><th>No.</th><th>Nombre</th><th>Correo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></body></html>';
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'}));
+  a.download='asistencia_'+currentId+'.xls';
+  document.body.appendChild(a);a.click();URL.revokeObjectURL(a.href);a.remove();
 }
 
 // ── LINK ──────────────────────────────────────────────
 function copiarLink(){
-  var inp = document.getElementById('d-link');
-  inp.select(); document.execCommand('copy');
-  var ok = document.getElementById('copy-ok');
-  ok.textContent = '✓ Copiado';
-  setTimeout(function(){ ok.textContent=''; }, 2500);
+  var inp=document.getElementById('d-link');
+  inp.select();document.execCommand('copy');
+  var ok=document.getElementById('copy-ok');
+  ok.textContent='✓ Copiado';
+  setTimeout(function(){ok.textContent='';},2500);
 }
 
-// ── EXCEL ─────────────────────────────────────────────
-function descargarExcel(){
-  var db   = loadDB();
-  var r    = db[currentId] || {};
-  var recs = loadRecs(currentId);
-  var rows = recs.map(function(rec,i){
-    return '<tr><td>'+(i+1)+'</td><td>'+esc(rec.nombre)+'</td><td>'+esc(rec.correo)+'</td><td>'+esc(rec.institucion)+'</td><td>'+esc(rec.telefono)+'</td><td>'+esc(rec.registrado)+'</td></tr>';
-  }).join('');
-  var html = '<html><head><meta charset="utf-8"><style>table{border-collapse:collapse;font-family:Segoe UI,Arial}th,td{border:1px solid #d7e1e8;padding:8px}th{background:#0b4567;color:#fff}</style></head>' +
-    '<body><h2>Lista de asistencia — ' + esc(r.titulo||'') + '</h2>' +
-    '<p><strong>Tema:</strong> ' + esc(r.tema||'') + '</p>' +
-    '<p><strong>Fecha:</strong> ' + esc(r.fecha||'') + (r.hora?' — '+esc(r.hora):'') + '</p>' +
-    '<table><thead><tr><th>No.</th><th>Nombre</th><th>Correo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th></tr></thead><tbody>' + rows + '</tbody></table></body></html>';
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'}));
-  a.download = 'asistencia_' + currentId + '.xls';
-  document.body.appendChild(a); a.click();
-  URL.revokeObjectURL(a.href); a.remove();
-}
-
-// ── NAVEGACIÓN ────────────────────────────────────────
+// ── NAV ───────────────────────────────────────────────
 function cambiarVista(id){
-  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
 }
-function volverLista(){ cambiarVista('view-list'); renderLista(); }
+function volverLista(){
+  if(realtimeCh){sb.removeChannel(realtimeCh);realtimeCh=null;}
+  cambiarVista('view-list');
+  renderLista();
+}
 
 // ── UTILS ─────────────────────────────────────────────
-function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function genId(){return Math.random().toString(36).slice(2,8).toUpperCase();}
+function esc(v){return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function colorInst(inst){
-  var n=(inst||'').toLowerCase(); var h=0;
-  for(var i=0;i<n.length;i++) h=n.charCodeAt(i)+((h<<5)-h);
-  return ['#78cbd7','#0b4567','#1d6fa8'][Math.abs(h)%3];
+  var n=(inst||'').toLowerCase();var h=0;
+  for(var i=0;i<n.length;i++)h=n.charCodeAt(i)+((h<<5)-h);
+  return['#78cbd7','#0b4567','#1d6fa8'][Math.abs(h)%3];
 }
 </script>
 </body>
