@@ -3,366 +3,461 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Administrador — Lista de asistencia DIGER</title>
+  <title>Reuniones — Administrador DIGER</title>
   <style>
     :root {
-      --azul-profundo: #0b4567;
-      --azul: #1d6fa8;
-      --celeste: #78cbd7;
-      --fondo: #f3f6f8;
-      --texto: #172b3a;
-      --linea: #d7e1e8;
-      --suave: #eef5f8;
-      --blanco: #ffffff;
-      --error: #b42318;
-      --verde: #16a34a;
+      --azul: #0b4567; --azul-m: #1d6fa8; --celeste: #78cbd7;
+      --fondo: #f3f6f8; --texto: #172b3a; --linea: #d7e1e8;
+      --suave: #eef5f8; --blanco: #fff; --error: #b42318;
+      --verde: #16a34a; --verde-c: #dcfce7;
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--fondo); color: var(--texto); font-family: "Segoe UI", Arial, Helvetica, sans-serif; }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--fondo);color:var(--texto);font-family:"Segoe UI",Arial,sans-serif}
+    .top-band{height:12px;background:linear-gradient(90deg,var(--celeste) 0 33%,var(--azul) 33% 66%,var(--azul-m) 66% 100%)}
+    .shell{width:min(960px,calc(100% - 28px));margin:24px auto 48px}
 
-    .top-band { height: 12px; background: linear-gradient(90deg, var(--celeste) 0 33%, var(--azul-profundo) 33% 66%, var(--azul) 66% 100%); }
+    /* HEADER */
+    .site-header{background:var(--blanco);border:1px solid var(--linea);border-radius:8px;border-top:8px solid var(--azul);padding:20px 24px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;box-shadow:0 8px 24px rgba(23,43,58,.07);margin-bottom:20px}
+    .brand-logo{width:min(260px,100%);max-height:60px;object-fit:contain;object-position:left;display:block}
+    .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .admin-badge{display:inline-flex;align-items:center;gap:5px;background:#e8f0ff;color:var(--azul);font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;border:1px solid #c0d0f0}
+    .session-email{font-size:12px;color:#64748b}
+    .btn-back{padding:7px 14px;background:var(--blanco);border:1.5px solid var(--linea);border-radius:6px;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s}
+    .btn-back:hover{border-color:var(--azul-m);color:var(--azul-m)}
 
-    .shell { width: min(980px, calc(100% - 28px)); margin: 24px auto 40px; }
+    /* VISTAS */
+    .view{display:none}.view.active{display:block;animation:fadeUp .3s ease}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-    .header, .form-card, .data-card {
-      background: var(--blanco); border: 1px solid var(--linea);
-      border-radius: 8px; box-shadow: 0 12px 30px rgba(23,43,58,.08);
+    /* CARDS */
+    .card{background:var(--blanco);border:1px solid var(--linea);border-radius:10px;padding:1.4rem;box-shadow:0 4px 16px rgba(23,43,58,.06);margin-bottom:16px}
+    .card-title{font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1.1rem;padding-bottom:.55rem;border-bottom:2px solid var(--fondo);display:flex;align-items:center;gap:7px}
+
+    /* REUNIONES LISTA */
+    .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+    .page-title{font-size:20px;font-weight:800;color:var(--azul);margin:0}
+    .btn-primary{padding:10px 20px;background:var(--azul);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s}
+    .btn-primary:hover{opacity:.88}
+    .btn-secondary{padding:9px 16px;background:var(--blanco);border:1.5px solid var(--linea);border-radius:7px;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-secondary:hover{border-color:var(--azul-m);color:var(--azul-m)}
+    .btn-danger{padding:7px 12px;background:var(--blanco);border:1.5px solid #fecaca;border-radius:6px;color:var(--error);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+    .btn-danger:hover{background:#fff5f5}
+
+    .reunion-list{display:grid;gap:12px}
+    .reunion-item{background:var(--blanco);border:1.5px solid var(--linea);border-radius:10px;padding:16px 18px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;box-shadow:0 2px 8px rgba(23,43,58,.05);transition:box-shadow .2s}
+    .reunion-item:hover{box-shadow:0 4px 16px rgba(23,43,58,.1)}
+    .reunion-item.activa{border-color:#bbf7d0;background:#f0fdf4}
+    .ri-titulo{font-size:15px;font-weight:700;color:var(--azul);margin-bottom:3px}
+    .ri-meta{font-size:12px;color:#64748b;display:flex;gap:14px;flex-wrap:wrap}
+    .ri-meta span{display:flex;align-items:center;gap:4px}
+    .ri-estado{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:6px}
+    .ri-estado.activa{background:var(--verde-c);color:var(--verde)}
+    .ri-estado.cerrada{background:#f1f5f9;color:#64748b}
+    .ri-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .empty-state{text-align:center;padding:3rem 1rem;color:#64748b;font-size:14px}
+    .empty-state .es-icon{font-size:40px;margin-bottom:.75rem}
+
+    /* FORMULARIO CREAR */
+    .field{margin-bottom:1rem}.field:last-child{margin-bottom:0}
+    .field label{display:block;font-size:13px;font-weight:700;color:var(--texto);margin-bottom:5px}
+    .field input,.field textarea{width:100%;padding:10px 13px;border:1.5px solid var(--linea);border-radius:8px;font-size:14px;font-family:inherit;background:#fafbfd;color:var(--texto);transition:border .2s,box-shadow .2s}
+    .field input:focus,.field textarea:focus{outline:none;border-color:var(--azul-m);background:#fff;box-shadow:0 0 0 3px rgba(29,111,168,.1)}
+    .field textarea{min-height:76px;resize:vertical;line-height:1.6}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .form-actions{display:flex;gap:10px;margin-top:1.25rem}
+    .field-hint{font-size:11.5px;color:#64748b;margin-top:3px}
+
+    /* LINK COMPARTIR */
+    .link-card{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:1.2rem 1.4rem;margin-bottom:16px}
+    .link-label{font-size:11px;font-weight:800;color:var(--verde);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+    .link-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .link-inp{flex:1;min-width:180px;padding:9px 12px;border:1.5px solid #bbf7d0;border-radius:7px;font-size:12.5px;background:#fff;color:#166534;font-family:monospace}
+    .btn-copy{padding:9px 16px;background:var(--verde);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+    .btn-copy:hover{opacity:.88}
+    .copy-ok{font-size:12px;font-weight:700;color:var(--verde);min-width:60px}
+    .link-hint{font-size:12px;color:#166534;margin-top:8px}
+
+    /* REGISTROS */
+    .stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+    .stat-chip{background:#e8f0ff;color:var(--azul);font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;border:1px solid #c0d0f0}
+
+    .summary{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+    .inst-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--linea);border-radius:999px;background:#fff;padding:5px 10px;font-size:12px;font-weight:700}
+    .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+    .tbl-wrap{overflow-x:auto}
+    table{width:100%;min-width:640px;border-collapse:collapse;font-size:13.5px}
+    th,td{border-bottom:1px solid var(--linea);padding:9px 10px;text-align:left;vertical-align:middle}
+    th{background:#f8fbfc;color:var(--azul);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+    tbody tr{border-left:5px solid var(--azul-m)}
+    tbody tr:hover td{background:#fafbff}
+    .empty-row{padding:1rem;color:#64748b;font-size:13px}
+
+    @media(max-width:640px){
+      .site-header{grid-template-columns:1fr}.header-right{justify-content:flex-start}
+      .row2{grid-template-columns:1fr}.ri-actions{justify-content:flex-start}
+      .link-row{flex-direction:column}.link-inp{min-width:0}
     }
-    .header {
-      padding: 22px 24px; border-top: 8px solid var(--azul-profundo);
-      display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 20px; align-items: center;
-    }
-    .brand-logo { width: min(380px,100%); max-height: 76px; object-fit: contain; object-position: left center; display: block; }
-
-    .doc-meta { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-    .meta-pill { border: 1px solid var(--linea); border-radius: 999px; color: var(--azul-profundo); font-size: 12px; font-weight: 700; padding: 6px 10px; white-space: nowrap; }
-
-    .form-card, .data-card { margin-top: 18px; overflow: hidden; }
-    [hidden] { display: none !important; }
-
-    .form-title { padding: 22px 24px 16px; border-bottom: 1px solid var(--linea); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-    .locked-title { border: 0; color: var(--azul-profundo); font: 700 24px/1.15 "Segoe UI", Arial, Helvetica, sans-serif; padding: 0; background: transparent; }
-
-    .event-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; padding: 20px 24px; background: var(--suave); border-bottom: 1px solid var(--linea); }
-    .event-full { grid-column: 1 / -1; }
-    .field { display: grid; gap: 7px; }
-    .field label { font-size: 14px; font-weight: 700; color: var(--azul-profundo); }
-
-    input, select {
-      width: 100%; min-height: 42px; border: 1px solid #b8c7d2; border-radius: 4px;
-      background: var(--blanco); color: var(--texto); font: 15px "Segoe UI", Arial, Helvetica, sans-serif; padding: 8px 10px;
-    }
-    input:focus, select:focus { border-color: var(--azul); box-shadow: 0 0 0 2px rgba(29,111,168,.14); outline: 0; }
-    input[readonly] { background: #e9eff3; color: #60717c; cursor: not-allowed; }
-
-    /* Link compartir */
-    .share-box { padding: 16px 24px; border-bottom: 1px solid var(--linea); background: #f0fdf4; }
-    .share-label { font-size: 12px; font-weight: 700; color: var(--verde); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
-    .share-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .share-inp { flex: 1; min-width: 200px; padding: 8px 12px; border: 1.5px solid #bbf7d0; border-radius: 6px; font-size: 13px; background: #fff; color: #166534; font-family: monospace; }
-    .btn-copy { padding: 8px 16px; background: var(--verde); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-    .btn-copy:hover { opacity: .88; }
-    .copy-ok { font-size: 12px; font-weight: 700; color: var(--verde); min-width: 70px; }
-
-    .status { min-height: 22px; margin: 10px 24px; font-size: 13px; font-weight: 700; color: var(--azul-profundo); }
-    .status.error { color: var(--error); }
-
-    .button-row { display: flex; flex-wrap: wrap; gap: 10px; padding: 0 24px 24px; }
-    button { appearance: none; border: 1px solid var(--azul-profundo); border-radius: 4px; min-height: 40px; padding: 9px 14px; background: var(--azul-profundo); color: white; cursor: pointer; font: 700 14px "Segoe UI", Arial, Helvetica, sans-serif; }
-    button.secondary { background: white; color: var(--azul-profundo); }
-    button.danger { border-color: var(--error); color: var(--error); background: white; }
-
-    .data-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--linea); }
-    h1, h2 { margin: 0; color: var(--azul-profundo); }
-    h2 { font-size: 19px; }
-
-    .summary { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 24px 0; }
-    .institution-chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--linea); border-radius: 999px; background: white; padding: 6px 10px; font-size: 13px; font-weight: 700; }
-    .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--azul); flex: 0 0 auto; }
-
-    .table-wrap { overflow-x: auto; padding: 18px 24px 24px; }
-    table { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 14px; }
-    th, td { border-bottom: 1px solid var(--linea); padding: 10px; text-align: left; vertical-align: middle; }
-    th { color: var(--azul-profundo); font-size: 12px; text-transform: uppercase; background: #f8fbfc; }
-    tbody tr { border-left: 6px solid var(--azul); }
-    .row-actions { display: flex; gap: 8px; }
-    .icon-button { min-height: 32px; padding: 5px 9px; font-size: 12px; }
-    .empty { padding: 6px 0; color: #637481; font-size: 14px; }
-
-    /* Badge admin */
-    .admin-badge { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg,#e8f0ff,#d5e8ff); color: #0a2d6e; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; border: 1px solid #c0d0f0; }
-
-    @media (max-width: 720px) {
-      .shell { width: min(100%, calc(100% - 18px)); margin-top: 12px; }
-      .header { grid-template-columns: 1fr; }
-      .doc-meta { justify-content: flex-start; }
-      .event-grid { grid-template-columns: 1fr; }
-      .form-title { flex-direction: column; align-items: flex-start; }
-    }
-    @media print {
-      body { background: white; }
-      .top-band, .form-card, .button-row, .row-actions, .share-box { display: none !important; }
-      .shell { width: 100%; margin: 0; }
-      .header, .data-card { border: 0; box-shadow: none; }
+    @media print{
+      .top-band,.site-header,.card:first-child,.btn-primary,.btn-secondary,.btn-danger,.ri-actions,.form-actions,.link-card{display:none!important}
+      body{background:#fff}.shell{width:100%;margin:0}
     }
   </style>
 </head>
 <body>
-  <div class="top-band"></div>
+<div class="top-band"></div>
+<div class="shell">
 
-  <main class="shell">
-    <header class="header">
-      <img class="brand-logo" src="logo_diger-14.png" alt="Gobierno Digital DIGER">
-      <div class="doc-meta">
-        <span class="meta-pill">Version: 01</span>
-        <span class="meta-pill">Codigo: LIST-001</span>
-        <span class="admin-badge">⚙ Administrador</span>
+  <!-- HEADER -->
+  <div class="site-header">
+    <img class="brand-logo" src="logo_diger-14.png" alt="DIGER">
+    <div class="header-right">
+      <span class="session-email" id="session-email"></span>
+      <span class="admin-badge">⚙ Administrador</span>
+      <a class="btn-back" href="index.html">← Portal</a>
+    </div>
+  </div>
+
+  <!-- ══ VISTA: LISTA DE REUNIONES ══ -->
+  <div class="view active" id="view-list">
+    <div class="top-bar">
+      <h2 class="page-title">📋 Reuniones y asistencias</h2>
+      <button class="btn-primary" onclick="mostrarCrear()">+ Nueva reunión</button>
+    </div>
+    <div id="reuniones-list"></div>
+  </div>
+
+  <!-- ══ VISTA: CREAR REUNIÓN ══ -->
+  <div class="view" id="view-crear">
+    <div class="top-bar">
+      <h2 class="page-title">Nueva reunión</h2>
+      <button class="btn-secondary" onclick="volverLista()">← Volver</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📝 Datos del evento</div>
+      <div class="field">
+        <label>Título del tema *</label>
+        <input type="text" id="c-titulo" placeholder="Ej: Taller de digitalización de trámites">
       </div>
-    </header>
-
-    <!-- Datos del evento -->
-    <section class="form-card">
-      <div class="form-title">
-        <span class="locked-title">Configuración del evento — Lista de asistencia</span>
-        <span id="session-label" style="font-size:12px;color:#64748b"></span>
+      <div class="field">
+        <label>Tema / motivo *</label>
+        <textarea id="c-tema" placeholder="Descripción del motivo de la reunión o capacitación..."></textarea>
       </div>
-
-      <div class="event-grid">
-        <div class="field event-full">
-          <label for="tema-titulo">Título del tema</label>
-          <input id="tema-titulo" type="text" placeholder="Descripción corta del tema" readonly>
+      <div class="row2">
+        <div class="field">
+          <label>Fecha *</label>
+          <input type="date" id="c-fecha">
         </div>
         <div class="field">
-          <label for="tema">Tema / motivo</label>
-          <input id="tema" type="text" placeholder="Detalle del motivo de la reunión o capacitación" readonly>
-        </div>
-        <div class="field">
-          <label for="fecha-hora">Fecha y hora</label>
-          <input id="fecha-hora" type="text" placeholder="Ej: 03/06/2026 - 8:50 AM" readonly>
+          <label>Hora</label>
+          <input type="time" id="c-hora">
         </div>
       </div>
-
-      <!-- Link para compartir -->
-      <div class="share-box" id="share-box" hidden>
-        <div class="share-label">🔗 Link / QR para participantes</div>
-        <div class="share-row">
-          <input class="share-inp" id="link-url" type="text" readonly>
-          <button class="btn-copy" onclick="copiarLink()">Copiar link</button>
-          <span class="copy-ok" id="copy-status"></span>
-        </div>
+      <div class="field">
+        <label>Lugar</label>
+        <input type="text" id="c-lugar" placeholder="Ej: Sala de reuniones DIGER, Tegucigalpa">
       </div>
-
-      <div class="status" id="status" role="status"></div>
-    </section>
-
-    <!-- Panel de registros -->
-    <section class="data-card" id="admin-panel" hidden>
-      <div class="data-head">
-        <h2>Registros capturados</h2>
-        <div class="button-row" style="padding:0">
-          <button type="button" class="secondary" id="download-excel">Descargar Excel</button>
-          <button type="button" class="secondary" id="print-page">Imprimir</button>
-          <button type="button" class="danger" id="clear-data">Borrar datos</button>
-        </div>
+      <div id="crear-err" style="font-size:12px;color:var(--error);margin-top:6px;display:none"></div>
+      <div class="form-actions">
+        <button class="btn-primary" onclick="crearReunion()">✔ Crear formulario</button>
+        <button class="btn-secondary" onclick="volverLista()">Cancelar</button>
       </div>
+    </div>
+  </div>
 
-      <div class="summary" id="summary"></div>
+  <!-- ══ VISTA: DETALLE DE REUNIÓN ══ -->
+  <div class="view" id="view-detalle">
+    <div class="top-bar">
+      <h2 class="page-title" id="d-titulo">Reunión</h2>
+      <button class="btn-secondary" onclick="volverLista()">← Volver</button>
+    </div>
 
-      <div class="table-wrap">
+    <!-- Link para participantes -->
+    <div class="link-card">
+      <div class="link-label">🔗 Link para participantes</div>
+      <div class="link-row">
+        <input class="link-inp" id="d-link" type="text" readonly>
+        <button class="btn-copy" onclick="copiarLink()">Copiar</button>
+        <span class="copy-ok" id="copy-ok"></span>
+      </div>
+      <p class="link-hint">Comparta este link o genere un QR para que los participantes registren su asistencia.</p>
+    </div>
+
+    <!-- Info del evento -->
+    <div class="card">
+      <div class="card-title">📅 Datos del evento</div>
+      <div id="d-info" style="font-size:13.5px;line-height:2;color:var(--texto)"></div>
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-secondary" onclick="toggleEstado()" id="btn-toggle-estado">Cerrar formulario</button>
+        <button class="btn-danger" onclick="eliminarReunion()">Eliminar reunión</button>
+      </div>
+    </div>
+
+    <!-- Registros -->
+    <div class="card">
+      <div class="card-title" id="d-reg-title">✅ Registros capturados</div>
+      <div class="stats-row" id="d-stats"></div>
+      <div class="summary" id="d-summary"></div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn-secondary" onclick="descargarExcel()">⬇ Descargar Excel</button>
+        <button class="btn-secondary" onclick="window.print()">🖨 Imprimir</button>
+        <button class="btn-danger" onclick="borrarRegistros()">Borrar registros</button>
+      </div>
+      <div class="tbl-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>No.</th>
-              <th>Nombre</th>
-              <th>Correo electrónico</th>
-              <th>Institución</th>
-              <th>Teléfono</th>
-              <th>Fecha de registro</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="records-body"></tbody>
+          <thead><tr><th>No.</th><th>Nombre</th><th>Correo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th><th></th></tr></thead>
+          <tbody id="d-tbody"></tbody>
         </table>
-        <div class="empty" id="empty-state">Sin registros capturados.</div>
+        <div class="empty-row" id="d-empty">Sin registros capturados.</div>
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
 
-  <script>
-    const SESSION_KEY      = 'diger_sol_session';
-    const storageKey       = 'diger_lista_asistencia_records';
-    const eventStorageKey  = 'diger_lista_asistencia_event';
-    const institutionColors = ['#78cbd7', '#0b4567', '#1d6fa8'];
+</div><!-- /shell -->
 
-    const fields = {
-      temaTitulo : document.getElementById('tema-titulo'),
-      tema       : document.getElementById('tema'),
-      fechaHora  : document.getElementById('fecha-hora')
-    };
+<script>
+const SESSION_KEY = 'diger_sol_session';
+const DB_KEY      = 'diger_reuniones';   // { id: { titulo, tema, fecha, hora, lugar, activa, creada } }
+const REC_PREFIX  = 'diger_rec_';        // diger_rec_{id} → array de registros
 
-    const status      = document.getElementById('status');
-    const recordsBody = document.getElementById('records-body');
-    const summary     = document.getElementById('summary');
-    const emptyState  = document.getElementById('empty-state');
-    const adminPanel  = document.getElementById('admin-panel');
+var currentId = null;
+var adminEmail = '';
 
-    let records = loadRecords();
+// ── AUTH ─────────────────────────────────────────────
+(function(){
+  try {
+    var s = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    if(s && s.role === 'admin'){
+      adminEmail = s.email;
+      document.getElementById('session-email').textContent = s.email;
+      renderLista();
+      return;
+    }
+  } catch {}
+  document.body.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Segoe UI,sans-serif;background:#f3f6f8">' +
+    '<div style="text-align:center;background:#fff;border-radius:14px;padding:2.5rem 2rem;box-shadow:0 12px 40px rgba(0,0,0,.1);max-width:380px">' +
+    '<div style="font-size:40px;margin-bottom:1rem">🔒</div>' +
+    '<h2 style="color:#0b4567;margin:0 0 .5rem">Acceso restringido</h2>' +
+    '<p style="color:#64748b;font-size:13px;margin-bottom:1.5rem">Ingrese desde el portal principal con un correo @diger.gob.hn.</p>' +
+    '<a href="index.html" style="display:inline-block;background:#0b4567;color:#fff;padding:11px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px">← Ir al portal</a>' +
+    '</div></div>';
+})();
 
-    // ── RECORDS ──────────────────────────────────────────
-    function loadRecords() {
-      try { return JSON.parse(localStorage.getItem(storageKey)) || []; } catch { return []; }
-    }
-    function saveRecords() { localStorage.setItem(storageKey, JSON.stringify(records)); }
+// ── STORAGE ──────────────────────────────────────────
+function loadDB(){ try{ return JSON.parse(localStorage.getItem(DB_KEY))||{}; }catch{ return {}; } }
+function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function loadRecs(id){ try{ return JSON.parse(localStorage.getItem(REC_PREFIX+id))||[]; }catch{ return []; } }
+function saveRecs(id,recs){ localStorage.setItem(REC_PREFIX+id, JSON.stringify(recs)); }
 
-    // ── EVENTO ───────────────────────────────────────────
-    function loadEventInfo() {
-      try {
-        const e = JSON.parse(localStorage.getItem(eventStorageKey)) || {};
-        fields.temaTitulo.value = e.temaTitulo || '';
-        fields.tema.value       = e.tema       || '';
-        fields.fechaHora.value  = e.fechaHora  || '';
-      } catch {}
-    }
-    function saveEventInfo() {
-      localStorage.setItem(eventStorageKey, JSON.stringify({
-        temaTitulo : fields.temaTitulo.value.trim(),
-        tema       : fields.tema.value.trim(),
-        fechaHora  : fields.fechaHora.value.trim()
-      }));
-    }
+// ── GENERAR ID ───────────────────────────────────────
+function genId(){
+  return Math.random().toString(36).slice(2,8).toUpperCase();
+}
 
-    // ── UTILS ─────────────────────────────────────────────
-    function normalizeInstitution(v) { return v.trim().replace(/\s+/g, ' '); }
-    function colorForInstitution(inst) {
-      const n = normalizeInstitution(inst).toLowerCase();
-      let h = 0;
-      for (let i = 0; i < n.length; i++) h = n.charCodeAt(i) + ((h << 5) - h);
-      return institutionColors[Math.abs(h) % institutionColors.length];
-    }
-    function setStatus(msg, isError = false) {
-      status.textContent = msg;
-      status.classList.toggle('error', isError);
-    }
-    function escapeCell(v) {
-      return String(v || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
-    }
+// ── LISTA DE REUNIONES ───────────────────────────────
+function renderLista(){
+  var db   = loadDB();
+  var ids  = Object.keys(db).reverse(); // más reciente primero
+  var cont = document.getElementById('reuniones-list');
+  if(ids.length === 0){
+    cont.innerHTML =
+      '<div class="empty-state"><div class="es-icon">📋</div>' +
+      '<p>No hay reuniones creadas aún.<br>Haga clic en <strong>+ Nueva reunión</strong> para comenzar.</p></div>';
+    return;
+  }
+  cont.innerHTML = ids.map(function(id){
+    var r = db[id];
+    var recs = loadRecs(id);
+    var estado = r.activa ? '<span class="ri-estado activa">● Activo</span>' : '<span class="ri-estado cerrada">○ Cerrado</span>';
+    return '<div class="reunion-item' + (r.activa?' activa':'') + '">' +
+      '<div>' +
+        estado +
+        '<div class="ri-titulo">' + esc(r.titulo) + '</div>' +
+        '<div class="ri-meta">' +
+          '<span>📅 ' + (r.fecha||'—') + (r.hora?' · '+r.hora:'') + '</span>' +
+          '<span>📍 ' + esc(r.lugar||'—') + '</span>' +
+          '<span>👥 ' + recs.length + ' registros</span>' +
+          '<span style="color:#94a3b8;font-size:11px">ID: ' + id + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="ri-actions">' +
+        '<button class="btn-primary" onclick="abrirDetalle(\'' + id + '\')">Ver detalles</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
 
-    // ── TABLA ─────────────────────────────────────────────
-    function deleteEntry(id) {
-      records = records.filter(r => r.id !== id);
-      saveRecords(); render();
-      setStatus('Registro eliminado.');
-    }
-    function renderSummary() {
-      const counts = records.reduce((a, r) => { a[r.institucion] = (a[r.institucion] || 0) + 1; return a; }, {});
-      summary.innerHTML = Object.entries(counts).sort(([a],[b]) => a.localeCompare(b)).map(([inst, cnt]) =>
-        `<span class="institution-chip"><span class="dot" style="background:${colorForInstitution(inst)}"></span>${escapeCell(inst)}: ${cnt}</span>`
-      ).join('');
-    }
-    function renderTable() {
-      emptyState.style.display = records.length ? 'none' : 'block';
-      recordsBody.innerHTML = records.map((r, i) =>
-        `<tr style="border-left-color:${colorForInstitution(r.institucion)}">
-          <td>${i+1}</td>
-          <td>${escapeCell(r.nombre)}</td>
-          <td>${escapeCell(r.correo)}</td>
-          <td>${escapeCell(r.institucion)}</td>
-          <td>${escapeCell(r.telefono)}</td>
-          <td>${escapeCell(r.registrado)}</td>
-          <td><div class="row-actions">
-            <button class="secondary icon-button" type="button" data-delete="${r.id}">Eliminar</button>
-          </div></td>
-        </tr>`
-      ).join('');
-    }
-    function render() { renderSummary(); renderTable(); }
+// ── CREAR REUNIÓN ─────────────────────────────────────
+function mostrarCrear(){
+  // Auto-completar fecha actual
+  document.getElementById('c-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('c-titulo').value = '';
+  document.getElementById('c-tema').value   = '';
+  document.getElementById('c-hora').value   = '';
+  document.getElementById('c-lugar').value  = '';
+  document.getElementById('crear-err').style.display = 'none';
+  cambiarVista('view-crear');
+}
 
-    // ── EXCEL ─────────────────────────────────────────────
-    function buildExcelHtml() {
-      return `<html><head><meta charset="utf-8"><style>
-        table{border-collapse:collapse;font-family:Segoe UI,Arial}
-        th,td{border:1px solid #d7e1e8;padding:8px}
-        th{background:#0b4567;color:#fff}
-      </style></head><body>
-        <h2>Lista de asistencia DIGER</h2>
-        <p><strong>Título:</strong> ${escapeCell(fields.temaTitulo.value)}</p>
-        <p><strong>Tema:</strong> ${escapeCell(fields.tema.value)}</p>
-        <p><strong>Fecha y hora:</strong> ${escapeCell(fields.fechaHora.value)}</p>
-        <table><thead><tr><th>No.</th><th>Nombre</th><th>Correo</th><th>Institución</th><th>Teléfono</th><th>Fecha registro</th></tr></thead>
-        <tbody>${records.map((r,i) => `<tr><td>${i+1}</td><td>${escapeCell(r.nombre)}</td><td>${escapeCell(r.correo)}</td><td>${escapeCell(r.institucion)}</td><td>${escapeCell(r.telefono)}</td><td>${escapeCell(r.registrado)}</td></tr>`).join('')}</tbody>
-        </table></body></html>`;
-    }
-    function downloadExcel() {
-      const blob = new Blob([buildExcelHtml()], { type: 'application/vnd.ms-excel;charset=utf-8' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'lista_asistencia_diger.xls';
-      document.body.appendChild(a); a.click();
-      URL.revokeObjectURL(a.href); a.remove();
-      setStatus('Archivo Excel descargado.');
-    }
+function crearReunion(){
+  var titulo = document.getElementById('c-titulo').value.trim();
+  var tema   = document.getElementById('c-tema').value.trim();
+  var fecha  = document.getElementById('c-fecha').value;
+  var err    = document.getElementById('crear-err');
+  err.style.display = 'none';
+  if(!titulo){ err.textContent='El título es obligatorio.'; err.style.display='block'; return; }
+  if(!tema)  { err.textContent='El tema es obligatorio.';  err.style.display='block'; return; }
+  if(!fecha) { err.textContent='La fecha es obligatoria.'; err.style.display='block'; return; }
 
-    function clearAllData() {
-      if (!confirm('¿Borrar todos los registros capturados?')) return;
-      records = []; saveRecords(); render();
-      setStatus('Datos borrados.');
-    }
+  var id  = genId();
+  var db  = loadDB();
+  // Evitar colisiones
+  while(db[id]) id = genId();
 
-    // ── LINK PARA COMPARTIR ──────────────────────────────
-    function mostrarLink() {
-      const url = window.location.href.replace('levantamiento_reunion.html', '') + 'lista_asistencia.html';
-      document.getElementById('link-url').value = url;
-      document.getElementById('share-box').hidden = false;
-    }
-    function copiarLink() {
-      const inp = document.getElementById('link-url');
-      inp.select(); document.execCommand('copy');
-      const ok = document.getElementById('copy-status');
-      ok.textContent = '✓ Copiado';
-      setTimeout(() => { ok.textContent = ''; }, 2500);
-    }
+  db[id] = {
+    titulo : titulo,
+    tema   : tema,
+    fecha  : fecha,
+    hora   : document.getElementById('c-hora').value || '',
+    lugar  : document.getElementById('c-lugar').value.trim(),
+    activa : true,
+    creada : new Date().toLocaleString('es-HN'),
+    creadaPor: adminEmail
+  };
+  saveDB(db);
+  abrirDetalle(id);
+}
 
-    // ── AUTH POR SESIÓN DEL PORTAL ───────────────────────
-    function verificarSesionAdmin() {
-      try {
-        const s = JSON.parse(sessionStorage.getItem(SESSION_KEY));
-        if (s && s.role === 'admin') {
-          fields.tema.removeAttribute('readonly');
-          fields.temaTitulo.removeAttribute('readonly');
-          fields.fechaHora.removeAttribute('readonly');
-          adminPanel.removeAttribute('hidden');
-          document.getElementById('session-label').textContent = '⚙ ' + s.email;
-          mostrarLink();
-          setStatus('Modo administrador activo.');
-          return;
-        }
-      } catch {}
-      // Sin sesión válida → pantalla de bloqueo
-      document.body.innerHTML =
-        '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Segoe UI,sans-serif;background:#f3f6f8">' +
-        '<div style="text-align:center;background:#fff;border-radius:14px;padding:2.5rem 2rem;box-shadow:0 12px 40px rgba(0,0,0,.1);max-width:380px">' +
-        '<div style="font-size:40px;margin-bottom:1rem">🔒</div>' +
-        '<h2 style="color:#0b4567;margin:0 0 .5rem">Acceso restringido</h2>' +
-        '<p style="color:#64748b;font-size:13px;margin-bottom:1.5rem">Esta sección es exclusiva para administradores DIGER. Ingrese desde el portal principal.</p>' +
-        '<a href="index.html" style="display:inline-block;background:#0b4567;color:#fff;padding:11px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px">← Ir al portal</a>' +
-        '</div></div>';
-    }
+// ── DETALLE ──────────────────────────────────────────
+function abrirDetalle(id){
+  currentId = id;
+  var db = loadDB();
+  var r  = db[id];
+  if(!r){ volverLista(); return; }
 
-    // ── EVENTOS ──────────────────────────────────────────
-    document.getElementById('download-excel').addEventListener('click', downloadExcel);
-    document.getElementById('print-page').addEventListener('click', () => window.print());
-    document.getElementById('clear-data').addEventListener('click', clearAllData);
-    recordsBody.addEventListener('click', ev => {
-      const btn = ev.target.closest('[data-delete]');
-      if (btn) deleteEntry(Number(btn.dataset.delete));
-    });
-    fields.temaTitulo.addEventListener('change', saveEventInfo);
-    fields.tema.addEventListener('change', saveEventInfo);
-    fields.fechaHora.addEventListener('change', saveEventInfo);
+  document.getElementById('d-titulo').textContent = r.titulo;
+  document.getElementById('d-info').innerHTML =
+    '<strong>Tema:</strong> ' + esc(r.tema) + '<br>' +
+    '<strong>Fecha:</strong> ' + esc(r.fecha) + (r.hora?' — '+esc(r.hora):'') + '<br>' +
+    (r.lugar ? '<strong>Lugar:</strong> ' + esc(r.lugar) + '<br>' : '') +
+    '<strong>Creada:</strong> ' + esc(r.creada) + '<br>' +
+    '<strong>ID:</strong> <code style="background:#eef1f7;padding:2px 7px;border-radius:4px;font-size:12px">' + id + '</code>';
 
-    loadEventInfo();
-    verificarSesionAdmin();
-    render();
-  </script>
+  var base = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
+  document.getElementById('d-link').value = base + 'lista_asistencia.html#' + id;
+
+  document.getElementById('btn-toggle-estado').textContent = r.activa ? 'Cerrar formulario' : 'Reabrir formulario';
+
+  renderRegistros(id);
+  cambiarVista('view-detalle');
+}
+
+function renderRegistros(id){
+  var recs   = loadRecs(id);
+  var tbody  = document.getElementById('d-tbody');
+  var empty  = document.getElementById('d-empty');
+  var stats  = document.getElementById('d-stats');
+  var summ   = document.getElementById('d-summary');
+  var title  = document.getElementById('d-reg-title');
+
+  title.textContent = '✅ Registros capturados (' + recs.length + ')';
+  stats.innerHTML   = '<span class="stat-chip">Total: ' + recs.length + '</span>';
+
+  // Resumen por institución
+  var counts = recs.reduce(function(a,r){ a[r.institucion]=(a[r.institucion]||0)+1; return a; },{});
+  summ.innerHTML = Object.entries(counts).sort(function(a,b){return a[0].localeCompare(b[0])}).map(function(e){
+    return '<span class="inst-chip"><span class="dot" style="background:' + colorInst(e[0]) + '"></span>' + esc(e[0]) + ': ' + e[1] + '</span>';
+  }).join('');
+
+  empty.style.display = recs.length ? 'none' : 'block';
+  tbody.innerHTML = recs.map(function(r,i){
+    return '<tr style="border-left-color:' + colorInst(r.institucion) + '">' +
+      '<td>' + (i+1) + '</td>' +
+      '<td>' + esc(r.nombre)      + '</td>' +
+      '<td>' + esc(r.correo)      + '</td>' +
+      '<td>' + esc(r.institucion) + '</td>' +
+      '<td>' + esc(r.telefono)    + '</td>' +
+      '<td>' + esc(r.registrado)  + '</td>' +
+      '<td><button class="btn-danger" style="padding:4px 9px;font-size:11px" onclick="eliminarRec(\'' + id + '\',' + r.id + ')">Eliminar</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function eliminarRec(id, recId){
+  var recs = loadRecs(id).filter(function(r){ return r.id !== recId; });
+  saveRecs(id, recs);
+  renderRegistros(id);
+}
+
+function borrarRegistros(){
+  if(!confirm('¿Borrar todos los registros de esta reunión?')) return;
+  saveRecs(currentId, []);
+  renderRegistros(currentId);
+}
+
+function toggleEstado(){
+  var db = loadDB();
+  if(!db[currentId]) return;
+  db[currentId].activa = !db[currentId].activa;
+  saveDB(db);
+  document.getElementById('btn-toggle-estado').textContent = db[currentId].activa ? 'Cerrar formulario' : 'Reabrir formulario';
+}
+
+function eliminarReunion(){
+  if(!confirm('¿Eliminar esta reunión y todos sus registros?')) return;
+  var db = loadDB();
+  delete db[currentId];
+  saveDB(db);
+  localStorage.removeItem(REC_PREFIX + currentId);
+  currentId = null;
+  volverLista();
+}
+
+// ── LINK ──────────────────────────────────────────────
+function copiarLink(){
+  var inp = document.getElementById('d-link');
+  inp.select(); document.execCommand('copy');
+  var ok = document.getElementById('copy-ok');
+  ok.textContent = '✓ Copiado';
+  setTimeout(function(){ ok.textContent=''; }, 2500);
+}
+
+// ── EXCEL ─────────────────────────────────────────────
+function descargarExcel(){
+  var db   = loadDB();
+  var r    = db[currentId] || {};
+  var recs = loadRecs(currentId);
+  var rows = recs.map(function(rec,i){
+    return '<tr><td>'+(i+1)+'</td><td>'+esc(rec.nombre)+'</td><td>'+esc(rec.correo)+'</td><td>'+esc(rec.institucion)+'</td><td>'+esc(rec.telefono)+'</td><td>'+esc(rec.registrado)+'</td></tr>';
+  }).join('');
+  var html = '<html><head><meta charset="utf-8"><style>table{border-collapse:collapse;font-family:Segoe UI,Arial}th,td{border:1px solid #d7e1e8;padding:8px}th{background:#0b4567;color:#fff}</style></head>' +
+    '<body><h2>Lista de asistencia — ' + esc(r.titulo||'') + '</h2>' +
+    '<p><strong>Tema:</strong> ' + esc(r.tema||'') + '</p>' +
+    '<p><strong>Fecha:</strong> ' + esc(r.fecha||'') + (r.hora?' — '+esc(r.hora):'') + '</p>' +
+    '<table><thead><tr><th>No.</th><th>Nombre</th><th>Correo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th></tr></thead><tbody>' + rows + '</tbody></table></body></html>';
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'}));
+  a.download = 'asistencia_' + currentId + '.xls';
+  document.body.appendChild(a); a.click();
+  URL.revokeObjectURL(a.href); a.remove();
+}
+
+// ── NAVEGACIÓN ────────────────────────────────────────
+function cambiarVista(id){
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function volverLista(){ cambiarVista('view-list'); renderLista(); }
+
+// ── UTILS ─────────────────────────────────────────────
+function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function colorInst(inst){
+  var n=(inst||'').toLowerCase(); var h=0;
+  for(var i=0;i<n.length;i++) h=n.charCodeAt(i)+((h<<5)-h);
+  return ['#78cbd7','#0b4567','#1d6fa8'][Math.abs(h)%3];
+}
+</script>
 </body>
 </html>

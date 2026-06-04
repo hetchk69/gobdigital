@@ -178,23 +178,56 @@
   </main>
 
   <script>
-    const storageKey      = 'diger_lista_asistencia_records';
-    const eventStorageKey = 'diger_lista_asistencia_event';
+    const DB_KEY     = 'diger_reuniones';
+    const REC_PREFIX = 'diger_rec_';
+
+    // Leer ID del hash (#XXXXXX) — funciona en GitHub Pages y cualquier servidor
+    const reunionId = window.location.hash.slice(1) || null;
 
     let records = loadRecords();
 
     function loadRecords() {
-      try { return JSON.parse(localStorage.getItem(storageKey)) || []; } catch { return []; }
+      if(!reunionId) return [];
+      try { return JSON.parse(localStorage.getItem(REC_PREFIX + reunionId)) || []; } catch { return []; }
     }
-    function saveRecords() { localStorage.setItem(storageKey, JSON.stringify(records)); }
+    function saveRecords() {
+      if(!reunionId) return;
+      localStorage.setItem(REC_PREFIX + reunionId, JSON.stringify(records));
+    }
 
     function loadEventInfo() {
+      if(!reunionId){
+        mostrarError('Link inválido. No se encontró el formulario.');
+        return;
+      }
       try {
-        const e = JSON.parse(localStorage.getItem(eventStorageKey)) || {};
-        document.getElementById('tema-titulo').value = e.temaTitulo || '';
-        document.getElementById('tema').value        = e.tema       || '';
-        document.getElementById('fecha-hora').value  = e.fechaHora  || '';
-      } catch {}
+        const db = JSON.parse(localStorage.getItem(DB_KEY)) || {};
+        const r  = db[reunionId];
+        if(!r){
+          mostrarError('Este formulario no existe o fue eliminado.');
+          return;
+        }
+        if(!r.activa){
+          mostrarError('Este formulario está cerrado. Ya no acepta nuevos registros.');
+          return;
+        }
+        document.getElementById('tema-titulo').value = r.titulo  || '';
+        document.getElementById('tema').value        = r.tema    || '';
+        document.getElementById('fecha-hora').value  = (r.fecha||'') + (r.hora?' — '+r.hora:'');
+      } catch {
+        mostrarError('Error al cargar el formulario.');
+      }
+    }
+
+    function mostrarError(msg){
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('success-section').style.display = 'block';
+      document.getElementById('success-section').innerHTML =
+        '<div style="text-align:center;padding:3rem 2rem">' +
+        '<div style="font-size:44px;margin-bottom:1rem">⚠️</div>' +
+        '<h2 style="color:#0b4567;font-size:20px;margin:0 0 .5rem">Formulario no disponible</h2>' +
+        '<p style="color:#64748b;font-size:14px;max-width:320px;margin:0 auto">' + msg + '</p>' +
+        '</div>';
     }
 
     function normalizeInstitution(v) { return v.trim().replace(/\s+/g, ' '); }
