@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Levantamiento de Trámites — DIGER</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#eef1f7;min-height:100vh}
+
+/* ── HEADER ── */
+.header{
+  background:#fff;
+  padding:16px 2rem;
+  display:flex;align-items:center;
+  box-shadow:0 2px 12px rgba(0,0,0,.08);
+  position:relative;overflow:hidden;
+}
+.header::before{
+  content:'';position:absolute;right:0;top:0;bottom:0;
+  width:200px;
+  background:linear-gradient(135deg,transparent 30px,#1455a4 30px);
+}
+.header::after{
+  content:'';position:absolute;right:0;top:0;bottom:0;
+  width:130px;
+  background:linear-gradient(135deg,transparent 30px,#0a2d6e 30px);
+}
+.header img{height:70px;width:auto;position:relative;z-index:1}
+
+/* ── CONTAINER ── */
+.container{max-width:780px;margin:0 auto;padding:2rem 1rem 3rem}
+
+/* ── STEP INDICATOR ── */
+.step-bar{display:flex;align-items:center;justify-content:center;margin-bottom:2rem;gap:0}
+.step-item{display:flex;flex-direction:column;align-items:center;position:relative;flex:1;max-width:180px}
+.step-item:not(:last-child)::after{
+  content:'';position:absolute;top:20px;left:calc(50% + 22px);
+  right:calc(-50% + 22px);height:2px;
+  background:#d0d8e8;transition:background .4s;z-index:0;
+}
+.step-item.done:not(:last-child)::after{background:#0a2d6e}
+.step-circle{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;
+  border:2px solid #d0d8e8;background:#fff;
+  color:#9aadcc;transition:all .4s;z-index:1;position:relative;
+}
+.step-item.active .step-circle{
+  border-color:#1455a4;background:#1455a4;color:#fff;
+  box-shadow:0 0 0 5px rgba(20,85,164,.15);
+}
+.step-item.done .step-circle{
+  border-color:#0a2d6e;background:#0a2d6e;color:#fff;
+}
+.step-item.done .step-circle::after{content:'✓';font-size:16px}
+.step-item.done .step-circle span{display:none}
+.step-label{font-size:11px;color:#9aadcc;margin-top:6px;text-align:center;font-weight:500;transition:color .4s}
+.step-item.active .step-label{color:#1455a4;font-weight:700}
+.step-item.done .step-label{color:#0a2d6e}
+
+/* ── CARDS ── */
+.card{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:1.5rem;
+  margin-bottom:1.25rem;
+  box-shadow:0 2px 8px rgba(10,45,110,.06);
+  transition:box-shadow .25s,transform .25s;
+}
+.card:hover{
+  box-shadow:0 8px 28px rgba(10,45,110,.12);
+  transform:translateY(-1px);
+}
+.stitle{
+  font-size:11px;font-weight:700;color:#6b7fa3;
+  text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:1.25rem;padding-bottom:.6rem;
+  border-bottom:2px solid #eef1f7;
+  display:flex;align-items:center;gap:6px;
+}
+
+/* ── FIELDS ── */
+.field{margin-bottom:1.1rem}
+.field label{display:block;font-size:13px;color:#4a5568;margin-bottom:5px;font-weight:500}
+.field input,.field select,.field textarea{
+  width:100%;padding:9px 13px;
+  border:1.5px solid #e2e8f0;border-radius:10px;
+  font-size:14px;font-family:inherit;background:#fafbfd;color:#1a1a1a;
+  transition:border .2s,box-shadow .2s,background .2s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:none;border-color:#1455a4;background:#fff;
+  box-shadow:0 0 0 4px rgba(20,85,164,.1);
+}
+.field textarea{min-height:85px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* ── RADIO PILLS ── */
+.rgroup{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.rgroup-center{justify-content:center}
+.rpill{
+  display:flex;align-items:center;gap:7px;
+  padding:8px 16px;border:1.5px solid #e2e8f0;
+  border-radius:25px;cursor:pointer;font-size:13px;
+  transition:all .2s;user-select:none;background:#fafbfd;
+  font-weight:500;
+}
+.rpill:hover{border-color:#1455a4;background:#f0f5ff}
+.rpill.on{
+  border-color:#1455a4;background:linear-gradient(135deg,#e8f0ff,#ddeeff);
+  color:#0a2d6e;font-weight:600;
+  box-shadow:0 2px 8px rgba(20,85,164,.15);
+}
+.rpill input{accent-color:#1455a4;cursor:pointer}
+
+/* ── MEMBER CARD ── */
+.miembro{
+  background:linear-gradient(135deg,#f5f8ff,#eef2fc);
+  border:1.5px solid #c8d5ee;border-radius:12px;
+  padding:14px;margin-bottom:12px;
+  transition:box-shadow .2s;
+}
+.miembro:hover{box-shadow:0 4px 12px rgba(20,85,164,.1)}
+.miembro-header{
+  font-size:11px;font-weight:700;color:#1455a4;
+  text-transform:uppercase;letter-spacing:.06em;
+  margin-bottom:10px;padding-bottom:8px;
+  border-bottom:1.5px solid #c8d5ee;
+}
+
+/* ── CHECKLIST ── */
+.col-hdr{display:grid;grid-template-columns:1fr repeat(4,88px);gap:4px;padding:0 0 10px;border-bottom:2px solid #eef1f7}
+.col-hdr span{font-size:11px;font-weight:700;color:#6b7fa3;text-align:center;line-height:1.3}
+.trow{display:grid;grid-template-columns:1fr repeat(4,88px);gap:4px;align-items:start;padding:10px 0;border-bottom:1px solid #f0f4fa;transition:background .15s}
+.trow:hover{background:#fafbff}
+.trow:last-child{border-bottom:none}
+.trow .tn{font-size:13px;line-height:1.4;padding-right:4px;color:#2d3748}
+.trow input[type=checkbox]{
+  margin:3px auto;display:block;
+  accent-color:#1455a4;width:18px;height:18px;cursor:pointer;
+}
+.omini{
+  width:100%;font-size:12px;padding:7px 9px;
+  border:1.5px solid #e2e8f0;border-radius:8px;
+  color:#555;font-family:inherit;resize:vertical;
+  min-height:44px;margin:4px 0 12px;background:#fafbfd;
+  transition:border .2s;
+}
+.omini:focus{outline:none;border-color:#1455a4}
+
+/* ── BUTTONS ── */
+.btnp{
+  background:linear-gradient(135deg,#1455a4,#0a2d6e);
+  color:#fff;border:none;border-radius:12px;
+  padding:11px 28px;font-size:14px;font-weight:600;
+  cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+  transition:all .2s;box-shadow:0 4px 14px rgba(10,45,110,.3);
+}
+.btnp:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(10,45,110,.4)}
+.btnp:active{transform:translateY(0)}
+.btnp:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btns{
+  background:#fff;border:1.5px solid #c8d5ee;
+  border-radius:12px;padding:11px 28px;
+  font-size:14px;cursor:pointer;color:#4a5568;font-weight:500;
+  transition:all .2s;
+}
+.btns:hover{background:#f0f4ff;border-color:#1455a4;color:#1455a4}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.75rem}
+
+/* ── STEP TRANSITION ── */
+.step{display:none;animation:slideIn .35s ease}
+.step.active{display:block}
+@keyframes slideIn{
+  from{opacity:0;transform:translateX(30px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+/* ── INSTITUTION HEADER ── */
+.iavt{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,#1455a4,#0a2d6e);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:13px;color:#fff;flex-shrink:0;
+  box-shadow:0 4px 10px rgba(10,45,110,.25);
+}
+.ihdr{display:flex;align-items:center;gap:14px;margin-bottom:1.5rem}
+.ihdr p{font-weight:600;margin:0;font-size:15px;color:#0a2d6e}
+.ihdr span{font-size:12px;color:#6b7fa3}
+
+/* ── SUCCESS ── */
+.okbox{text-align:center;padding:2.5rem 1rem}
+.check-wrap{
+  width:90px;height:90px;border-radius:50%;
+  background:linear-gradient(135deg,#1455a4,#0a2d6e);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1.25rem;
+  animation:popIn .5s cubic-bezier(.175,.885,.32,1.275);
+  box-shadow:0 8px 30px rgba(10,45,110,.3);
+}
+.check-wrap svg{width:44px;height:44px;stroke:#fff;stroke-width:3;fill:none;stroke-dasharray:60;stroke-dashoffset:60;animation:drawCheck .5s .3s ease forwards}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes drawCheck{to{stroke-dashoffset:0}}
+.okbox h2{font-size:24px;font-weight:700;color:#0a2d6e;margin-bottom:.5rem}
+.okbox p{color:#6b7fa3;font-size:14px;max-width:420px;margin:0 auto 1.75rem;line-height:1.6}
+.ok-inst{
+  display:inline-block;background:linear-gradient(135deg,#e8f0ff,#ddeeff);
+  color:#0a2d6e;font-weight:700;font-size:13px;
+  padding:6px 16px;border-radius:20px;margin-bottom:1.5rem;
+  border:1px solid #c0d0f0;
+}
+
+/* ── CONDITIONAL WRAPS ── */
+#lim-wrap,#personal-wrap,#acomp-wrap{
+  background:#f5f8ff;border-left:3px solid #1455a4;
+  border-radius:0 10px 10px 0;padding:12px 14px;
+  margin-top:8px;margin-bottom:4px;
+}
+
+/* ── HINT ── */
+.hint{font-size:12px;color:#6b7fa3;margin-top:5px;display:block}
+
+/* ── MOBILE ── */
+@media (max-width:600px){
+  .container{padding:1rem .75rem 2rem}
+  .card{padding:1.1rem;border-radius:12px}
+  .header{padding:12px 1rem}
+  .header img{height:50px}
+  .step-label{display:none}
+  .step-circle{width:34px;height:34px;font-size:12px}
+  .step-item:not(:last-child)::after{top:17px;left:calc(50% + 18px);right:calc(-50% + 18px)}
+  .row2{grid-template-columns:1fr}
+  .row3{grid-template-columns:1fr}
+  .rgroup{justify-content:flex-start}
+  .rgroup-center{justify-content:flex-start}
+  .field>label{text-align:left}
+  .miembro .row3{display:flex;flex-direction:column;gap:8px}
+  .miembro .row3 input{width:100%}
+  .col-hdr{display:none}
+  .trow{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-rows:auto auto;gap:6px;padding:12px 0}
+  .trow .tn{grid-column:1/-1;font-size:13px;font-weight:600;padding-bottom:6px;border-bottom:1px solid #eef1f7}
+  .trow div{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .trow div::before{font-size:10px;color:#6b7fa3;text-align:center}
+  .trow div:nth-child(2)::before{content:'Acta'}
+  .trow div:nth-child(3)::before{content:'Mejoras'}
+  .trow div:nth-child(4)::before{content:'Instructivo'}
+  .trow div:nth-child(5)::before{content:'Socializ.'}
+  .trow input[type=checkbox]{width:24px;height:24px}
+  .btnp,.btns{padding:10px 18px;font-size:13px}
+  .nav{gap:8px}
+  .check-wrap{width:74px;height:74px}
+  .check-wrap svg{width:36px;height:36px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img id="logo" src="logo_diger-14.png" alt="Gobierno de Honduras — DIGER">
+</div>
+
+<div class="container">
+
+  <!-- STEP BAR -->
+  <div class="step-bar">
+    <div class="step-item active" id="si1">
+      <div class="step-circle"><span>1</span></div>
+      <div class="step-label">Información General</div>
+    </div>
+    <div class="step-item" id="si2">
+      <div class="step-circle"><span>2</span></div>
+      <div class="step-label">Trámites</div>
+    </div>
+    <div class="step-item" id="si3">
+      <div class="step-circle"><span>3</span></div>
+      <div class="step-label">Envío</div>
+    </div>
+  </div>
+
+  <!-- PASO 1 -->
+  <div class="step active" id="step1">
+    <div class="card">
+      <div class="stitle">🏛 Institución y contacto</div>
+      <div class="field">
+        <label>Institución *</label>
+        <select id="inst">
+          <option value="">— Seleccione su institución —</option>
+          <option>CONVIVIENDA</option><option>COPECO</option><option>SIT</option>
+          <option>IHADFA</option><option>BANHPROVI</option><option>INPREUNAH</option>
+          <option>CNBS</option><option>INPREMA</option><option>IHTT</option>
+          <option>SEN</option><option>CONSUCOOP</option><option>CONATEL</option>
+          <option>IHCINE</option><option>SAG</option><option>SECAPPH</option>
+          <option>SRECI</option><option>SERNA</option><option>SGJD</option>
+          <option>CANATURH / IHT</option>
+        </select>
+      </div>
+      <div class="field"><label>Encargado de área *</label><input type="text" id="enc" placeholder="Nombre completo"></div>
+      <div class="row2">
+        <div class="field"><label>Correo institucional *</label><input type="email" id="cor" placeholder="nombre@institución.gob.hn"></div>
+        <div class="field"><label>Celular</label><input type="text" id="cel" placeholder="+504 9999-9999"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stitle">📋 Estado actual de los trámites</div>
+      <div class="field">
+        <label>Estado actual *</label>
+        <div class="rgroup rgroup-center" id="rg-estado">
+          <label class="rpill"><input type="radio" name="estado" value="Digitalizado y en producción"> Digitalizado y en producción</label>
+          <label class="rpill"><input type="radio" name="estado" value="En proceso de digitalización"> En proceso</label>
+          <label class="rpill"><input type="radio" name="estado" value="No iniciado"> No iniciado</label>
+          <label class="rpill"><input type="radio" name="estado" value="Otro"> Otro</label>
+        </div>
+      </div>
+      <div class="field"><label>Observaciones del estado actual</label><textarea id="obs-estado" placeholder="Describa la situación actual..."></textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="stitle">🖥 Plataforma SOL — datos generales</div>
+      <div class="field">
+        <label>¿La plataforma SOL ya fue migrada a la infraestructura institucional? *</label>
+        <div class="rgroup rgroup-center" id="rg-migrada">
+          <label class="rpill"><input type="radio" name="migrada" value="Sí"> Sí</label>
+          <label class="rpill"><input type="radio" name="migrada" value="No"> No</label>
+          <label class="rpill"><input type="radio" name="migrada" value="En proceso"> En proceso</label>
+        </div>
+      </div>
+      <div id="lim-wrap" style="display:none">
+        <div class="field">
+          <label>Principal limitante para la migración</label>
+          <select id="limitante">
+            <option value="">— Seleccione —</option>
+            <option>Falta de personal técnico</option>
+            <option>Falta de infraestructura</option>
+            <option>Falta de presupuesto</option>
+            <option>Restricciones administrativas</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="field"><label>Si seleccionó "Otro", detalle la limitante</label><textarea id="lim-obs" placeholder="Describa la limitante..."></textarea></div>
+      </div>
+      <div class="field">
+        <label>¿La institución cuenta con personal técnico capacitado? *</label>
+        <div class="rgroup rgroup-center" id="rg-personal">
+          <label class="rpill"><input type="radio" name="personal" value="Sí"> Sí</label>
+          <label class="rpill"><input type="radio" name="personal" value="No"> No</label>
+          <label class="rpill"><input type="radio" name="personal" value="Parcialmente"> Parcialmente</label>
+        </div>
+      </div>
+      <div id="personal-wrap" style="display:none">
+        <div class="field">
+          <label>Indique las razones por las que no cuenta con personal técnico</label>
+          <textarea id="personal-obs" placeholder="Describa la situación del personal técnico..."></textarea>
+        </div>
+      </div>
+      <div class="field">
+        <label>¿Requiere acompañamiento o talleres de transferencia de capacidades? *</label>
+        <div class="rgroup rgroup-center" id="rg-acomp">
+          <label class="rpill"><input type="radio" name="acomp" value="Sí"> Sí</label>
+          <label class="rpill"><input type="radio" name="acomp" value="No"> No</label>
+        </div>
+      </div>
+      <div id="acomp-wrap" style="display:none">
+        <div class="field">
+          <label>Tipo de habilidades requeridas</label>
+          <select id="habilidades">
+            <option value="">— Seleccione —</option>
+            <option>Administración de plataforma</option>
+            <option>Soporte técnico</option>
+            <option>Desarrollo y configuración</option>
+            <option>Gestión de usuarios</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="field"><label>Observaciones sobre el acompañamiento requerido</label><textarea id="hab-obs" placeholder="Detalle las habilidades o tipo de acompañamiento requerido..."></textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stitle">👥 Equipo institucional de digitalización</div>
+      <div class="row3" style="margin-bottom:10px;font-size:12px;color:#6b7fa3;font-weight:600">
+        <div>Función</div><div>Nombre</div><div>Correo / Celular</div>
+      </div>
+      <div id="equipo"></div>
+      <button class="btns" onclick="addRow()" style="font-size:13px;padding:8px 18px;margin-top:4px">+ Agregar miembro</button>
+    </div>
+
+    <div class="nav">
+      <span style="font-size:12px;color:#9aadcc">* Campos obligatorios</span>
+      <button class="btnp" onclick="goStep(2)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- PASO 2 -->
+  <div class="step" id="step2">
+    <div class="card">
+      <div class="ihdr">
+        <div class="iavt" id="iavt">--</div>
+        <div><p id="iname">Institución</p><span>Autorización y estado de trámites — Plataforma SOL</span></div>
+      </div>
+      <div class="stitle">✅ Checklist por trámite</div>
+      <div class="col-hdr">
+        <span style="text-align:left">Trámite</span>
+        <span>Acta firmada</span>
+        <span>Requiere mejoras</span>
+        <span>Instructivo / video</span>
+        <span>Socialización</span>
+      </div>
+      <div id="tlist"></div>
+    </div>
+    <div class="card">
+      <div class="stitle">💬 Observaciones generales de integración SOL</div>
+      <textarea id="obs-gen" style="width:100%;min-height:100px" placeholder="Observaciones generales sobre la integración de la plataforma SOL..."></textarea>
+    </div>
+    <div class="nav">
+      <button class="btns" onclick="goStep(1)">← Anterior</button>
+      <button class="btnp" onclick="goStep(3)">Revisar y enviar →</button>
+    </div>
+  </div>
+
+  <!-- PASO 3 -->
+  <div class="step" id="step3">
+    <div class="card">
+      <div class="stitle">👁 Resumen del levantamiento</div>
+      <div id="resumen"></div>
+    </div>
+    <div class="card">
+      <div class="stitle">📧 Envío del levantamiento</div>
+      <p style="font-size:14px;color:#4a5568;line-height:1.7">Al hacer clic en <strong>Enviar</strong>, el resumen completo de las dos hojas será enviado automáticamente al equipo de coordinación de la Plataforma SOL.</p>
+    </div>
+    <div class="nav">
+      <button class="btns" onclick="goStep(2)">← Anterior</button>
+      <button class="btnp" id="btnenviar" onclick="enviar()">📤 Enviar levantamiento</button>
+    </div>
+  </div>
+
+  <!-- ÉXITO -->
+  <div class="step" id="step4">
+    <div class="card">
+      <div class="okbox">
+        <div class="check-wrap">
+          <svg viewBox="0 0 52 52"><polyline points="14,27 22,35 38,17"/></svg>
+        </div>
+        <div class="ok-inst" id="ok-inst"></div>
+        <h2>¡Levantamiento enviado!</h2>
+        <p id="okmsg">El formulario fue enviado correctamente al equipo de coordinación de la Plataforma SOL.</p>
+        <button class="btnp" onclick="descargar()" style="margin-bottom:12px">⬇ Descargar resumen (.txt)</button><br>
+        <button class="btns" onclick="reiniciar()" style="margin-top:8px;font-size:13px">↺ Nuevo levantamiento</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+
+emailjs.init("xl4HDu62cetiPyDCJ");
+
+const DB = {
+  CONVIVIENDA:['REGISTRO DE ACTORES'],
+  COPECO:['CERTIFICADO DE EVALUACION DE RIESGO'],
+  SIT:['CONSTANCIA DE INAFECTABILIDAD'],
+  IHADFA:['NUEVO CERTIFICADO PARA COMERCIALIZAR BEBIDAS ALCOHOLICAS','RENOVACION PARA COMERCIALIZAR BEBIDAS ALCOHOLICAS','NUEVO CERTIFICADO PARA COMERCIALIZAR PRODUCTOS DERIVADOS DEL TABACO','RENOVACION DEL CERTIFICADO PARA COMERCIALIZAR PRODUCTOS DERIVADOS DEL TABACO','NUEVO CERTIFICADO PARA COMERCIALIZAR PRODUCTOS FARMACEUTICOS','RENOVACION CERTIFICADA PARA COMERCIALIZAR PRODUCTOS FARMACEUTICOS'],
+  BANHPROVI:['PRECALIFICACION DE SOLICITUD DE VIVIENDA (BANCA DE PRIMER PISO)','SOLICITUD DE REDESCUENTO PARA VIVIENDA BANCA DE SEGUNDO PISO','RESERVA PARA EMISION DE CERTIFICADO DE COBERTURA FONDO GARANTIA BCH-FG-MIPYME'],
+  INPREUNAH:['SOLICITUD DE HISTORIAL DE COTIZACIONES','SOLICITUD DE VAUCHER','SOLICITUD DE CONSTANCIA'],
+  CNBS:['INSCRIPCION EN EL REGISTRO DE AUDITORES EXTERNOS (RAE)','ACTUALIZACION DEL REGISTRO DE AUDITORES EXTERNOS (RAE)','RECLASIFICACION EN EL REGISTRO DE AUDITORES EXTERNOS (RAE)'],
+  INPREMA:['ACTUALIZACION DE DATOS DOCENTES','PRE-ANALISIS PARA OTORGAMIENTO DE PRESTAMO RAPIBONO','PRE-ANALISIS PARA EL OTORGAMIENTO DE PRESTAMO HIPOTECARIO','PRE-ANALISIS PARA EL OTORGAMIENTO DE PRESTAMO PERSONAL','PRE-ANALISIS PARA EL OTORGAMIENTO DE PRESTAMO PERSONAL CONSOLIDACION DE DEUDAS','REGISTRO Y ATENCION DE DENUNCIAS (PROTOCOLO DE ATENCION DE CASOS EXTERNOS)'],
+  IHTT:['CERTIFICACION DE EXPEDIENTE EN TRAMITE','CERTIFICACION DE CODIGO ADUANERO','CERTIFICACION DE SER CONCESIONARIO'],
+  SEN:['INSCRIPCION DE EMPRESAS SUPLIDORAS DE SISTEMAS Y EQUIPOS DE ENERGIA SOLAR FOTOVOLTAICA Y SOLAR TERMICA','AUTORIZACION MEDIANTE REGISTRO DE EQUIPOS DE RADIODIAGNOSTICO DENTAL DE TIPO INTRAORAL','INSCRIPCION DE LA SOCIEDAD MERCANTIL O COMERCIANTE INDIVIDUAL EN LA CADENA DE COMERCIALIZACION DE HIDROCARBUROS'],
+  CONSUCOOP:['CONSTANCIA DE SOLVENCIA DE COOPERATIVAS','EMISION DE CONSTANCIA DE INSCRIPCION DE COOPERATIVAS','PETICION DE CALCULO DE APORTE','CERTIFICACION DE INSCRIPCION DE JUNTA DIRECTIVA Y JUNTA DE VIGILANCIA'],
+  CONATEL:['CERTIFICADO DE HOMOLOGACION','SERVICIO MOVIL MARITIMO - LICENCIA'],
+  IHCINE:['INSCRIPCION EN EL REGISTRO NACIONAL DE CINEMATOGRAFIA PERSONA NATURAL','INSCRIPCION EN EL REGISTRO NACIONAL DE CINEMATOGRAFIA PERSONA JURIDICA','SOLICITUD DE FONDOS DE APOYO FINANCIERO Y PATROCINIO PERSONA NATURAL Y PERSONA JURIDICA'],
+  SAG:['SOLICITUD DE CARNE PARA COMERCIALIZACION DE PRODUCTOS PESQUEROS Y ACUICOLAS','SOLICITUD DE CONSTANCIA DE TRAZABILIDAD DE ORIGEN PARA EXPORTACION DE PEPINO DE MAR','SOLICITUD DE CONSTANCIA DE TRAZABILIDAD DE ORIGEN PARA COMERCIO LOCAL DE CARACOL ROSADO'],
+  SECAPPH:['SOLICITUD DE AGRUPACIONES ARTISTICAS','REGISTRO DE MATRICULA ANUAL ACADEMIA NACIONAL DE ARTE DRAMATICO','REGISTRO DE MATRICULA ESCOLAR DE LA ACADEMIA NACIONAL DE DANZA','SOLICITUD DE TEATROS','SOLICITUD DE ARTES PLASTICAS Y AUDIOVISUALES'],
+  SRECI:['AUTENTICAS Y APOSTILLAS','CERTIFICACION DE TRADUCCION'],
+  SERNA:['CONSTANCIA DE NO REQUERIR LICENCIA AMBIENTAL','REGISTRO DE PRESTADORES DE SERVICIOS AMBIENTALES','REGISTRO DE IMPORTADORES DE EQUIPOS','REGISTRO DE IMPORTADORES DE SUSTANCIAS','PRE-AUTORIZACION DE IMPORTACION DE EQUIPOS'],
+  SGJD:['REGISTRO DE CONTRATOS DE LA DIRECCION DE INQUILINATOS','AUTENTICAS DE DOCUMENTACION','RECONOCIMIENTO DE PERSONAS JURIDICAS','AUTORIZACION PARA PROMOCIONES, SORTEOS Y OTROS SIMILARES','AUTORIZACION PARA EVENTOS Y ESPECTACULOS PUBLICOS'],
+  'CANATURH / IHT':['INSCRIPCION EN EL REGISTRO NACIONAL DE TURISMO: SERVICIOS DE HOSPITALIDAD, RECREACION, Y ESPACIOS PARA EVENTOS','INSCRIPCION EN EL REGISTRO NACIONAL DE TURISMO: PRESTADORES DE SERVICIOS DE TRANSPORTE Y ARRENDADORAS DE VEHICULOS','INSCRIPCION EN EL REGISTRO NACIONAL DE TURISMO: GUIAS TURISTICOS','INSCRIPCION EN EL REGISTRO NACIONAL DE TURISMO: OPERADORAS DE TURISMO RECEPTIVO Y AGENCIAS DE VIAJE','RENOVACION EN EL REGISTRO NACIONAL DE TURISMO: SERVICIOS INTERMEDIACION Y FACILITACION TURISTICA','RENOVACION EN EL REGISTRO NACIONAL DE TURISMO: PRESTADORES DE SERVICIOS DE TRANSPORTE Y ARRENDADORAS DE VEHICULOS','RENOVACION EN EL REGISTRO NACIONAL DE TURISMO: GUIAS TURISTICOS','RENOVACION EN EL REGISTRO NACIONAL DE TURISMO: SERVICIOS DE HOSPITALIDAD, RECREACION, Y ESPACIOS PARA EVENTOS']
+};
+
+var eqN = 0;
+
+function pill(input) {
+  var group = input.closest('.rgroup');
+  var pills = group.querySelectorAll('.rpill');
+  for (var i = 0; i < pills.length; i++) pills[i].classList.remove('on');
+  input.closest('.rpill').classList.add('on');
+  var name = input.name;
+  var val = input.value;
+  if (name === 'migrada') {
+    document.getElementById('lim-wrap').style.display = val === 'No' ? 'block' : 'none';
+  }
+  if (name === 'personal') {
+    document.getElementById('personal-wrap').style.display = val === 'No' ? 'block' : 'none';
+  }
+  if (name === 'acomp') {
+    document.getElementById('acomp-wrap').style.display = val === 'Sí' ? 'block' : 'none';
+  }
+}
+
+function addRow() {
+  eqN++;
+  var r = document.getElementById('equipo');
+  var d = document.createElement('div');
+  d.className = 'row3';
+  d.style.marginBottom = '8px';
+  d.innerHTML = '<input type="text" placeholder="Funcion" id="ef' + eqN + '" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit">' +
+    '<input type="text" placeholder="Nombre completo" id="en' + eqN + '" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit">' +
+    '<input type="text" placeholder="correo o celular" id="ec' + eqN + '" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit">';
+  r.appendChild(d);
+}
+addRow();
+
+function buildTramites(inst) {
+  var t = DB[inst] || [];
+  var list = document.getElementById('tlist');
+  list.innerHTML = '';
+  for (var i = 0; i < t.length; i++) {
+    var row = document.createElement('div');
+    row.className = 'trow';
+    row.innerHTML = '<div class="tn">' + t[i] + '</div>' +
+      '<div><input type="checkbox" id="acta' + i + '"></div>' +
+      '<div><input type="checkbox" id="mej' + i + '"></div>' +
+      '<div><input type="checkbox" id="instr' + i + '"></div>' +
+      '<div><input type="checkbox" id="soc' + i + '"></div>';
+    list.appendChild(row);
+    var od = document.createElement('div');
+    od.innerHTML = '<textarea class="omini" id="obs' + i + '" placeholder="Observaciones para: ' + t[i].substring(0,40) + '..."></textarea>';
+    list.appendChild(od);
+  }
+  document.getElementById('iavt').textContent = inst.replace('/',' ').trim().substring(0,2).toUpperCase();
+  document.getElementById('iname').textContent = inst;
+}
+
+function getVal(id) { var el = document.getElementById(id); return el ? (el.value || '') : ''; }
+function getCheck(name) { var el = document.querySelector('[name=' + name + ']:checked'); return el ? el.value : '—'; }
+function checked(id) { var el = document.getElementById(id); return el && el.checked ? 'SI' : 'NO'; }
+
+function buildResumen() {
+  var inst = getVal('inst');
+  var tramites = DB[inst] || [];
+  var tRows = '';
+  for (var i = 0; i < tramites.length; i++) {
+    var a = checked('acta' + i);
+    var m = checked('mej' + i);
+    var iv = checked('instr' + i);
+    var s = checked('soc' + i);
+    var obs = getVal('obs' + i);
+    var col = function(v) { return v === 'SI' ? '<span style="color:#0c3d78">&#10003;</span>' : '<span style="color:#ccc">&#10007;</span>'; };
+    tRows += '<tr style="border-bottom:1px solid #f0f0ee"><td style="padding:6px 4px;font-size:12px">' + tramites[i] + '</td><td style="text-align:center">' + col(a) + '</td><td style="text-align:center">' + col(m) + '</td><td style="text-align:center">' + col(iv) + '</td><td style="text-align:center">' + col(s) + '</td><td style="font-size:11px;color:#888;padding:4px">' + obs + '</td></tr>';
+  }
+  document.getElementById('resumen').innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:1rem">' +
+    '<div style="font-size:13px"><span style="color:#888">Institucion: </span><strong>' + inst + '</strong></div>' +
+    '<div style="font-size:13px"><span style="color:#888">Encargado: </span>' + (getVal('enc') || '—') + '</div>' +
+    '<div style="font-size:13px"><span style="color:#888">Correo: </span>' + (getVal('cor') || '—') + '</div>' +
+    '<div style="font-size:13px"><span style="color:#888">Celular: </span>' + (getVal('cel') || '—') + '</div>' +
+    '<div style="font-size:13px"><span style="color:#888">Estado: </span>' + getCheck('estado') + '</div>' +
+    '<div style="font-size:13px"><span style="color:#888">SOL migrada: </span>' + getCheck('migrada') + '</div>' +
+    '<div style="font-size:13px"><span style="color:#888">Personal tecnico: </span>' + getCheck('personal') + '</div>' +
+    '<div style="font-size:13px"><span style="color:#888">Requiere acomp.: </span>' + getCheck('acomp') + '</div>' +
+    '</div>' +
+    '<p style="font-size:12px;font-weight:600;color:#888;margin-bottom:8px">TRAMITES — ' + tramites.length + ' registrados</p>' +
+    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">' +
+    '<thead><tr style="background:#f5f5f3"><th style="text-align:left;padding:7px 4px;font-size:11px">Tramite</th><th style="padding:7px 2px;font-size:10px;text-align:center">Acta</th><th style="padding:7px 2px;font-size:10px;text-align:center">Mejoras</th><th style="padding:7px 2px;font-size:10px;text-align:center">Instructivo</th><th style="padding:7px 2px;font-size:10px;text-align:center">Socializ.</th><th style="text-align:left;padding:7px 4px;font-size:11px">Obs.</th></tr></thead>' +
+    '<tbody>' + tRows + '</tbody></table></div>';
+}
+
+function goStep(n) {
+  if (n >= 2) {
+    // Institucion
+    if (!getVal('inst')) { alert('Por favor seleccione una institucion.'); return; }
+    // Encargado
+    if (!getVal('enc')) { alert('Por favor ingrese el nombre del encargado.'); return; }
+    // Correo
+    if (!getVal('cor')) { alert('Por favor ingrese el correo institucional.'); return; }
+    // Estado actual (radio)
+    if (!document.querySelector('[name=estado]:checked')) { alert('Por favor seleccione el estado actual de los tramites.'); return; }
+    // SOL migrada (radio)
+    if (!document.querySelector('[name=migrada]:checked')) { alert('Por favor indique si la plataforma SOL fue migrada.'); return; }
+    // Limitante si selecciono No
+    var migVal = document.querySelector('[name=migrada]:checked').value;
+    if (migVal === 'No' && !getVal('limitante')) { alert('Por favor seleccione la principal limitante para la migracion.'); return; }
+    // Personal tecnico (radio)
+    if (!document.querySelector('[name=personal]:checked')) { alert('Por favor indique si la institucion cuenta con personal tecnico.'); return; }
+    // Acompanamiento (radio)
+    if (!document.querySelector('[name=acomp]:checked')) { alert('Por favor indique si requiere acompanamiento.'); return; }
+    // Habilidades si selecciono Si
+    var acompVal = document.querySelector('[name=acomp]:checked').value;
+    if (acompVal === 'Sí' && !getVal('habilidades')) { alert('Por favor seleccione el tipo de habilidades requeridas.'); return; }
+    // Al menos un miembro en equipo institucional
+    var tieneEquipo = false;
+    for (var i = 1; i <= eqN; i++) {
+      if (getVal('ef'+i) || getVal('en'+i) || getVal('ec'+i)) { tieneEquipo = true; break; }
+    }
+    if (!tieneEquipo) { alert('Por favor agregue al menos un miembro al equipo institucional de digitalizacion.'); return; }
+  }
+  var inst = getVal('inst');
+  if (n === 2) buildTramites(inst);
+  if (n === 3) buildResumen();
+  var steps = document.querySelectorAll('.step');
+  for (var i = 0; i < steps.length; i++) steps[i].classList.remove('active');
+  document.getElementById('step' + n).classList.add('active');
+  // Update step indicator
+  var sitems = ['si1','si2','si3'];
+  for (var j = 0; j < sitems.length; j++) {
+    var el = document.getElementById(sitems[j]);
+    if (j < n-1) el.className = 'step-item done';
+    else if (j === n-1) el.className = 'step-item active';
+    else el.className = 'step-item';
+  }
+  window.scrollTo(0,0);
+}
+
+function buildTexto() {
+  var inst = getVal('inst');
+  var tramites = DB[inst] || [];
+  var equipo = '';
+  for (var i = 1; i <= eqN; i++) {
+    var f = getVal('ef'+i), nm = getVal('en'+i), c = getVal('ec'+i);
+    if (f || nm || c) equipo += '  - ' + f + ' | ' + nm + ' | ' + c + '\n';
+  }
+  if (!equipo) equipo = '  (No registrado)\n';
+  var tTxt = '';
+  for (var i = 0; i < tramites.length; i++) {
+    tTxt += '- ' + tramites[i] + '\n';
+    tTxt += '  Acta: ' + checked('acta'+i) + ' | Mejoras: ' + checked('mej'+i) + ' | Instructivo: ' + checked('instr'+i) + ' | Socializacion: ' + checked('soc'+i) + '\n';
+    var ob = getVal('obs'+i);
+    if (ob) tTxt += '  Observaciones: ' + ob + '\n';
+    tTxt += '\n';
+  }
+  var fecha = new Date().toLocaleDateString('es-HN') + ' ' + new Date().toLocaleTimeString('es-HN');
+  return 'LEVANTAMIENTO DE TRAMITES - PLATAFORMA SOL\n' +
+    '==========================================\n\n' +
+    'HOJA 1 - INFORMACION GENERAL\n' +
+    '-----------------------------------------\n' +
+    'Institucion: ' + inst + '\n' +
+    'Encargado: ' + (getVal('enc')||'—') + '\n' +
+    'Correo: ' + (getVal('cor')||'—') + '\n' +
+    'Celular: ' + (getVal('cel')||'—') + '\n\n' +
+    'Estado actual de tramites: ' + getCheck('estado') + '\n' +
+    'SOL migrada a infraestructura: ' + getCheck('migrada') + '\n' +
+    'Personal tecnico capacitado: ' + getCheck('personal') + '\n' +
+    'Requiere acompanamiento: ' + getCheck('acomp') + '\n' +
+    'Habilidades requeridas: ' + (getVal('habilidades')||'—') + '\n\n' +
+    'Observaciones del estado actual:\n' + (getVal('obs-estado')||'—') + '\n\n' +
+    'Equipo institucional:\n' + equipo +
+    '==========================================\n\n' +
+    'HOJA 2 - CHECKLIST DE TRAMITES\n' +
+    '-----------------------------------------\n' +
+    tTxt +
+    '==========================================\n\n' +
+    'OBSERVACIONES GENERALES:\n' + (getVal('obs-gen')||'—') + '\n\n' +
+    'Enviado el ' + fecha;
+}
+
+function enviar() {
+  var btn = document.getElementById('btnenviar');
+  btn.textContent = 'Enviando...';
+  btn.disabled = true;
+  var inst = getVal('inst');
+  var txt = buildTexto();
+  window._txt = txt;
+  emailjs.send('service_ddpjb4o', 'template_56ilb2e', {
+    institucion: inst,
+    resumen: txt
+  }).then(function() {
+    document.getElementById('ok-inst').textContent = inst;
+    document.getElementById('okmsg').textContent = 'El resumen completo fue enviado al equipo de coordinación de la Plataforma SOL.';
+    goStep(4);
+  }).catch(function(err) {
+    btn.textContent = 'Enviar levantamiento';
+    btn.disabled = false;
+    alert('Error al enviar. Intente de nuevo.\n' + JSON.stringify(err));
+  });
+}
+
+function descargar() {
+  if (!window._txt) return;
+  var a = document.createElement('a');
+  a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(window._txt);
+  a.download = 'levantamiento_' + getVal('inst').replace(/[\s\/]/g,'_') + '.txt';
+  a.click();
+}
+
+function reiniciar() {
+  var inputs = document.querySelectorAll('input:not([type=radio]):not([type=checkbox]),textarea,select');
+  for (var i = 0; i < inputs.length; i++) inputs[i].value = '';
+  var radios = document.querySelectorAll('input[type=radio],input[type=checkbox]');
+  for (var i = 0; i < radios.length; i++) radios[i].checked = false;
+  var pills = document.querySelectorAll('.rpill');
+  for (var i = 0; i < pills.length; i++) pills[i].classList.remove('on');
+  document.getElementById('equipo').innerHTML = '';
+  document.getElementById('lim-wrap').style.display = 'none';
+  document.getElementById('acomp-wrap').style.display = 'none';
+  eqN = 0; addRow(); goStep(1);
+}
+
+// Radio pill click handlers
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.rpill input[type=radio]').forEach(function(input) {
+    input.addEventListener('change', function() { pill(this); });
+  });
+});
+
+</script>
+</body>
+</html>

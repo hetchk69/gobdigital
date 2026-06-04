@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Levantamiento de Campo — Certificación de Íntegra de Asiento | DIGER</title>
+<style>
+:root{--azul:#0a2d6e;--azul-m:#1455a4;--azul-c:#e8f0ff;--gris-f:#f4f6fb;--borde:#dde4f0;--texto:#1c2333;--muted:#64748b;--verde:#16a34a;--verde-c:#dcfce7;--amber:#d97706;--amber-c:#fef3c7;--rojo:#dc2626}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--texto);background:var(--gris-f);min-height:100vh}
+
+/* GATE */
+#gate{position:fixed;inset:0;background:linear-gradient(145deg,#0a1f4e,#1455a4);display:flex;align-items:center;justify-content:center;z-index:9999}
+.gate-card{background:#fff;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.35);padding:2.75rem 2.25rem;max-width:440px;width:92%;text-align:center}
+.gate-logo{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--azul-m),var(--azul));display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;box-shadow:0 8px 24px rgba(10,45,110,.35);font-size:30px}
+.gate-card h1{font-size:18px;font-weight:800;color:var(--azul);margin-bottom:.3rem}
+.gate-sub{font-size:12.5px;color:var(--muted);margin-bottom:.2rem}
+.gate-div{height:1px;background:var(--borde);margin:1.25rem 0}
+.gate-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;text-align:left;margin-bottom:5px}
+.gate-inp{width:100%;padding:11px 14px;border:1.5px solid var(--borde);border-radius:10px;font-size:14px;font-family:inherit;outline:none;transition:border .2s,box-shadow .2s;margin-bottom:.75rem}
+.gate-inp:focus{border-color:var(--azul-m);box-shadow:0 0 0 4px rgba(20,85,164,.1)}
+.gate-err{font-size:12px;color:var(--rojo);background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:8px 12px;margin-bottom:.75rem;display:none;text-align:left}
+.gate-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.gate-btn:hover{opacity:.9}
+.gate-hint{font-size:11px;color:var(--muted);margin-top:1rem;line-height:1.5}
+
+/* TOPBAR */
+.topbar{background:linear-gradient(90deg,var(--azul),var(--azul-m));padding:0 1.5rem;height:52px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.18);position:sticky;top:0;z-index:100}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:7px;padding:3px 10px;font-size:11px;font-weight:700;color:#fff;letter-spacing:.06em}
+.topbar h1{font-size:13px;font-weight:700;color:#fff}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-user{font-size:11.5px;color:rgba(255,255,255,.7)}
+.btn-top{padding:6px 13px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s;display:flex;align-items:center;gap:5px}
+.btn-json{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.btn-json:hover{background:rgba(255,255,255,.25)}
+.btn-pdf{background:#fff;color:var(--azul);font-weight:700}
+.btn-pdf:hover{background:#e8f0ff}
+
+/* PROGRESS STRIP */
+.pstrip{background:#fff;border-bottom:1px solid var(--borde);padding:0 1.5rem;display:flex;overflow-x:auto;gap:0}
+.ps{display:flex;align-items:center;gap:7px;padding:12px 16px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s}
+.ps:hover{color:var(--azul-m);background:#fafbff}
+.ps.active{color:var(--azul);border-bottom-color:var(--azul-m);background:#f5f8ff}
+.psn{width:20px;height:20px;border-radius:50%;background:var(--borde);color:var(--muted);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.ps.active .psn{background:var(--azul-m);color:#fff}
+
+/* LAYOUT */
+.wrap{display:grid;grid-template-columns:240px 1fr;max-width:1280px;margin:0 auto;min-height:calc(100vh - 95px)}
+.sidebar{background:#fff;border-right:1px solid var(--borde);padding:1.25rem 1rem;position:sticky;top:95px;height:calc(100vh - 95px);overflow-y:auto}
+.main{padding:1.75rem 1.75rem 4rem}
+.sb-hdr{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem}
+.sbi{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:12px;cursor:pointer;color:var(--muted);transition:all .18s;margin-bottom:2px}
+.sbi:hover{background:var(--gris-f);color:var(--azul)}
+.sbi.active{background:var(--azul-c);color:var(--azul);font-weight:700}
+.sbd{width:6px;height:6px;border-radius:50%;background:var(--borde);flex-shrink:0;transition:background .2s}
+.sbi.active .sbd{background:var(--azul-m)}
+.sb-div{height:1px;background:var(--borde);margin:.85rem 0}
+.sb-meta{font-size:11px;color:var(--muted);line-height:1.7;padding:9px;background:var(--gris-f);border-radius:8px}
+.sb-meta strong{color:var(--texto);font-weight:600}
+.pb-wrap{margin-top:1.25rem}
+.pb-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px}
+.pb{height:5px;background:var(--borde);border-radius:99px;overflow:hidden}
+.pb-fill{height:100%;background:linear-gradient(90deg,var(--azul-m),var(--verde));border-radius:99px;transition:width .4s}
+
+/* SECTIONS */
+.sec{display:none}.sec.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sec-title{font-size:11px;font-weight:800;color:var(--azul-m);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1.4rem;padding-bottom:.65rem;border-bottom:2px solid var(--azul-c);display:flex;align-items:center;gap:8px}
+
+/* CARDS */
+.card{background:#fff;border:1px solid var(--borde);border-radius:13px;padding:1.4rem;margin-bottom:1.1rem}
+.card.accent{border-left:3px solid var(--azul-m)}
+.ct{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1rem;padding-bottom:.55rem;border-bottom:1.5px solid var(--gris-f);display:flex;align-items:center;gap:7px}
+
+/* FIELDS */
+.f{margin-bottom:1rem}.f:last-child{margin-bottom:0}
+.f label{display:block;font-size:12px;font-weight:700;color:var(--texto);margin-bottom:4px}
+.star{color:var(--rojo);margin-left:2px}
+.f input,.f select,.f textarea{width:100%;padding:9px 12px;border:1.5px solid var(--borde);border-radius:8px;font-size:13.5px;font-family:inherit;background:#fafbfd;color:var(--texto);transition:border .2s,box-shadow .2s}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--azul-m);background:#fff;box-shadow:0 0 0 3px rgba(20,85,164,.09)}
+.f input[readonly]{background:var(--azul-c);color:var(--azul);font-weight:700;cursor:default;border-color:transparent}
+.f textarea{min-height:88px;resize:vertical;line-height:1.6}
+.f .hint{font-size:11px;color:var(--muted);margin-top:3px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+/* REQUISITOS */
+.rg{margin-bottom:1.4rem}
+.rg-title{font-size:11.5px;font-weight:700;color:#fff;background:linear-gradient(90deg,var(--azul-m),var(--azul));padding:7px 13px;border-radius:7px;margin-bottom:.5rem}
+.col-hdr{display:grid;grid-template-columns:1fr 80px 80px 80px 1fr;gap:8px;padding:5px 11px;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.col-hdr span{text-align:center}.col-hdr span:first-child,.col-hdr span:last-child{text-align:left}
+.rrow{display:grid;grid-template-columns:1fr 80px 80px 80px 1fr;gap:8px;align-items:center;padding:9px 11px;border-radius:8px;background:var(--gris-f);border:1px solid var(--borde);margin-bottom:4px;transition:background .15s}
+.rrow:hover{background:#f0f5ff}
+.rlbl{font-size:13px;color:var(--texto);line-height:1.35}
+.cc{display:flex;justify-content:center}
+.cc input[type=checkbox]{width:17px;height:17px;accent-color:var(--azul-m);cursor:pointer}
+.omini{width:100%;font-size:12px;padding:5px 8px;border:1.5px solid var(--borde);border-radius:6px;font-family:inherit;resize:none;min-height:34px;background:#fafbfd;transition:border .2s}
+.omini:focus{outline:none;border-color:var(--azul-m)}
+
+/* FLUJO TABLE — filas dinámicas */
+.ftbl{width:100%;border-collapse:collapse;font-size:13px}
+.ftbl th{background:var(--azul);color:#fff;padding:9px 11px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:left}
+.ftbl th:first-child{width:36px;text-align:center}
+.ftbl tr:nth-child(even){background:var(--gris-f)}
+.ftbl td{padding:0;border-bottom:1px solid var(--borde);vertical-align:top}
+.ftbl td input{width:100%;padding:8px 10px;border:none;background:transparent;font-size:12.5px;font-family:inherit}
+.ftbl td input:focus{outline:none;background:var(--azul-c)}
+.ftbl .nc{text-align:center;padding:9px;font-weight:800;font-size:13px;color:var(--azul-m);background:var(--azul-c);border-bottom:1px solid var(--borde);width:36px}
+.btn-add-fila{margin-top:.75rem;padding:7px 16px;background:var(--azul-c);color:var(--azul-m);border:1.5px solid var(--azul-m);border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-add-fila:hover{background:var(--azul-m);color:#fff}
+
+/* DOCS INTERNOS — dinámicos */
+.doc-fila{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.doc-fila input[type=text]{flex:1;padding:7px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:13px;font-family:inherit;background:#fafbfd}
+.doc-fila input[type=text]:focus{outline:none;border-color:var(--azul-m)}
+.doc-num-badge{width:24px;height:24px;border-radius:50%;background:var(--azul-c);color:var(--azul-m);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.btn-rm{width:24px;height:24px;border-radius:50%;background:#fff;border:1.5px solid var(--borde);color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.btn-rm:hover{background:#fff5f5;border-color:var(--rojo);color:var(--rojo)}
+
+/* GLOSARIO */
+.glos-fila{display:grid;grid-template-columns:28px 1fr 1fr;gap:8px;margin-bottom:5px;align-items:center}
+.glos-num{font-size:11px;font-weight:800;color:var(--azul-m);text-align:center}
+.glos-inp{padding:7px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:13px;font-family:inherit;background:#fafbfd;width:100%}
+.glos-inp:focus{outline:none;border-color:var(--azul-m)}
+
+/* TOGGLE PILLS */
+.tg{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.tp{display:flex;align-items:center;gap:7px;padding:7px 15px;border:1.5px solid var(--borde);border-radius:99px;cursor:pointer;font-size:13px;font-weight:500;transition:all .18s;background:var(--gris-f)}
+.tp:hover{border-color:var(--azul-m);background:var(--azul-c)}
+.tp.on{border-color:var(--azul-m);background:linear-gradient(135deg,#dde9ff,#c8dbff);color:var(--azul);font-weight:700}
+.tp.on-v{border-color:var(--verde);background:var(--verde-c);color:var(--verde);font-weight:700}
+.tp.on-a{border-color:var(--amber);background:var(--amber-c);color:var(--amber);font-weight:700}
+.tp input{accent-color:var(--azul-m);cursor:pointer}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:1.25rem}
+.kpi{background:#fff;border:1px solid var(--borde);border-radius:11px;padding:13px 15px;text-align:center}
+.kpi-v{font-size:26px;font-weight:900;color:var(--azul);line-height:1}
+.kpi-l{font-size:11px;color:var(--muted);margin-top:3px;font-weight:600}
+
+/* FIRMA */
+.firma-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:1rem}
+.firma-box{border:1.5px dashed var(--borde);border-radius:11px;padding:1.1rem;text-align:center;min-height:110px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px}
+.firma-line{border-top:1.5px solid var(--texto);margin:0 1rem;padding-top:7px}
+.firma-name{font-size:12px;font-weight:700;color:var(--texto);margin-top:3px}
+.firma-role{font-size:11px;color:var(--muted)}
+.firma-box input{width:100%;border:none;border-bottom:1.5px solid var(--borde);background:transparent;font-size:13px;font-family:inherit;padding:4px 0;outline:none;text-align:center}
+.firma-box input:focus{border-bottom-color:var(--azul-m)}
+
+/* NAV */
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.75rem;padding-top:1.4rem;border-top:1px solid var(--borde)}
+.btn{padding:10px 22px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;border:none}
+.btn-p{background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;box-shadow:0 4px 14px rgba(10,45,110,.22)}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(10,45,110,.32)}
+.btn-s{background:#fff;border:1.5px solid var(--borde);color:var(--muted)}
+.btn-s:hover{border-color:var(--azul-m);color:var(--azul-m);background:var(--azul-c)}
+.btn-ok{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 4px 14px rgba(22,163,74,.22)}
+.btn-ol-g{background:#fff;border:1.5px solid var(--verde);color:var(--verde);font-weight:700}
+.btn-ol-g:hover{background:var(--verde-c)}
+.btn-ol-b{background:#fff;border:1.5px solid var(--azul-m);color:var(--azul-m);font-weight:700}
+.btn-ol-b:hover{background:var(--azul-c)}
+
+/* PRINT */
+@media print{
+  #gate,.topbar,.pstrip,.sidebar,.nav,.btn,.tb-right{display:none!important}
+  .wrap{display:block!important}.main{padding:0!important}
+  .sec{display:block!important}
+  .card{break-inside:avoid;border:1px solid #ccc;margin-bottom:10px}
+  body{font-size:12px}
+  .rrow{break-inside:avoid}
+  .ph{display:block!important}
+}
+.ph{display:none;margin-bottom:1.25rem}
+.ph h1{font-size:15px;font-weight:800}.ph p{font-size:11.5px;color:#555}
+.ph-div{border-top:2px solid #000;margin:5px 0}
+
+@media(max-width:900px){
+  .wrap{grid-template-columns:1fr}.sidebar{display:none}
+  .main{padding:1.1rem .9rem 3rem}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr 1fr}
+  .col-hdr,.rrow{grid-template-columns:1fr 66px 66px 66px}
+  .rrow .obs-col,.col-hdr .obs-hdr{display:none}
+  .firma-grid{grid-template-columns:1fr}
+  .glos-fila{grid-template-columns:28px 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- GATE -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-logo">🏛</div>
+    <h1>Levantamiento de Campo</h1>
+    <p class="gate-sub" style="color:#64748b;font-size:13px">DIGER — Equipo de Digitalización de Trámites</p>
+    <p class="gate-sub" style="color:#94a3b8;font-size:12px;margin-top:3px">Uso exclusivo del equipo técnico interno</p>
+    <div class="gate-div"></div>
+    <div class="gate-lbl">Correo institucional</div>
+    <input class="gate-inp" type="email" id="gate-email" placeholder="nombre@diger.gob.hn" autocomplete="email">
+    <div class="gate-err" id="gate-err">⚠ Acceso no autorizado. Solo el equipo de digitalización de DIGER puede ingresar.</div>
+    <button class="gate-btn" onclick="verificarAcceso()">Ingresar al formulario →</button>
+    <p class="gate-hint">Este formulario es de uso exclusivo del equipo de digitalización de trámites de DIGER.</p>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-left">
+    <span class="tb-badge">CAMPO</span>
+    <h1 id="topbar-title">Levantamiento de Campo — DIGER</h1>
+  </div>
+  <div class="tb-right">
+    <span class="tb-user" id="tb-user"></span>
+    <button class="btn-top btn-json" onclick="descargarJson()">⬇ JSON</button>
+    <button class="btn-top btn-pdf" onclick="imprimirPDF()">🖨 PDF</button>
+  </div>
+</div>
+
+<!-- PROGRESS STRIP -->
+<div class="pstrip">
+  <div class="ps active" id="ps0" onclick="ir(0)"><div class="psn">1</div>Datos Generales</div>
+  <div class="ps" id="ps1" onclick="ir(1)"><div class="psn">2</div>Objetivo y Marco Legal</div>
+  <div class="ps" id="ps2" onclick="ir(2)"><div class="psn">3</div>Requisitos</div>
+  <div class="ps" id="ps3" onclick="ir(3)"><div class="psn">4</div>Línea Base</div>
+  <div class="ps" id="ps4" onclick="ir(4)"><div class="psn">5</div>Flujo de Actividades</div>
+  <div class="ps" id="ps5" onclick="ir(5)"><div class="psn">6</div>Racionalización</div>
+  <div class="ps" id="ps6" onclick="ir(6)"><div class="psn">7</div>Cierre y Firma</div>
+</div>
+
+<div class="wrap">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-hdr">Secciones</div>
+    <div class="sbi active" id="sb0" onclick="ir(0)"><div class="sbd"></div>Datos Generales</div>
+    <div class="sbi" id="sb1" onclick="ir(1)"><div class="sbd"></div>Objetivo y Marco Legal</div>
+    <div class="sbi" id="sb2" onclick="ir(2)"><div class="sbd"></div>Requisitos del Trámite</div>
+    <div class="sbi" id="sb3" onclick="ir(3)"><div class="sbd"></div>Indicadores Línea Base</div>
+    <div class="sbi" id="sb4" onclick="ir(4)"><div class="sbd"></div>Flujo de Actividades</div>
+    <div class="sbi" id="sb5" onclick="ir(5)"><div class="sbd"></div>Trámite Racionalizado</div>
+    <div class="sbi" id="sb6" onclick="ir(6)"><div class="sbd"></div>Cierre y Firma</div>
+    <div class="sb-div"></div>
+    <div class="sb-meta">
+      <strong>Institución:</strong> <span id="sb-inst">—</span><br>
+      <strong>Trámite:</strong> <span id="sb-tramite">—</span><br>
+      <strong>Analista:</strong> <span id="sb-user">—</span><br>
+      <strong>Fecha:</strong> <span id="sb-fecha">—</span>
+    </div>
+    <div class="pb-wrap">
+      <div class="pb-lbl"><span>Progreso</span><span id="pb-pct">14%</span></div>
+      <div class="pb"><div class="pb-fill" id="pb-fill" style="width:14%"></div></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- PRINT HEADER -->
+    <div class="ph">
+      <h1>FICHA DE LEVANTAMIENTO DE CAMPO — DIGER</h1>
+      <p id="ph-subtitulo">—</p>
+      <div class="ph-div"></div>
+      <p>Analista: <span id="ph-analista"></span> &nbsp;|&nbsp; Fecha: <span id="ph-fecha"></span></p>
+      <div class="ph-div"></div>
+    </div>
+
+    <!-- ══ SECCIÓN 0: DATOS GENERALES ══ -->
+    <div class="sec active" id="sec0">
+      <div class="sec-title">📋 Sección 1 — Datos Generales</div>
+
+      <div class="card accent">
+        <div class="ct">🏛 Identificación del trámite</div>
+        <div class="g2">
+          <div class="f"><label>Institución Gubernamental <span class="star">*</span></label><input type="text" id="institucion" placeholder="Ej: Instituto de la Propiedad" oninput="actualizarMeta()"></div>
+          <div class="f"><label>Código / Número del Trámite</label><input type="text" id="codigo" placeholder="Ej: IP-001"></div>
+        </div>
+        <div class="f"><label>Nombre del Trámite <span class="star">*</span></label><input type="text" id="nombre_tramite" placeholder="Ej: Certificación de Íntegra de Asiento" oninput="actualizarMeta()"></div>
+        <div class="g2">
+          <div class="f"><label>Número de Expediente</label><input type="text" id="num_expediente" placeholder="Código del expediente"><span class="hint">Formato según lineamientos de la institución</span></div>
+          <div class="f"><label>Fecha del Levantamiento <span class="star">*</span></label><input type="date" id="fecha_lev"></div>
+        </div>
+        <div class="g3">
+          <div class="f"><label>Control de Versiones — Código</label><input type="text" id="ver_cod" placeholder="Ej: FT-IP-CIA-v1"></div>
+          <div class="f"><label>Versión</label><input type="text" id="ver_num" placeholder="Ej: 1.0"></div>
+          <div class="f"><label>Fecha de Entrega</label><input type="date" id="fecha_entrega"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">👤 Líder del Trámite (Sección 3)</div>
+        <div class="g3">
+          <div class="f"><label>Nombre completo <span class="star">*</span></label><input type="text" id="lider_nombre" placeholder="Nombre del líder del trámite"></div>
+          <div class="f"><label>Correo electrónico <span class="star">*</span></label><input type="email" id="lider_email" placeholder="correo@ip.gob.hn"></div>
+          <div class="f"><label>Teléfono</label><input type="text" id="lider_tel" placeholder="+504 0000-0000"></div>
+        </div>
+        <div class="g2">
+          <div class="f"><label>Gerencia / Área Responsable (Sección 6)</label><input type="text" id="area" placeholder="Área o dirección responsable del trámite"></div>
+          <div class="f"><label>Sistema Informático de Soporte (Sección 11)</label><input type="text" id="sistema" placeholder="Plataforma, sistema o herramienta usada"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">🧑‍💼 Funcionario DIGER a cargo</div>
+        <div class="g2">
+          <div class="f"><label>Nombre del analista DIGER <span class="star">*</span></label><input type="text" id="analista_nombre" placeholder="Nombre completo"></div>
+          <div class="f"><label>Correo analista</label><input type="text" id="analista_email" readonly></div>
+        </div>
+      </div>
+
+      <div class="nav"><div></div><button class="btn btn-p" onclick="ir(1)">Siguiente →</button></div>
+    </div>
+
+    <!-- ══ SECCIÓN 1: OBJETIVO Y MARCO LEGAL ══ -->
+    <div class="sec" id="sec1">
+      <div class="sec-title">🎯 Sección 2 — Objetivo, Alcance y Marco Legal</div>
+
+      <div class="card accent">
+        <div class="ct">4. Objetivo</div>
+        <div class="f"><textarea id="objetivo" rows="5" placeholder="Descripción del objetivo del trámite según lo indicado por el líder durante el levantamiento..."></textarea></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">5. Alcance</div>
+        <div class="tg" id="tg-alcance">
+          <label class="tp"><input type="radio" name="alcance" value="Nacional"> Nacional</label>
+          <label class="tp"><input type="radio" name="alcance" value="Regional"> Regional</label>
+          <label class="tp"><input type="radio" name="alcance" value="Municipal"> Municipal</label>
+        </div>
+        <div class="f" style="margin-top:.85rem"><label>Observaciones sobre el alcance</label><input type="text" id="alcance_obs" placeholder="Detalles adicionales sobre cobertura geográfica o institucional..."></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">7. Marco Legal y Documental</div>
+        <div class="f"><textarea id="marco_legal" rows="4" placeholder="Leyes, reglamentos, acuerdos, circulares o normativas que sustentan el trámite..."></textarea></div>
+        <div class="f"><label>Documentos adicionales identificados en campo</label><textarea id="marco_adicional" rows="2" placeholder="Normativas o documentos mencionados durante el levantamiento que no estaban en la ficha original..."></textarea></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">8. Costo y Medios de Pago</div>
+        <div class="f"><textarea id="costo_desc" rows="2" placeholder="Descripción del costo del trámite y cómo se determina..."></textarea></div>
+        <div class="g3">
+          <div class="f"><label>Monto (Lps.)</label><input type="number" id="monto" placeholder="0.00" min="0"></div>
+          <div class="f"><label>Medio de pago</label>
+            <select id="medio_pago">
+              <option value="">— Seleccionar —</option>
+              <option>Depósito bancario</option>
+              <option>Transferencia electrónica</option>
+              <option>Pago en ventanilla</option>
+              <option>Pago en línea</option>
+              <option>Ambos</option>
+              <option>Gratuito</option>
+            </select>
+          </div>
+          <div class="f"><label>Banco / Plataforma de pago</label><input type="text" id="banco" placeholder="Nombre del banco o plataforma"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">10. Condiciones Especiales de Operación</div>
+        <div class="f"><textarea id="condicion" rows="3" placeholder="Condiciones previas, restricciones o requisitos especiales que debe cumplir el ciudadano antes de iniciar el trámite..."></textarea></div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(0)">← Anterior</button>
+        <button class="btn btn-p" onclick="ir(2)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- ══ SECCIÓN 2: REQUISITOS ══ -->
+    <div class="sec" id="sec2">
+      <div class="sec-title">📋 Sección 3 — Requisitos del Trámite (Sección 9)</div>
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:1.1rem">Registre cada requisito identificado. Para cada uno indique si <strong>existe</strong> en la institución, si está <strong>digitalizado</strong>, si es resultado de otro <strong>trámite</strong>, y agregue observaciones de campo.</p>
+
+      <div class="card" style="padding:1rem 1.1rem" id="req-card">
+        <div class="col-hdr">
+          <span>Requisito</span><span>Existe</span><span>Digital</span><span>De trámite</span><span class="obs-hdr">Observación</span>
+        </div>
+        <div id="req-list">
+          <!-- Filas generadas dinámicamente -->
+        </div>
+        <button class="btn-add-fila" onclick="agregarRequisito()">+ Agregar requisito</button>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(1)">← Anterior</button>
+        <button class="btn btn-p" onclick="ir(3)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- ══ SECCIÓN 3: LÍNEA BASE ══ -->
+    <div class="sec" id="sec3">
+      <div class="sec-title">📊 Sección 4 — Indicadores de Línea Base (Secciones 13–20)</div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-v" id="kv-req">0</div><div class="kpi-l">Requisitos registrados</div></div>
+        <div class="kpi"><div class="kpi-v" id="kv-dig" style="color:var(--verde)">0</div><div class="kpi-l">Digitalizados</div></div>
+        <div class="kpi"><div class="kpi-v" id="kv-func">—</div><div class="kpi-l">Funcionarios</div></div>
+        <div class="kpi"><div class="kpi-v" id="kv-anio">—</div><div class="kpi-l">Trámites / año</div></div>
+      </div>
+
+      <div class="card accent">
+        <div class="ct">13. Descripción del Proceso de Trabajo</div>
+        <div class="f"><textarea id="desc_proceso" rows="5" placeholder="Descripción completa del proceso actual del trámite, desde el ingreso de la solicitud hasta la entrega del resultado al ciudadano..."></textarea></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">14–18. Métricas del Trámite</div>
+        <div class="g4">
+          <div class="f"><label>14. No. Funcionarios</label><input type="number" id="num_func" placeholder="Ej: 5" min="1" oninput="actualizarKPIs()"></div>
+          <div class="f"><label>15. No. Requisitos</label><input type="number" id="num_req" placeholder="Total" min="0" oninput="actualizarKPIs()"></div>
+          <div class="f"><label>16. Trámites / año</label><input type="number" id="num_anio" placeholder="Ej: 300" min="0" oninput="actualizarKPIs()"></div>
+          <div class="f"><label>18. Tiempo promedio real</label><input type="text" id="tiempo_real" placeholder="Ej: 5 días hábiles"></div>
+        </div>
+        <div class="f" style="margin-top:.5rem"><label>17. Tiempo de resolución según normativa</label>
+          <div class="tg" id="tg-tnorm">
+            <label class="tp"><input type="radio" name="t_norm" value="1 día hábil"> 1 día</label>
+            <label class="tp"><input type="radio" name="t_norm" value="3 días hábiles"> 3 días</label>
+            <label class="tp"><input type="radio" name="t_norm" value="5 días hábiles"> 5 días</label>
+            <label class="tp"><input type="radio" name="t_norm" value="10 días hábiles"> 10 días</label>
+            <label class="tp"><input type="radio" name="t_norm" value="15 días hábiles"> 15 días</label>
+            <label class="tp"><input type="radio" name="t_norm" value="20 días hábiles"> 20 días</label>
+            <label class="tp"><input type="radio" name="t_norm" value="otro"> Otro</label>
+          </div>
+          <input type="text" id="tiempo_norm_otro" placeholder="Especifique el tiempo..." style="margin-top:8px;display:none;padding:8px 12px;border:1.5px solid var(--borde);border-radius:8px;font-size:13px;width:100%;font-family:inherit">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">20. Documentos Internos Asociados al Trámite</div>
+        <div class="g2">
+          <div>
+            <p style="font-size:11.5px;color:var(--muted);margin-bottom:.75rem">Registre los documentos internos que maneja la institución para este trámite.</p>
+            <div id="docs-internos-list"></div>
+            <button class="btn-add-fila" onclick="agregarDocInterno()" style="margin-top:.5rem">+ Agregar documento</button>
+          </div>
+          <div class="f">
+            <label>Documentos adicionales identificados en campo</label>
+            <textarea id="docs_add" rows="8" placeholder="Documentos no contemplados que fueron encontrados durante el levantamiento presencial..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(2)">← Anterior</button>
+        <button class="btn btn-p" onclick="ir(4)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- ══ SECCIÓN 4: FLUJO ══ -->
+    <div class="sec" id="sec4">
+      <div class="sec-title">🔄 Sección 5 — Flujo Actual de Actividades (Sección 19)</div>
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:1.1rem">Registre cada paso del proceso actual. Agregue tantas filas como actividades existan. La ficha contempla hasta 39 pasos según la plantilla.</p>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="ftbl">
+          <thead><tr><th>#</th><th>Detalle de la Actividad</th><th>Tiempo observado</th><th>Área Responsable</th><th>Observación de campo</th></tr></thead>
+          <tbody id="flujo-tbody"></tbody>
+        </table>
+        <div style="padding:.75rem 1rem">
+          <button class="btn-add-fila" onclick="agregarFlujo()">+ Agregar actividad</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Observaciones generales del flujo</div>
+        <div class="f"><textarea id="obs_flujo" rows="3" placeholder="Cuellos de botella, variaciones al proceso documentado, pasos no registrados en la ficha original..."></textarea></div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(3)">← Anterior</button>
+        <button class="btn btn-p" onclick="ir(5)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- ══ SECCIÓN 5: RACIONALIZACIÓN ══ -->
+    <div class="sec" id="sec5">
+      <div class="sec-title">✅ Sección 6 — Trámite Racionalizado (Secciones 21–24)</div>
+
+      <div class="card accent">
+        <div class="ct">21–22. Métricas de la Versión Digital</div>
+        <div class="g3">
+          <div class="f"><label>21. Funcionarios (versión digital)</label><input type="number" id="func_dig" placeholder="Ej: 3" min="1"></div>
+          <div class="f"><label>22. Tiempo promedio digitalizado</label><input type="text" id="tiempo_dig" placeholder="Ej: 1 día hábil"></div>
+          <div class="f"><label>Reducción estimada (%)</label><input type="number" id="reduccion" placeholder="Ej: 60" min="0" max="100"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">23. Documentos Entregables al Ciudadano</div>
+        <div id="entregables-list" style="margin-bottom:.75rem"></div>
+        <button class="btn-add-fila" onclick="agregarEntregable()">+ Agregar entregable</button>
+      </div>
+
+      <div class="card">
+        <div class="ct">Requisitos propuestos para simplificar o eliminar</div>
+        <div class="f"><textarea id="req_simp" rows="4" placeholder="Liste los requisitos que se propone eliminar, simplificar o sustituir en la versión digital del trámite..."></textarea></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">24. Descripción del Proceso Racionalizado</div>
+        <div class="f"><textarea id="flujo_rac" rows="5" placeholder="Descripción del flujo propuesto para el trámite digitalizado: canal de ingreso, pasos automatizados, notificaciones, validaciones, tiempos esperados..."></textarea></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">12. Glosario / Nomenclaturas del Trámite</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:.75rem">Registre términos, códigos o nomenclaturas específicas de este trámite.</p>
+        <div id="glosario-list" style="margin-bottom:.75rem"></div>
+        <button class="btn-add-fila" onclick="agregarGlosario()">+ Agregar término</button>
+      </div>
+
+      <div class="card">
+        <div class="ct">Estado del Levantamiento</div>
+        <div class="tg" id="tg-estado">
+          <label class="tp"><input type="radio" name="estado" value="En proceso"> En proceso</label>
+          <label class="tp on-v"><input type="radio" name="estado" value="Completo" checked> ✓ Completo</label>
+          <label class="tp on-a"><input type="radio" name="estado" value="Pendiente validación"> ⚠ Pendiente validación</label>
+          <label class="tp"><input type="radio" name="estado" value="Requiere revisita"> Requiere revisita</label>
+        </div>
+        <div class="f" style="margin-top:1rem"><label>Observaciones generales del levantamiento</label><textarea id="obs_gen" rows="3" placeholder="Dificultades encontradas, acuerdos, compromisos, próximos pasos..."></textarea></div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(4)">← Anterior</button>
+        <button class="btn btn-p" onclick="ir(6);construirResumen()">Ir al cierre →</button>
+      </div>
+    </div>
+
+    <!-- ══ SECCIÓN 6: CIERRE Y FIRMA ══ -->
+    <div class="sec" id="sec6">
+      <div class="sec-title">✍️ Sección 7 — Cierre y Firma del Levantamiento</div>
+
+      <div class="card accent">
+        <div class="ct">Resumen del levantamiento</div>
+        <div id="resumen-cierre" style="font-size:13px;line-height:1.9"></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Firmas de conformidad</div>
+        <div class="firma-grid">
+          <div class="firma-box">
+            <div style="flex:1"></div>
+            <div class="firma-line">
+              <input id="firma_analista" placeholder="Nombre del analista DIGER">
+              <div class="firma-name">Analista DIGER</div>
+              <div class="firma-role">Equipo de Digitalización de Trámites</div>
+            </div>
+          </div>
+          <div class="firma-box">
+            <div style="flex:1"></div>
+            <div class="firma-line">
+              <input id="firma_lider" placeholder="Nombre del líder de la institución">
+              <div class="firma-name">Líder del Trámite</div>
+              <div class="firma-role" id="firma-inst">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="g2" style="margin-top:1rem">
+          <div class="f"><label>Lugar del levantamiento</label><input type="text" id="lugar" placeholder="Ej: Oficinas de la institución, Tegucigalpa"></div>
+          <div class="f"><label>Fecha de firma</label><input type="date" id="fecha_firma"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Exportar</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-ol-b" onclick="descargarJson()">⬇ Descargar JSON</button>
+          <button class="btn btn-ol-g" onclick="imprimirPDF()">🖨 Generar PDF</button>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:.65rem">Para el PDF: en el diálogo de impresión seleccione <strong>"Guardar como PDF"</strong> como destino.</p>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(5)">← Anterior</button>
+        <button class="btn btn-ok" onclick="imprimirPDF()">🖨 Generar PDF final</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── ACCESO ──────────────────────────────────────────
+const SESSION_KEY = 'diger_sol_session';
+var userEmail = '';
+var secActual = 0;
+var reqCount = 0;
+var flujoCount = 0;
+var docCount = 0;
+var entregableCount = 0;
+var glosarioCount = 0;
+
+function abrirFormulario(email) {
+  userEmail = email;
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('analista_email').value = email;
+  var hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('fecha_lev').value = hoy;
+  document.getElementById('fecha_firma').value = hoy;
+  document.getElementById('tb-user').textContent = email;
+  document.getElementById('sb-user').textContent = email;
+  document.getElementById('sb-fecha').textContent = new Date().toLocaleDateString('es-HN');
+  document.getElementById('ph-analista').textContent = email;
+  document.getElementById('ph-fecha').textContent = new Date().toLocaleDateString('es-HN');
+  agregarRequisito();
+  agregarFlujo();
+  agregarDocInterno();
+  agregarEntregable();
+  agregarGlosario();
+}
+
+function verificarAcceso() {
+  var e = document.getElementById('gate-email').value.trim().toLowerCase();
+  if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) {
+    document.getElementById('gate-err').style.display = 'block';
+    return;
+  }
+  abrirFormulario(e);
+}
+
+document.addEventListener('keydown', function(ev) {
+  if (ev.key === 'Enter' && document.getElementById('gate').style.display !== 'none') verificarAcceso();
+});
+
+// Auto-login desde sesión del portal
+(function() {
+  try {
+    var s = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    if (s && s.email) { abrirFormulario(s.email); }
+  } catch {}
+})();
+
+// ── ACTUALIZAR META DINÁMICA ─────────────────────────
+function actualizarMeta() {
+  var inst   = document.getElementById('institucion').value.trim() || '—';
+  var tramite = document.getElementById('nombre_tramite').value.trim() || '—';
+  document.getElementById('sb-inst').textContent    = inst;
+  document.getElementById('sb-tramite').textContent = tramite;
+  document.getElementById('topbar-title').textContent = tramite !== '—' ? tramite + ' — ' + inst : 'Levantamiento de Campo — DIGER';
+  document.getElementById('ph-subtitulo').textContent = inst + ' — ' + tramite;
+  document.getElementById('firma-inst').textContent  = inst;
+}
+
+// ── NAVEGACIÓN ──────────────────────────────────────
+function ir(n){
+  document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('active')});
+  document.querySelectorAll('.ps').forEach(function(p,i){p.classList.toggle('active',i===n)});
+  document.querySelectorAll('.sbi').forEach(function(s,i){s.classList.toggle('active',i===n)});
+  document.getElementById('sec'+n).classList.add('active');
+  secActual=n;
+  var pct=Math.round(((n+1)/7)*100);
+  document.getElementById('pb-fill').style.width=pct+'%';
+  document.getElementById('pb-pct').textContent=pct+'%';
+  window.scrollTo(0,0);
+}
+
+// ── RADIO PILLS ─────────────────────────────────────
+document.addEventListener('change',function(ev){
+  if(ev.target.type==='radio'){
+    var g=ev.target.closest('.tg');
+    if(g){
+      g.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on','on-v','on-a')});
+      var cls='on';
+      if(ev.target.name==='estado'){
+        if(ev.target.value==='Completo') cls='on-v';
+        else if(ev.target.value.includes('Pendiente')||ev.target.value.includes('revisita')) cls='on-a';
+      }
+      ev.target.closest('.tp').classList.add(cls);
+    }
+    if(ev.target.name==='t_norm'){
+      var otro=document.getElementById('tiempo_norm_otro');
+      otro.style.display = ev.target.value==='otro'?'block':'none';
+    }
+  }
+});
+
+// ── REQUISITOS DINÁMICOS ────────────────────────────
+function agregarRequisito(){
+  reqCount++;
+  var n=reqCount;
+  var div=document.createElement('div');
+  div.className='rrow';
+  div.id='rq-'+n;
+  div.innerHTML=
+    '<div class="rlbl"><input type="text" id="rl'+n+'" placeholder="Descripción del requisito '+n+'..." style="width:100%;border:none;background:transparent;font-size:13px;font-family:inherit;padding:0" oninput="actualizarKPIs()"></div>'+
+    '<div class="cc"><input type="checkbox" id="re'+n+'" onchange="actualizarKPIs()"></div>'+
+    '<div class="cc"><input type="checkbox" id="rd'+n+'" onchange="actualizarKPIs()"></div>'+
+    '<div class="cc"><input type="checkbox" id="rt'+n+'" onchange="actualizarKPIs()"></div>'+
+    '<div class="obs-col"><textarea class="omini" id="ro'+n+'" placeholder="Obs..."></textarea></div>';
+  document.getElementById('req-list').appendChild(div);
+}
+
+// ── FLUJO DINÁMICO ──────────────────────────────────
+function agregarFlujo(){
+  flujoCount++;
+  var n=flujoCount;
+  var tr=document.createElement('tr');
+  tr.id='fila-'+n;
+  tr.innerHTML=
+    '<td class="nc">'+n+'</td>'+
+    '<td><input type="text" id="fa'+n+'" placeholder="Descripción de la actividad '+n+'..."></td>'+
+    '<td><input type="text" id="ft'+n+'" placeholder="Ej: 1 día"></td>'+
+    '<td><input type="text" id="fr'+n+'" placeholder="Área responsable..."></td>'+
+    '<td><input type="text" id="fo'+n+'" placeholder="Observación..."></td>';
+  document.getElementById('flujo-tbody').appendChild(tr);
+}
+
+// ── DOCUMENTOS INTERNOS DINÁMICOS ───────────────────
+function agregarDocInterno(){
+  docCount++;
+  var n=docCount;
+  var div=document.createElement('div');
+  div.className='doc-fila';
+  div.id='di-fila-'+n;
+  div.innerHTML=
+    '<div class="doc-num-badge">'+n+'</div>'+
+    '<input type="text" id="di'+n+'" placeholder="Nombre del documento interno '+n+'...">'+
+    '<button class="btn-rm" onclick="eliminarDocInterno('+n+')" title="Eliminar">×</button>';
+  document.getElementById('docs-internos-list').appendChild(div);
+}
+function eliminarDocInterno(n){
+  var el=document.getElementById('di-fila-'+n);
+  if(el) el.remove();
+}
+
+// ── ENTREGABLES DINÁMICOS ───────────────────────────
+function agregarEntregable(){
+  entregableCount++;
+  var n=entregableCount;
+  var div=document.createElement('div');
+  div.className='doc-fila';
+  div.id='ent-fila-'+n;
+  div.innerHTML=
+    '<div class="doc-num-badge">'+n+'</div>'+
+    '<input type="text" id="ent'+n+'" placeholder="Documento entregable al ciudadano '+n+'...">'+
+    '<button class="btn-rm" onclick="eliminarEntregable('+n+')" title="Eliminar">×</button>';
+  document.getElementById('entregables-list').appendChild(div);
+}
+function eliminarEntregable(n){
+  var el=document.getElementById('ent-fila-'+n);
+  if(el) el.remove();
+}
+
+// ── GLOSARIO DINÁMICO ───────────────────────────────
+function agregarGlosario(){
+  glosarioCount++;
+  var n=glosarioCount;
+  var div=document.createElement('div');
+  div.className='glos-fila';
+  div.id='gl-fila-'+n;
+  div.innerHTML=
+    '<div class="glos-num">'+n+'</div>'+
+    '<input class="glos-inp" type="text" id="gt'+n+'" placeholder="Término o código...">'+
+    '<input class="glos-inp" type="text" id="gd'+n+'" placeholder="Definición o significado...">';
+  document.getElementById('glosario-list').appendChild(div);
+}
+
+// ── KPIs ────────────────────────────────────────────
+function actualizarKPIs(){
+  var nreq=0, ndig=0;
+  for(var i=1;i<=reqCount;i++){
+    var rl=document.getElementById('rl'+i);
+    if(rl&&rl.value.trim()) nreq++;
+    var rd=document.getElementById('rd'+i);
+    if(rd&&rd.checked) ndig++;
+  }
+  document.getElementById('kv-req').textContent=nreq||document.getElementById('num_req').value||'0';
+  document.getElementById('kv-dig').textContent=ndig;
+  document.getElementById('kv-func').textContent=document.getElementById('num_func')&&document.getElementById('num_func').value||'—';
+  document.getElementById('kv-anio').textContent=document.getElementById('num_anio')&&document.getElementById('num_anio').value||'—';
+}
+
+// ── RESUMEN CIERRE ───────────────────────────────────
+function construirResumen(){
+  var g=function(id){var el=document.getElementById(id);return el?el.value.trim():'—'};
+  var gr=function(n){var el=document.querySelector('[name='+n+']:checked');return el?el.value:'—'};
+  var nex=0,ndig=0,ntr=0;
+  for(var i=1;i<=reqCount;i++){
+    if(document.getElementById('re'+i)&&document.getElementById('re'+i).checked)nex++;
+    if(document.getElementById('rd'+i)&&document.getElementById('rd'+i).checked)ndig++;
+    if(document.getElementById('rt'+i)&&document.getElementById('rt'+i).checked)ntr++;
+  }
+  var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 18px;background:var(--gris-f);border-radius:9px;padding:.9rem;margin-bottom:1rem;font-size:13px">'+
+    '<div><span style="color:var(--muted);font-size:11.5px">Trámite: </span><strong>Certificación de Íntegra de Asiento</strong></div>'+
+    '<div><span style="color:var(--muted);font-size:11.5px">Expediente: </span><strong>'+(g('num_expediente')||'(pendiente)')+'</strong></div>'+
+    '<div><span style="color:var(--muted);font-size:11.5px">Fecha: </span>'+g('fecha_lev')+'</div>'+
+    '<div><span style="color:var(--muted);font-size:11.5px">Analista DIGER: </span>'+userEmail+'</div>'+
+    '<div><span style="color:var(--muted);font-size:11.5px">Líder inst.: </span>'+g('lider_nombre')+' ('+g('lider_email')+')</div>'+
+    '<div><span style="color:var(--muted);font-size:11.5px">Estado: </span><strong>'+gr('estado')+'</strong></div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:1rem">'+
+    '<div style="background:#e8f0ff;border-radius:9px;padding:9px;text-align:center"><div style="font-size:22px;font-weight:900;color:var(--azul)">'+nex+'</div><div style="font-size:11px;color:var(--muted)">Requisitos Existentes</div></div>'+
+    '<div style="background:var(--verde-c);border-radius:9px;padding:9px;text-align:center"><div style="font-size:22px;font-weight:900;color:var(--verde)">'+ndig+'</div><div style="font-size:11px;color:var(--muted)">Digitalizados</div></div>'+
+    '<div style="background:var(--amber-c);border-radius:9px;padding:9px;text-align:center"><div style="font-size:22px;font-weight:900;color:var(--amber)">'+ntr+'</div><div style="font-size:11px;color:var(--muted)">Resultado de Trámite</div></div>'+
+    '</div>'+
+    '<div style="font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase">Observaciones generales</div>'+
+    '<p style="font-size:13px;line-height:1.65;color:var(--texto);background:var(--gris-f);border-radius:8px;padding:9px">'+(g('obs_gen')||'(Sin observaciones)')+'</p>';
+  document.getElementById('resumen-cierre').innerHTML=html;
+}
+
+// ── BUILD JSON ───────────────────────────────────────
+function buildData(){
+  var g=function(id){var el=document.getElementById(id);return el?el.value.trim():''};
+  var gc=function(id){var el=document.getElementById(id);return !!(el&&el.checked)};
+  var gr=function(n){var el=document.querySelector('[name='+n+']:checked');return el?el.value:'—'};
+
+  var req=[];
+  for(var i=1;i<=reqCount;i++){
+    var lbl=g('rl'+i);
+    if(lbl) req.push({num:i,descripcion:lbl,existe:gc('re'+i),digitalizado:gc('rd'+i),resultado_tramite:gc('rt'+i),observacion:g('ro'+i)});
+  }
+
+  var flujo=[];
+  for(var k=1;k<=flujoCount;k++){
+    var act=g('fa'+k);
+    if(act) flujo.push({paso:k,actividad:act,tiempo:g('ft'+k),area:g('fr'+k),observacion:g('fo'+k)});
+  }
+
+  var docs_int=[];
+  for(var j=1;j<=docCount;j++){var d=g('di'+j);if(d)docs_int.push({num:j,nombre:d});}
+
+  var entregables=[];
+  for(var e=1;e<=entregableCount;e++){var en=g('ent'+e);if(en)entregables.push({num:e,nombre:en});}
+
+  var glosario=[];
+  for(var gl=1;gl<=glosarioCount;gl++){var t=g('gt'+gl),def=g('gd'+gl);if(t)glosario.push({num:gl,termino:t,definicion:def});}
+
+  var t_norm=gr('t_norm');
+  if(t_norm==='otro') t_norm=g('tiempo_norm_otro');
+
+  return {
+    meta:{tipo:'levantamiento_campo',tramite:g('nombre_tramite'),institucion:g('institucion'),analista:userEmail,timestamp:new Date().toISOString()},
+    identificacion:{institucion:g('institucion'),codigo:g('codigo'),nombre:g('nombre_tramite'),expediente:g('num_expediente'),fecha_levantamiento:g('fecha_lev'),version_codigo:g('ver_cod'),version:g('ver_num'),fecha_entrega:g('fecha_entrega')},
+    lider:{nombre:g('lider_nombre'),email:g('lider_email'),telefono:g('lider_tel'),area:g('area'),sistema_soporte:g('sistema')},
+    analista:{email:g('analista_email'),nombre:g('analista_nombre')},
+    hoja1:{objetivo:g('objetivo'),alcance:gr('alcance'),alcance_obs:g('alcance_obs'),marco_legal:g('marco_legal'),marco_adicional:g('marco_adicional'),costo_desc:g('costo_desc'),monto:g('monto'),medio_pago:g('medio_pago'),banco:g('banco'),condicion_especial:g('condicion'),requisitos:req},
+    hoja2:{desc_proceso:g('desc_proceso'),num_funcionarios:g('num_func'),num_requisitos:g('num_req'),tramites_anio:g('num_anio'),tiempo_normativa:t_norm,tiempo_real:g('tiempo_real'),docs_internos:docs_int,docs_adicionales:g('docs_add'),flujo:flujo,obs_flujo:g('obs_flujo')},
+    hoja3:{func_digital:g('func_dig'),tiempo_digital:g('tiempo_dig'),reduccion_pct:g('reduccion'),entregables:entregables,req_simplificar:g('req_simp'),flujo_racionalizado:g('flujo_rac'),glosario:glosario,estado:gr('estado'),obs_generales:g('obs_gen')},
+    cierre:{firma_analista:g('firma_analista'),firma_lider:g('firma_lider'),lugar:g('lugar'),fecha_firma:g('fecha_firma')}
+  };
+}
+
+function descargarJson(){
+  var data=buildData();
+  var a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(data,null,2));
+  var slug=(data.identificacion.institucion||'INST').replace(/\s+/g,'_').toUpperCase();
+  a.download='CAMPO_'+slug+'_'+(data.identificacion.expediente||new Date().toISOString().split('T')[0])+'.json';
+  a.click();
+}
+
+function imprimirPDF(){
+  construirResumen();
+  document.querySelectorAll('.sec').forEach(function(s){s.style.display='block'});
+  window.print();
+  setTimeout(function(){
+    document.querySelectorAll('.sec').forEach(function(s,i){s.style.display=i===secActual?'block':'none'});
+    document.getElementById('sec'+secActual).classList.add('active');
+  },1200);
+}
+</script>
+</body>
+</html>

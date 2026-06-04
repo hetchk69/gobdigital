@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lista de asistencia DIGER</title>
+  <style>
+    :root {
+      --azul-profundo: #0b4567;
+      --azul: #1d6fa8;
+      --celeste: #78cbd7;
+      --fondo: #f3f6f8;
+      --texto: #172b3a;
+      --linea: #d7e1e8;
+      --suave: #eef5f8;
+      --blanco: #ffffff;
+      --error: #b42318;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--fondo);
+      color: var(--texto);
+      font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    }
+
+    .top-band {
+      height: 12px;
+      background: linear-gradient(90deg, var(--celeste) 0 33%, var(--azul-profundo) 33% 66%, var(--azul) 66% 100%);
+    }
+
+    .shell {
+      width: min(980px, calc(100% - 28px));
+      margin: 24px auto 40px;
+    }
+
+    .header,
+    .form-card,
+    .data-card {
+      background: var(--blanco);
+      border: 1px solid var(--linea);
+      border-radius: 8px;
+      box-shadow: 0 12px 30px rgba(23, 43, 58, 0.08);
+    }
+
+    .header {
+      padding: 22px 24px;
+      border-top: 8px solid var(--azul-profundo);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .brand-logo {
+      width: min(380px, 100%);
+      max-height: 76px;
+      object-fit: contain;
+      object-position: left center;
+      display: block;
+    }
+
+    .doc-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .meta-pill {
+      border: 1px solid var(--linea);
+      border-radius: 999px;
+      color: var(--azul-profundo);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 10px;
+      white-space: nowrap;
+    }
+
+    .form-card,
+    .data-card {
+      margin-top: 18px;
+      overflow: hidden;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .form-title {
+      padding: 22px 24px 16px;
+      border-bottom: 1px solid var(--linea);
+    }
+
+    h1,
+    h2 {
+      margin: 0;
+      color: var(--azul-profundo);
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 28px;
+      line-height: 1.15;
+    }
+
+    h2 {
+      font-size: 19px;
+    }
+
+    .locked-title {
+      width: 100%;
+      border: 0;
+      color: var(--azul-profundo);
+      font: 700 28px/1.15 "Segoe UI", Arial, Helvetica, sans-serif;
+      padding: 0;
+      background: transparent;
+      pointer-events: none;
+    }
+
+    .event-grid,
+    .question-list {
+      display: grid;
+      gap: 16px;
+      padding: 20px 24px;
+    }
+
+    .event-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      background: var(--suave);
+      border-bottom: 1px solid var(--linea);
+    }
+
+    .event-full {
+      grid-column: 1 / -1;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--azul-profundo);
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #b8c7d2;
+      border-radius: 4px;
+      background: var(--blanco);
+      color: var(--texto);
+      font: 15px "Segoe UI", Arial, Helvetica, sans-serif;
+      padding: 8px 10px;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--azul);
+      box-shadow: 0 0 0 2px rgba(29, 111, 168, 0.14);
+      outline: 0;
+    }
+
+    input[readonly] {
+      background: #e9eff3;
+      color: #60717c;
+      cursor: not-allowed;
+    }
+
+    .question {
+      border-left: 4px solid var(--azul);
+      padding-left: 14px;
+    }
+
+    .required {
+      color: var(--error);
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0 24px 24px;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--azul-profundo);
+      border-radius: 4px;
+      min-height: 40px;
+      padding: 9px 14px;
+      background: var(--azul-profundo);
+      color: white;
+      cursor: pointer;
+      font: 700 14px "Segoe UI", Arial, Helvetica, sans-serif;
+    }
+
+    button.secondary {
+      background: white;
+      color: var(--azul-profundo);
+    }
+
+    button.danger {
+      border-color: var(--error);
+      color: var(--error);
+      background: white;
+    }
+
+    .status {
+      min-height: 22px;
+      margin: -10px 24px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--azul-profundo);
+    }
+
+    .status.error {
+      color: var(--error);
+    }
+
+    .data-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--linea);
+    }
+
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 16px 24px 0;
+    }
+
+    .institution-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--linea);
+      border-radius: 999px;
+      background: white;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--azul);
+      flex: 0 0 auto;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      padding: 18px 24px 24px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--linea);
+      padding: 10px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--azul-profundo);
+      font-size: 12px;
+      text-transform: uppercase;
+      background: #f8fbfc;
+    }
+
+    tbody tr {
+      border-left: 6px solid var(--azul);
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-button {
+      min-height: 32px;
+      padding: 5px 9px;
+      font-size: 12px;
+    }
+
+    .empty {
+      padding: 6px 0;
+      color: #637481;
+      font-size: 14px;
+    }
+
+    @media (max-width: 720px) {
+      .shell {
+        width: min(100%, calc(100% - 18px));
+        margin-top: 12px;
+      }
+
+      .header {
+        grid-template-columns: 1fr;
+      }
+
+      .doc-meta {
+        justify-content: flex-start;
+      }
+
+      .event-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1,
+      .locked-title {
+        font-size: 24px;
+      }
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+
+      .top-band,
+      .form-card,
+      .button-row,
+      .row-actions {
+        display: none !important;
+      }
+
+      .shell {
+        width: 100%;
+        margin: 0;
+      }
+
+      .header,
+      .data-card {
+        border: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-band"></div>
+
+  <main class="shell">
+    <header class="header">
+      <img class="brand-logo" src="logo_diger-14.png" alt="Gobierno Digital DIGER">
+      <div class="doc-meta" aria-label="Datos fijos del documento">
+        <span class="meta-pill">Version: 01</span>
+        <span class="meta-pill">Codigo: LIST-001</span>
+        <span class="meta-pill">Pagina: 1</span>
+      </div>
+    </header>
+
+    <section class="form-card" aria-label="Formulario de asistencia">
+      <div class="form-title">
+        <input class="locked-title" id="form-title" value="Lista de asistencia DIGER" readonly>
+      </div>
+
+      <div class="event-grid">
+        <div class="field event-full">
+          <label for="tema-titulo">Titulo del tema</label>
+          <input id="tema-titulo" type="text" placeholder="Descripcion corta del tema" readonly>
+        </div>
+        <div class="field">
+          <label for="tema">Tema / motivo</label>
+          <input id="tema" type="text" placeholder="Detalle del motivo de la reunion o capacitacion" readonly>
+        </div>
+        <div class="field">
+          <label for="fecha-hora">Fecha y hora</label>
+          <input id="fecha-hora" type="text" placeholder="03/06/2026 - 8:50 AM" readonly>
+        </div>
+      </div>
+
+      <div class="question-list">
+        <div class="field question">
+          <label for="nombre">Nombre completo <span class="required">*</span></label>
+          <input id="nombre" type="text" autocomplete="name" required>
+        </div>
+        <div class="field question">
+          <label for="correo">Correo electronico <span class="required">*</span></label>
+          <input id="correo" type="email" autocomplete="email" required>
+        </div>
+        <div class="field question">
+          <label for="institucion">Institucion <span class="required">*</span></label>
+          <input id="institucion" type="text" list="instituciones" required>
+          <datalist id="instituciones"></datalist>
+        </div>
+        <div class="field question">
+          <label for="telefono">Telefono</label>
+          <input id="telefono" type="tel" autocomplete="tel">
+        </div>
+      </div>
+
+      <div class="status" id="status" role="status"></div>
+
+      <div class="button-row">
+        <button type="button" id="save-entry">Enviar respuesta</button>
+        <button type="button" class="secondary" id="clear-form">Limpiar</button>
+      </div>
+    </section>
+
+    <section class="data-card" id="admin-panel" aria-label="Registros capturados" hidden>
+      <div class="data-head">
+        <h2>Registros capturados</h2>
+        <div class="button-row" style="padding:0">
+          <button type="button" class="secondary" id="download-excel">Descargar Excel</button>
+          <button type="button" class="secondary" id="print-page">Imprimir</button>
+          <button type="button" class="danger" id="clear-data">Borrar datos</button>
+        </div>
+      </div>
+
+      <div class="summary" id="summary"></div>
+
+      <div class="table-wrap">
+        <table aria-label="Tabla de respuestas">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Nombre</th>
+              <th>Correo electronico</th>
+              <th>Institucion</th>
+              <th>Telefono</th>
+              <th>Fecha de registro</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="records-body"></tbody>
+        </table>
+        <div class="empty" id="empty-state">Sin registros capturados.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const adminPassword = "DIGER2026";
+    const storageKey = "diger_lista_asistencia_records";
+    const eventStorageKey = "diger_lista_asistencia_event";
+    const institutionColors = ["#78cbd7", "#0b4567", "#1d6fa8"];
+
+    const fields = {
+      title: document.getElementById("form-title"),
+      temaTitulo: document.getElementById("tema-titulo"),
+      tema: document.getElementById("tema"),
+      fechaHora: document.getElementById("fecha-hora"),
+      nombre: document.getElementById("nombre"),
+      correo: document.getElementById("correo"),
+      institucion: document.getElementById("institucion"),
+      telefono: document.getElementById("telefono")
+    };
+
+    const status = document.getElementById("status");
+    const recordsBody = document.getElementById("records-body");
+    const summary = document.getElementById("summary");
+    const emptyState = document.getElementById("empty-state");
+    const instituciones = document.getElementById("instituciones");
+
+    let records = loadRecords();
+
+    function loadRecords() {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveRecords() {
+      localStorage.setItem(storageKey, JSON.stringify(records));
+    }
+
+    function loadEventInfo() {
+      try {
+        const eventInfo = JSON.parse(localStorage.getItem(eventStorageKey)) || {};
+        fields.temaTitulo.value = eventInfo.temaTitulo || "";
+        fields.tema.value = eventInfo.tema || "";
+        fields.fechaHora.value = eventInfo.fechaHora || "";
+      } catch {
+        fields.tema.value = "";
+        fields.fechaHora.value = "";
+      }
+    }
+
+    function saveEventInfo() {
+      localStorage.setItem(eventStorageKey, JSON.stringify({
+        temaTitulo: fields.temaTitulo.value.trim(),
+        tema: fields.tema.value.trim(),
+        fechaHora: fields.fechaHora.value.trim()
+      }));
+    }
+
+    function normalizeInstitution(value) {
+      return value.trim().replace(/\s+/g, " ");
+    }
+
+    function colorForInstitution(institution) {
+      const normalized = normalizeInstitution(institution).toLowerCase();
+      let hash = 0;
+      for (let index = 0; index < normalized.length; index += 1) {
+        hash = normalized.charCodeAt(index) + ((hash << 5) - hash);
+      }
+      return institutionColors[Math.abs(hash) % institutionColors.length];
+    }
+
+    function setStatus(message, isError = false) {
+      status.textContent = message;
+      status.classList.toggle("error", isError);
+    }
+
+    function escapeCell(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function clearEntryFields() {
+      fields.nombre.value = "";
+      fields.correo.value = "";
+      fields.institucion.value = "";
+      fields.telefono.value = "";
+      fields.nombre.focus();
+    }
+
+    function validateEntry(entry) {
+      if (!entry.nombre || !entry.correo || !entry.institucion) {
+        return "Complete los campos obligatorios.";
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(entry.correo)) {
+        return "Ingrese un correo electronico valido.";
+      }
+      return "";
+    }
+
+    function addEntry() {
+      const entry = {
+        id: Date.now(),
+        nombre: fields.nombre.value.trim(),
+        correo: fields.correo.value.trim(),
+        institucion: normalizeInstitution(fields.institucion.value),
+        telefono: fields.telefono.value.trim(),
+        registrado: new Date().toLocaleString("es-HN")
+      };
+
+      const error = validateEntry(entry);
+      if (error) {
+        setStatus(error, true);
+        return;
+      }
+
+      records.push(entry);
+      saveRecords();
+      render();
+      clearEntryFields();
+      setStatus("Respuesta registrada.");
+    }
+
+    function deleteEntry(id) {
+      records = records.filter((record) => record.id !== id);
+      saveRecords();
+      render();
+      setStatus("Registro eliminado.");
+    }
+
+    function renderInstitutions() {
+      const uniqueInstitutions = [...new Set(records.map((record) => record.institucion).filter(Boolean))].sort();
+      instituciones.innerHTML = uniqueInstitutions.map((institution) => `<option value="${escapeCell(institution)}"></option>`).join("");
+    }
+
+    function renderSummary() {
+      const counts = records.reduce((acc, record) => {
+        acc[record.institucion] = (acc[record.institucion] || 0) + 1;
+        return acc;
+      }, {});
+
+      const entries = Object.entries(counts).sort(([a], [b]) => a.localeCompare(b));
+      summary.innerHTML = entries.map(([institution, count]) => {
+        const color = colorForInstitution(institution);
+        return `
+          <span class="institution-chip">
+            <span class="dot" style="background:${color}"></span>
+            ${escapeCell(institution)}: ${count}
+          </span>
+        `;
+      }).join("");
+    }
+
+    function renderTable() {
+      emptyState.style.display = records.length ? "none" : "block";
+      recordsBody.innerHTML = records.map((record, index) => {
+        const color = colorForInstitution(record.institucion);
+        return `
+          <tr style="border-left-color:${color}">
+            <td>${index + 1}</td>
+            <td>${escapeCell(record.nombre)}</td>
+            <td>${escapeCell(record.correo)}</td>
+            <td>${escapeCell(record.institucion)}</td>
+            <td>${escapeCell(record.telefono)}</td>
+            <td>${escapeCell(record.registrado)}</td>
+            <td>
+              <div class="row-actions">
+                <button class="secondary icon-button" type="button" data-delete="${record.id}">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function render() {
+      renderInstitutions();
+      renderSummary();
+      renderTable();
+    }
+
+    function buildExcelHtml() {
+      const rowsHtml = records.map((record, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${escapeCell(record.nombre)}</td>
+          <td>${escapeCell(record.correo)}</td>
+          <td>${escapeCell(record.institucion)}</td>
+          <td>${escapeCell(record.telefono)}</td>
+          <td>${escapeCell(record.registrado)}</td>
+        </tr>
+      `).join("");
+
+      return `
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              table { border-collapse: collapse; font-family: Segoe UI, Arial, sans-serif; }
+              th, td { border: 1px solid #d7e1e8; padding: 8px; }
+              th { background: #0b4567; color: #ffffff; }
+            </style>
+          </head>
+          <body>
+            <h2>Lista de asistencia DIGER</h2>
+            <p><strong>Version:</strong> 01</p>
+            <p><strong>Codigo:</strong> LIST-001</p>
+            <p><strong>Pagina:</strong> 1</p>
+            <p><strong>Titulo del tema:</strong> ${escapeCell(fields.temaTitulo.value)}</p>
+            <p><strong>Tema / motivo:</strong> ${escapeCell(fields.tema.value)}</p>
+            <p><strong>Fecha y hora:</strong> ${escapeCell(fields.fechaHora.value)}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>Nombre</th>
+                  <th>Correo electronico</th>
+                  <th>Institucion</th>
+                  <th>Telefono</th>
+                  <th>Fecha de registro</th>
+                </tr>
+              </thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+          </body>
+        </html>
+      `;
+    }
+
+    function downloadExcel() {
+      const blob = new Blob([buildExcelHtml()], {
+        type: "application/vnd.ms-excel;charset=utf-8"
+      });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "lista_asistencia_diger.xls";
+      document.body.appendChild(link);
+      link.click();
+      URL.revokeObjectURL(link.href);
+      link.remove();
+      setStatus("Archivo Excel descargado.");
+    }
+
+    function clearAllData() {
+      if (!window.confirm("Borrar todos los registros capturados?")) {
+        return;
+      }
+      records = [];
+      saveRecords();
+      render();
+      setStatus("Datos borrados.");
+    }
+
+    document.getElementById("save-entry").addEventListener("click", addEntry);
+    document.getElementById("clear-form").addEventListener("click", clearEntryFields);
+    document.getElementById("download-excel").addEventListener("click", downloadExcel);
+    document.getElementById("print-page").addEventListener("click", () => window.print());
+    document.getElementById("clear-data").addEventListener("click", clearAllData);
+
+    recordsBody.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-delete]");
+      if (!button) {
+        return;
+      }
+      deleteEntry(Number(button.dataset.delete));
+    });
+
+    fields.temaTitulo.addEventListener("change", saveEventInfo);
+    fields.tema.addEventListener("change", saveEventInfo);
+    fields.fechaHora.addEventListener("change", saveEventInfo);
+
+    loadEventInfo();
+    render();
+  </script>
+</body>
+</html>
