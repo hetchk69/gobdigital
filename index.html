@@ -292,8 +292,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 <script>
 // ── CLAVES ──────────────────────────────────────────
 const ADMIN_DOMAIN = 'diger.gob.hn';
-const CONFIG_KEY   = 'diger_sol_config';   // { email: { tramites_estado, tramites_tecnica, lista_asistencia } }
-const SESSION_KEY  = 'diger_sol_session';  // sessionStorage
+const CONFIG_KEY   = 'diger_sol_config';
+const SESSION_KEY  = 'diger_sol_session';
+
+const INST_LIST = ['CONVIVIENDA','COPECO','SIT','IHADFA','BANHPROVI','INPREUNAH','CNBS','INPREMA','IHTT','SEN','CONSUCOOP','CONATEL','IHCINE','SAG','SECAPPH','SRECI','SERNA','SGJD','CANATURH / IHT'];
 
 const MODULOS = [
   { key:'tramites_estado',  label:'Trámites — Estado',   icon:'📋', desc:'Levantamiento del estado actual y checklist de trámites por institución.',   url:'tramites_estado.html' },
@@ -464,6 +466,40 @@ function renderTablaAccesos() {
       }).join('') +
       '<td><button class="btn-rm" onclick="eliminarFuncionario(\'' + email + '\')">Eliminar</button></td>';
     tbody.appendChild(tr);
+
+    if (perms.tramites_estado) {
+      var trCfg = document.createElement('tr');
+      var instOpts = INST_LIST.map(function(i) {
+        return '<option value="' + i + '"' + (perms.te_inst === i ? ' selected' : '') + '>' + i + '</option>';
+      }).join('');
+      trCfg.innerHTML =
+        '<td colspan="5" style="padding:4px 10px 14px 10px;background:#f5f8ff">' +
+          '<div style="border:1.5px solid #c8d5ee;border-radius:10px;padding:12px">' +
+            '<div style="font-size:11px;font-weight:700;color:#1455a4;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">⚙ Institución y contacto — Trámites Estado</div>' +
+            '<div style="display:grid;grid-template-columns:2fr 2fr 2fr 1fr;gap:8px">' +
+              '<div>' +
+                '<label style="font-size:11px;color:#6b7fa3;display:block;margin-bottom:3px">Institución</label>' +
+                '<select onchange="saveTeConfig(\'' + email + '\',\'te_inst\',this.value)" style="width:100%;padding:6px 8px;border:1.5px solid #dde4f0;border-radius:8px;font-size:12px;font-family:inherit">' +
+                  '<option value="">— Seleccione —</option>' + instOpts +
+                '</select>' +
+              '</div>' +
+              '<div>' +
+                '<label style="font-size:11px;color:#6b7fa3;display:block;margin-bottom:3px">Encargado</label>' +
+                '<input type="text" value="' + esc(perms.te_enc || '') + '" onchange="saveTeConfig(\'' + email + '\',\'te_enc\',this.value)" placeholder="Nombre completo" style="width:100%;padding:6px 8px;border:1.5px solid #dde4f0;border-radius:8px;font-size:12px;font-family:inherit">' +
+              '</div>' +
+              '<div>' +
+                '<label style="font-size:11px;color:#6b7fa3;display:block;margin-bottom:3px">Correo institucional</label>' +
+                '<input type="email" value="' + esc(perms.te_cor || '') + '" onchange="saveTeConfig(\'' + email + '\',\'te_cor\',this.value)" placeholder="nombre@inst.gob.hn" style="width:100%;padding:6px 8px;border:1.5px solid #dde4f0;border-radius:8px;font-size:12px;font-family:inherit">' +
+              '</div>' +
+              '<div>' +
+                '<label style="font-size:11px;color:#6b7fa3;display:block;margin-bottom:3px">Celular</label>' +
+                '<input type="text" value="' + esc(perms.te_cel || '') + '" onchange="saveTeConfig(\'' + email + '\',\'te_cel\',this.value)" placeholder="+504 9999-9999" style="width:100%;padding:6px 8px;border:1.5px solid #dde4f0;border-radius:8px;font-size:12px;font-family:inherit">' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</td>';
+      tbody.appendChild(trCfg);
+    }
   });
 }
 
@@ -482,6 +518,18 @@ function eliminarFuncionario(email) {
   delete cfg[email];
   saveConfig(cfg);
   renderTablaAccesos();
+}
+
+// ── CONFIG TRAMITES ESTADO ───────────────────────────
+function saveTeConfig(email, field, val) {
+  var cfg = loadConfig();
+  if (!cfg[email]) return;
+  cfg[email][field] = val;
+  saveConfig(cfg);
+}
+
+function esc(v) {
+  return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── PASAR SESIÓN A SUB-PÁGINAS ───────────────────────

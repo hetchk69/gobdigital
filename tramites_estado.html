@@ -720,6 +720,32 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('inst').addEventListener('change', function() {
     cargarAsistentesInst(this.value);
   });
+
+  // ── RESTAURAR SESIÓN DE FUNCIONARIO ──────────────────
+  var SESSION_KEY = 'diger_sol_session';
+  var _ses = null;
+  try { _ses = JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch {}
+  if (_ses && _ses.role === 'funcionario') {
+    var acc = _ses.access || {};
+    if (acc.te_inst) {
+      var instEl = document.getElementById('inst');
+      instEl.value = acc.te_inst;
+      instEl.disabled = true;
+      cargarAsistentesInst(acc.te_inst);
+    }
+    var lockText = function(id, val) {
+      if (!val) return;
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.value = val;
+      el.readOnly = true;
+      el.style.background = '#eef2fc';
+      el.style.color = '#4a5568';
+    };
+    lockText('enc', acc.te_enc);
+    lockText('cor', acc.te_cor);
+    lockText('cel', acc.te_cel);
+  }
 });
 
 // ── SUPABASE — ASISTENTES ────────────────────────────
