@@ -205,6 +205,8 @@ input[type=file].hidden{display:none}
 </head>
 <body>
 
+<div id="app-header"></div>
+
 <div class="header">
   <img src="logo_diger-14.png" alt="Gobierno de Honduras — DIGER">
   <div class="header-right">
@@ -976,5 +978,7 @@ function reiniciar() {
 // ── UTILS ─────────────────────────────────────────────
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
+<script src="header.js"></script>
+<script>initHeader({ page: 'module', unitSlug: new URLSearchParams(location.search).get('u') || '' });</script>
 </body>
 </html>
