@@ -3,1462 +3,563 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Levantamiento de Eventos — DIGER</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<title>Portal DIGER — Plataforma SOL</title>
 <style>
 :root{
-  --azul:#0a2d6e;--azul-m:#1455a4;--azul-cl:#1a7fc4;
-  --celeste:#78cbd7;--verde:#16a34a;--verde-c:#dcfce7;
-  --rojo:#b42318;--fondo:#eef1f7;--texto:#1a1a1a;
-  --linea:#dde4f0;--suave:#f5f8ff;--blanco:#fff;
+  --azul:#0a2d6e;--azul-m:#1455a4;--azul-c:#e8f0ff;
+  --gris:#eef1f7;--borde:#dde4f0;--texto:#1c2333;--muted:#64748b;
+  --verde:#16a34a;--rojo:#dc2626;--blanco:#fff;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--texto);background:var(--fondo);min-height:100vh}
+body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--texto);background:var(--gris);min-height:100vh}
 
 /* ── HEADER ── */
 .header{
   background:var(--blanco);padding:14px 2rem;
   display:flex;align-items:center;justify-content:space-between;
   box-shadow:0 2px 12px rgba(0,0,0,.08);
-  position:sticky;top:0;z-index:100;
+  position:relative;overflow:hidden;
 }
-.header-brand{display:flex;align-items:center;gap:12px}
-.header img{height:56px;width:auto}
-.header-divider{width:1px;height:40px;background:var(--linea)}
-.header-title{font-size:13px;font-weight:800;color:var(--azul);line-height:1.3}
-.header-title span{display:block;font-size:10px;font-weight:600;color:#6b7fa3;text-transform:uppercase;letter-spacing:.06em}
-.header-right{display:flex;align-items:center;gap:8px}
-.badge{display:inline-flex;align-items:center;gap:5px;background:#e8f0ff;color:var(--azul);font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid #c0d0f0}
-.btn-back{background:var(--blanco);border:1.5px solid var(--linea);color:#64748b;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s}
-.btn-back:hover{border-color:var(--azul-m);color:var(--azul-m)}
+.header::before{content:'';position:absolute;right:0;top:0;bottom:0;width:200px;background:linear-gradient(135deg,transparent 30px,#1455a4 30px)}
+.header::after{content:'';position:absolute;right:0;top:0;bottom:0;width:130px;background:linear-gradient(135deg,transparent 30px,#0a2d6e 30px)}
+.header img{height:60px;width:auto;position:relative;z-index:1}
+.header-right{position:relative;z-index:1;display:flex;align-items:center;gap:10px}
+#session-info{font-size:12px;color:rgba(255,255,255,.85);font-weight:600;background:rgba(255,255,255,.15);padding:5px 12px;border-radius:20px;display:none}
+#btn-logout{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;display:none;transition:background .2s}
+#btn-logout:hover{background:rgba(255,255,255,.35)}
 
-/* ── VIEWS ── */
-.view{display:none}
-.view.active{display:block;animation:fadeUp .3s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* ── PANTALLA LOGIN ── */
+#screen-login{
+  display:flex;align-items:center;justify-content:center;
+  min-height:calc(100vh - 90px);padding:2rem 1rem;
+}
+.login-card{
+  background:var(--blanco);border-radius:20px;
+  box-shadow:0 20px 60px rgba(10,45,110,.14);
+  padding:2.75rem 2.25rem;max-width:420px;width:100%;
+  text-align:center;
+}
+.login-icon{
+  width:72px;height:72px;border-radius:50%;
+  background:linear-gradient(135deg,var(--azul-m),var(--azul));
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1.4rem;font-size:28px;
+  box-shadow:0 8px 24px rgba(10,45,110,.3);
+}
+.login-card h1{font-size:20px;font-weight:800;color:var(--azul);margin-bottom:.3rem}
+.login-card p{font-size:13px;color:var(--muted);margin-bottom:1.5rem;line-height:1.6}
+.login-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;text-align:left;margin-bottom:5px;display:block}
+.login-inp{
+  width:100%;padding:12px 14px;border:1.5px solid var(--borde);border-radius:10px;
+  font-size:14px;font-family:inherit;outline:none;
+  transition:border .2s,box-shadow .2s;margin-bottom:.9rem;
+}
+.login-inp:focus{border-color:var(--azul-m);box-shadow:0 0 0 4px rgba(20,85,164,.1)}
+.login-btn{
+  width:100%;padding:13px;
+  background:linear-gradient(135deg,var(--azul-m),var(--azul));
+  color:#fff;border:none;border-radius:10px;
+  font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s;
+}
+.login-btn:hover{opacity:.9}
+.login-err{
+  font-size:12px;color:var(--rojo);background:#fff5f5;
+  border:1px solid #fecaca;border-radius:8px;
+  padding:8px 12px;margin-bottom:.8rem;display:none;text-align:left;
+}
 
-.container{max-width:860px;margin:0 auto;padding:2rem 1rem 4rem}
+/* ── CONTAINER DASHBOARDS ── */
+#screen-admin,#screen-func{display:none}
+.container{max-width:900px;margin:0 auto;padding:2rem 1rem 3rem}
 
-/* ── TOP BAR ── */
-.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px}
-.page-title{font-size:20px;font-weight:800;color:var(--azul)}
+/* ── BIENVENIDA ── */
+.welcome{margin-bottom:1.75rem}
+.welcome h2{font-size:22px;font-weight:800;color:var(--azul);margin-bottom:.25rem}
+.welcome p{font-size:13px;color:var(--muted)}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:linear-gradient(135deg,var(--azul-c),#d5e8ff);
+  color:var(--azul);font-size:11px;font-weight:700;
+  padding:4px 12px;border-radius:20px;border:1px solid #c0d0f0;
+  margin-bottom:.75rem;
+}
 
 /* ── CARDS ── */
-.card{background:var(--blanco);border:1px solid var(--linea);border-radius:14px;padding:1.4rem;margin-bottom:1rem;box-shadow:0 2px 8px rgba(10,45,110,.05)}
-.card-title{font-size:11px;font-weight:800;color:#6b7fa3;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1.1rem;padding-bottom:.55rem;border-bottom:2px solid var(--fondo);display:flex;align-items:center;gap:7px}
-
-/* ── LISTA ── */
-.events-list{display:grid;gap:12px}
-.event-item{
-  background:var(--blanco);border:1.5px solid var(--linea);border-radius:12px;
-  padding:15px 18px;display:grid;grid-template-columns:1fr auto;
-  gap:10px;align-items:center;
-  box-shadow:0 2px 8px rgba(10,45,110,.04);transition:box-shadow .2s;
+.card{
+  background:var(--blanco);border:1px solid var(--borde);
+  border-radius:14px;padding:1.4rem;margin-bottom:1.1rem;
+  box-shadow:0 2px 8px rgba(10,45,110,.06);
 }
-.event-item:hover{box-shadow:0 4px 16px rgba(10,45,110,.1)}
-.event-item.activa{border-color:#bbf7d0;background:#f0fdf4}
-.ev-tipo{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#e8f0ff;color:var(--azul-m);border:1px solid #c0d0f0;margin-bottom:5px}
-.ev-tipo.capacitacion{background:#fef9c3;color:#92400e;border-color:#fde68a}
-.ev-tipo.taller{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
-.ev-titulo{font-size:15px;font-weight:700;color:var(--azul);margin-bottom:3px}
-.ev-meta{font-size:12px;color:#6b7fa3;display:flex;gap:14px;flex-wrap:wrap}
-.ev-estado{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px}
-.ev-estado.activa{background:var(--verde-c);color:var(--verde)}
-.ev-estado.cerrada{background:#f1f5f9;color:#64748b}
-.ev-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.empty-state{text-align:center;padding:3rem 1rem;color:#9aadcc}
-.empty-state .es-icon{font-size:44px;margin-bottom:.75rem}
-
-/* ── FORMULARIO ── */
-.doc-header{
-  background:var(--blanco);border:1px solid var(--linea);border-radius:14px;
-  padding:1.5rem;margin-bottom:1.2rem;text-align:center;
-  box-shadow:0 2px 8px rgba(10,45,110,.05);
+.card-title{
+  font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:1.1rem;padding-bottom:.6rem;
+  border-bottom:2px solid var(--gris);
+  display:flex;align-items:center;gap:6px;
 }
-.doc-header .gov{font-size:12.5px;font-weight:800;color:var(--azul);text-transform:uppercase;letter-spacing:.04em}
-.doc-header .sub{font-size:11px;font-weight:700;color:var(--azul-m);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
-.doc-header .prog{font-size:11px;font-weight:700;color:#0d8ca0;text-transform:uppercase;margin-top:2px}
-.doc-header .form-ttl{font-size:15px;font-weight:800;color:var(--texto);margin-top:10px;text-transform:uppercase;letter-spacing:.03em}
 
-/* ── TIPO SELECTOR ── */
-.tipo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:1rem}
-.tipo-opt{border:2px solid var(--linea);border-radius:10px;padding:12px 10px;text-align:center;cursor:pointer;transition:all .2s;background:var(--blanco)}
-.tipo-opt:hover{border-color:var(--azul-m);background:var(--suave)}
-.tipo-opt.selected{border-color:var(--azul);background:#e8f0ff}
-.tipo-opt .to-icon{font-size:24px;margin-bottom:4px}
-.tipo-opt .to-label{font-size:12px;font-weight:700;color:var(--azul)}
+/* ── MODULE GRID (funcionario) ── */
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.mod-card{
+  background:var(--blanco);border:1.5px solid var(--borde);
+  border-radius:13px;padding:1.3rem;
+  transition:all .22s;cursor:pointer;text-decoration:none;
+  display:flex;flex-direction:column;gap:10px;
+}
+.mod-card:hover{border-color:var(--azul-m);box-shadow:0 6px 20px rgba(10,45,110,.12);transform:translateY(-2px)}
+.mod-icon{
+  width:46px;height:46px;border-radius:11px;
+  background:linear-gradient(135deg,var(--azul-c),#d5e8ff);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+.mod-name{font-size:15px;font-weight:700;color:var(--azul)}
+.mod-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.mod-card.disabled{opacity:.45;pointer-events:none;filter:grayscale(.5)}
 
-/* ── FIELDS ── */
-.field{margin-bottom:.9rem}
-.field label{display:block;font-size:12.5px;color:#4a5568;margin-bottom:4px;font-weight:600}
-.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1.5px solid var(--linea);border-radius:9px;font-size:13.5px;font-family:inherit;background:#fafbfd;color:var(--texto);transition:border .2s,box-shadow .2s}
-.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--azul-m);background:var(--blanco);box-shadow:0 0 0 3px rgba(20,85,164,.1)}
-.field textarea{min-height:80px;resize:vertical;line-height:1.6}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+/* ── ACCESOS ADMIN ── */
+.access-form{display:flex;gap:8px;margin-bottom:1rem}
+.access-inp{
+  flex:1;padding:9px 12px;border:1.5px solid var(--borde);border-radius:9px;
+  font-size:13px;font-family:inherit;outline:none;transition:border .2s;
+}
+.access-inp:focus{border-color:var(--azul-m)}
+.btn-add{
+  padding:9px 18px;background:linear-gradient(135deg,var(--azul-m),var(--azul));
+  color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;
+  cursor:pointer;white-space:nowrap;transition:opacity .2s;
+}
+.btn-add:hover{opacity:.9}
 
-/* ── TABLA DOC ── */
-.dtable{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:.4rem}
-.dtable td{border:1px solid #c8d5ee;padding:7px 10px;vertical-align:top}
-.dtable td.lbl{background:linear-gradient(135deg,var(--azul-m),#0a4d8c);color:#fff;font-weight:700;font-size:11.5px;white-space:nowrap;width:1%}
-.dtable td.lbl2{background:#d0e8f5;color:var(--azul);font-weight:700;font-size:11.5px;white-space:nowrap;width:1%}
-.dtable td.lbl3{background:linear-gradient(135deg,#0d8ca0,#0a6070);color:#fff;font-weight:700;font-size:11.5px}
-.dtable input,.dtable select,.dtable textarea{width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:13px;color:var(--texto);padding:2px 0}
-.dtable select{cursor:pointer}
-.dtable textarea{min-height:50px;resize:vertical}
+/* ── TABLA DE ACCESOS ── */
+.access-table{width:100%;border-collapse:collapse;font-size:13px}
+.access-table th{
+  background:var(--gris);color:var(--muted);
+  font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;padding:8px 10px;text-align:left;
+}
+.access-table td{padding:9px 10px;border-bottom:1px solid #f0f4fa;vertical-align:middle}
+.access-table tr:last-child td{border-bottom:none}
+.access-table tr:hover td{background:#fafbff}
+.email-cell{font-size:13px;color:var(--texto);font-weight:500}
 
-/* ── SECCION CONDICIONAL (capacitación) ── */
-.seccion-cap{display:none}
-.seccion-cap.visible{display:block;animation:fadeUp .3s ease}
+/* ── TOGGLES ── */
+.tog{position:relative;display:inline-block;width:38px;height:21px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{
+  position:absolute;inset:0;background:#dde4f0;border-radius:21px;
+  cursor:pointer;transition:.25s;
+}
+.tog-sl::before{
+  content:'';position:absolute;left:3px;top:3px;
+  width:15px;height:15px;background:#fff;border-radius:50%;
+  transition:.25s;box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+.tog input:checked+.tog-sl{background:var(--azul-m)}
+.tog input:checked+.tog-sl::before{transform:translateX(17px)}
 
-/* ── NUMLIST ── */
-.numlist{margin:0;padding:0;list-style:none}
-.numlist li{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
-.numlist li span{font-size:12.5px;color:#6b7fa3;font-weight:700;padding-top:10px;flex-shrink:0;min-width:18px}
-.numlist li input{flex:1;padding:8px 10px;border:1.5px solid var(--linea);border-radius:8px;font-size:13px;font-family:inherit;background:#fafbfd;transition:border .2s}
-.numlist li input:focus{outline:none;border-color:var(--azul-m);background:var(--blanco);box-shadow:0 0 0 3px rgba(20,85,164,.1)}
+.perm-cell{display:flex;align-items:center;gap:7px}
+.perm-lbl{font-size:11.5px;color:var(--muted)}
 
-/* ── TABLA PARTICIPANTES (manual) ── */
-.ptable{width:100%;border-collapse:collapse;font-size:12.5px}
-.ptable th{background:linear-gradient(135deg,var(--azul-m),#0a4d8c);color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:8px;text-align:center}
-.ptable th:first-child{width:36px}
-.ptable td{border:1px solid #d0d8e8;padding:3px 4px;vertical-align:middle}
-.ptable td:first-child{text-align:center;color:#9aadcc;font-weight:700;font-size:12px;background:#fafbfd}
-.ptable td input{width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:12.5px;padding:5px 6px;transition:background .15s;border-radius:5px}
-.ptable td input:focus{background:#e8f0ff}
-.ptable tr:nth-child(even) td{background:#f8fbff}
-.ptable tr:nth-child(even) td:first-child{background:#f0f4fc}
+/* ── REMOVE BTN ── */
+.btn-rm{
+  background:#fff;border:1.5px solid var(--borde);
+  color:var(--muted);border-radius:7px;padding:5px 10px;
+  font-size:11.5px;cursor:pointer;transition:all .2s;
+}
+.btn-rm:hover{border-color:var(--rojo);color:var(--rojo);background:#fff5f5}
 
-/* ── FOTOS ── */
-.foto-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.foto-box{border:2px dashed #c8d5ee;border-radius:12px;background:var(--suave);overflow:hidden}
-.foto-header{background:linear-gradient(135deg,var(--azul-m),#0a4d8c);color:#fff;font-size:11.5px;font-weight:700;padding:7px 12px;text-align:center}
-.foto-body{padding:10px}
-.foto-preview{width:100%;height:140px;border:1.5px solid #c8d5ee;border-radius:8px;background:var(--blanco);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:8px;cursor:pointer;transition:border .2s}
-.foto-preview:hover{border-color:var(--azul-m)}
-.foto-preview img{width:100%;height:100%;object-fit:contain;display:none}
-.foto-placeholder{text-align:center;color:#9aadcc;pointer-events:none}
-.foto-placeholder .icon{font-size:26px;margin-bottom:4px}
-.foto-placeholder p{font-size:11px}
-input[type=file].hidden{display:none}
-.foto-inp-desc{width:100%;padding:6px 9px;border:1.5px solid var(--linea);border-radius:7px;font-size:12px;font-family:inherit;background:var(--blanco);transition:border .2s}
-.foto-inp-desc:focus{outline:none;border-color:var(--azul-m)}
+/* ── QUICK LINKS (admin) ── */
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.quick-link{
+  display:flex;align-items:center;gap:11px;
+  padding:13px 15px;background:var(--blanco);
+  border:1.5px solid var(--borde);border-radius:11px;
+  text-decoration:none;color:var(--texto);
+  transition:all .2s;font-weight:600;font-size:13.5px;
+}
+.quick-link:hover{border-color:var(--azul-m);background:var(--azul-c);color:var(--azul)}
+.quick-link-icon{font-size:20px}
 
-/* ── RESULTADOS ── */
-.rtable{width:100%;border-collapse:collapse;font-size:13px}
-.rtable td{border:1px solid #c8d5ee;padding:8px 10px;vertical-align:top}
-.rtable td.rlbl{background:linear-gradient(135deg,var(--azul-m),#0a4d8c);color:#fff;font-weight:700;font-size:12px;width:44%}
-.rtable td.rlbl .note{font-size:10px;font-weight:400;color:rgba(255,255,255,.8);display:block;margin-top:2px}
-.rtable td input{width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:13px;padding:2px 0}
-
-/* ── VALIDACIÓN ── */
-.val-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.val-box{border:1px solid #c8d5ee;border-radius:10px;padding:16px;text-align:center}
-.val-role{background:linear-gradient(135deg,var(--azul-m),#0a4d8c);color:#fff;font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:7px;margin-bottom:14px;display:inline-block}
-.val-sign{height:70px;border-bottom:1.5px solid #c8d5ee;margin-bottom:8px}
-.val-hint{font-size:11px;color:#9aadcc;margin-bottom:12px}
-.val-name{width:100%;padding:7px 10px;border:1.5px solid var(--linea);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;text-align:center}
-.val-name:focus{outline:none;border-color:var(--azul-m)}
-
-/* ── LINK QR (detalle) ── */
-.link-card{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1rem}
-.link-label{font-size:11px;font-weight:800;color:var(--verde);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;align-items:center;gap:5px}
-.link-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.link-inp{flex:1;min-width:180px;padding:9px 12px;border:1.5px solid #bbf7d0;border-radius:7px;font-size:12.5px;background:var(--blanco);color:#166534;font-family:monospace}
-.btn-copy{padding:9px 16px;background:var(--verde);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
-.btn-copy:hover{opacity:.88}
-.copy-ok{font-size:12px;font-weight:700;color:var(--verde);min-width:60px}
-.qr-section{margin-top:12px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
-.qr-box{background:var(--blanco);border:2px solid #bbf7d0;border-radius:10px;padding:12px;text-align:center;flex-shrink:0}
-.qr-box img{display:block;border-radius:6px;width:180px;height:180px}
-.qr-label{font-size:10px;font-weight:700;color:var(--verde);margin-top:7px;text-transform:uppercase;letter-spacing:.06em}
-.qr-actions{display:flex;flex-direction:column;gap:8px;justify-content:center}
-.btn-qr{padding:8px 16px;border-radius:7px;font-size:12.5px;font-weight:700;cursor:pointer;border:none;white-space:nowrap;transition:all .2s}
-.btn-qr-print{background:var(--verde);color:#fff}.btn-qr-print:hover{opacity:.88}
-.btn-qr-dl{background:var(--blanco);border:1.5px solid var(--verde)!important;color:var(--verde)}.btn-qr-dl:hover{background:var(--verde-c)}
-
-/* ── LIVE ── */
-.live-badge{display:inline-flex;align-items:center;gap:5px;background:var(--verde-c);color:var(--verde);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
-.live-dot{width:7px;height:7px;border-radius:50%;background:var(--verde);animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* ── TABLA ASISTENCIAS ── */
-.tbl-wrap{overflow-x:auto}
-.atbl{width:100%;min-width:600px;border-collapse:collapse;font-size:13px}
-.atbl th{background:linear-gradient(135deg,var(--azul-m),#0a4d8c);color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:9px 10px;text-align:left;font-weight:700}
-.atbl td{border-bottom:1px solid var(--linea);padding:8px 10px;vertical-align:middle}
-.atbl tr:hover td{background:var(--suave)}
-.atbl tbody tr{border-left:4px solid var(--azul-m)}
-.stat-chip{background:#e8f0ff;color:var(--azul);font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;border:1px solid #c0d0f0;display:inline-block}
-.inst-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--linea);border-radius:999px;background:var(--blanco);padding:4px 10px;font-size:12px;font-weight:700;margin:3px}
-.cdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-
-/* ── SUCCESS ── */
-.okbox{text-align:center;padding:2.5rem 1rem}
-.check-wrap{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--azul-m),var(--azul));display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;animation:popIn .5s cubic-bezier(.175,.885,.32,1.275);box-shadow:0 8px 30px rgba(10,45,110,.3)}
-.check-wrap svg{width:42px;height:42px;stroke:#fff;stroke-width:3;fill:none;stroke-dasharray:60;stroke-dashoffset:60;animation:drawCheck .5s .3s ease forwards}
-@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes drawCheck{to{stroke-dashoffset:0}}
-
-/* ── BUTTONS ── */
-.btnp{background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;border:none;border-radius:11px;padding:11px 24px;font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .2s;box-shadow:0 4px 14px rgba(10,45,110,.2)}
-.btnp:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(10,45,110,.3)}
-.btnp:disabled{opacity:.6;cursor:not-allowed;transform:none}
-.btns{background:var(--blanco);border:1.5px solid #c8d5ee;border-radius:11px;padding:11px 24px;font-size:13.5px;cursor:pointer;color:#4a5568;font-weight:600;transition:all .2s}
-.btns:hover{background:var(--suave);border-color:var(--azul-m);color:var(--azul-m)}
-.btn-sm{padding:7px 14px;font-size:12px;border-radius:8px}
-.btn-danger{background:var(--blanco);border:1.5px solid #fecaca;border-radius:8px;color:var(--rojo);font-size:12px;font-weight:700;padding:7px 14px;cursor:pointer;transition:all .2s}
-.btn-danger:hover{background:#fff5f5}
-.btn-add{padding:6px 14px;background:var(--blanco);border:1.5px solid #c8d5ee;border-radius:8px;color:#6b7fa3;font-size:12px;cursor:pointer;font-weight:700}
-.btn-add:hover{border-color:var(--azul-m);color:var(--azul-m)}
-.nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem}
-.err-msg{background:#fff5f5;border:1px solid #fecaca;color:var(--rojo);border-radius:8px;padding:8px 12px;font-size:12px;margin-top:8px;display:none}
-
-/* ── LOADER ── */
-.loader{text-align:center;padding:3rem;color:#6b7fa3}
-.spinner{display:inline-block;width:30px;height:30px;border:3px solid #dde4f0;border-top-color:var(--azul-m);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:.5rem}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── DETALLE INFO ── */
-.dinfo{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-bottom:1rem}
-.di{font-size:13px;color:#4a5568;padding:4px 0;border-bottom:1px solid #f0f4fa}
-.di strong{color:var(--azul)}
-.di.full{grid-column:1/-1}
-.detalle-pre{background:#f8fbff;border:1px solid #dde4f0;border-radius:10px;padding:1rem;font-size:12.5px;line-height:1.8;white-space:pre-wrap;font-family:'Segoe UI',system-ui,sans-serif;color:#2d3748;max-height:400px;overflow-y:auto}
-.summary-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+/* ── EMPTY ── */
+.empty{padding:1.5rem;text-align:center;color:var(--muted);font-size:13px}
 
 /* ── MOBILE ── */
-@media(max-width:640px){
+@media(max-width:600px){
   .container{padding:1rem .75rem 2rem}
-  .card{padding:1.1rem}
-  .row2,.row3,.foto-grid,.val-grid,.dinfo{grid-template-columns:1fr}
-  .ptable{font-size:11px}
-  .header{padding:12px 1rem}
-  .header img{height:44px}
-  .header-divider,.header-title{display:none}
-  .tipo-grid{grid-template-columns:repeat(3,1fr)}
-}
-
-@media print{
-  .header,.top-bar,.nav,.btnp,.btns,.btn-danger,.btn-add,.link-card,.qr-section,.btn-copy,.ev-actions,.live-badge{display:none!important}
-  .view{display:block!important}
-  body{background:#fff}
-  .container{max-width:100%;padding:0}
-  .card{box-shadow:none;border-color:#ddd;page-break-inside:avoid}
+  .card{padding:1.1rem;border-radius:11px}
+  .mod-grid{grid-template-columns:1fr}
+  .quick-grid{grid-template-columns:1fr}
+  .access-form{flex-direction:column}
+  .access-table{font-size:12px}
 }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-brand">
-    <img src="logo_diger-14.png" alt="DIGER">
-    <div class="header-divider"></div>
-    <div class="header-title">
-      <span>Plataforma SOL</span>
-      Levantamiento de Eventos
-    </div>
-  </div>
+  <img src="logo_diger-14.png" alt="Gobierno de Honduras — DIGER">
   <div class="header-right">
-    <span class="badge" id="admin-badge">⚙ Administrador</span>
-    <a class="btn-back" href="index.html">← Portal</a>
+    <span id="session-info"></span>
+    <button id="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
   </div>
 </div>
 
-<div class="container">
-
-<!-- ══════════════════════════════════════════════
-  VISTA: LISTA
-══════════════════════════════════════════════ -->
-<div class="view active" id="view-list">
-  <div class="top-bar">
-    <h2 class="page-title">📋 Eventos y Acercamientos</h2>
-    <button class="btnp" onclick="mostrarCrear()">+ Nuevo evento</button>
-  </div>
-  <div id="events-list">
-    <div class="loader"><div class="spinner"></div><br>Cargando...</div>
+<!-- ═══ PANTALLA LOGIN ═══ -->
+<div id="screen-login">
+  <div class="login-card">
+    <div class="login-icon">🏛</div>
+    <h1>Plataforma SOL — DIGER</h1>
+    <p>Ingrese su correo institucional para acceder a los módulos habilitados.</p>
+    <span class="login-label">Correo institucional</span>
+    <input class="login-inp" type="email" id="login-email" placeholder="nombre@institucion.gob.hn" autocomplete="email">
+    <div class="login-err" id="login-err"></div>
+    <button class="login-btn" onclick="iniciarSesion()">Ingresar →</button>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════
-  VISTA: CREAR EVENTO
-══════════════════════════════════════════════ -->
-<div class="view" id="view-crear">
-  <div class="top-bar">
-    <h2 class="page-title">Nuevo evento</h2>
-    <button class="btns btn-sm" onclick="volverLista()">← Volver</button>
-  </div>
-
-  <div class="doc-header">
-    <div class="gov">Gobierno de la República de Honduras</div>
-    <div class="sub">Dirección de Gestión por Resultados (DIGER)</div>
-    <div class="prog">Gobierno Digital – Talento Digital</div>
-    <div class="form-ttl">Formato Institucional de Levantamiento de Eventos</div>
-  </div>
-
-  <!-- TIPO DE EVENTO -->
-  <div class="card">
-    <div class="card-title">🏷 Tipo de evento</div>
-    <div class="tipo-grid" id="tipo-grid">
-      <div class="tipo-opt" onclick="selTipo(this,'Reunión técnica')"><div class="to-icon">🤝</div><div class="to-label">Reunión técnica</div></div>
-      <div class="tipo-opt" onclick="selTipo(this,'Capacitación')"><div class="to-icon">🎓</div><div class="to-label">Capacitación</div></div>
-      <div class="tipo-opt" onclick="selTipo(this,'Taller')"><div class="to-icon">🛠</div><div class="to-label">Taller</div></div>
-      <div class="tipo-opt" onclick="selTipo(this,'Seminario')"><div class="to-icon">📊</div><div class="to-label">Seminario</div></div>
-      <div class="tipo-opt" onclick="selTipo(this,'Charla')"><div class="to-icon">💬</div><div class="to-label">Charla</div></div>
-      <div class="tipo-opt" onclick="selTipo(this,'Visita institucional')"><div class="to-icon">🏛</div><div class="to-label">Visita inst.</div></div>
-      <div class="tipo-opt" onclick="selTipo(this,'Otro')"><div class="to-icon">📝</div><div class="to-label">Otro</div></div>
+<!-- ═══ DASHBOARD ADMIN ═══ -->
+<div id="screen-admin">
+  <div class="container">
+    <div class="welcome">
+      <div class="badge">⚙ Administrador</div>
+      <h2 id="admin-saludo">Bienvenido</h2>
+      <p>Gestione los accesos de los funcionarios y acceda a los módulos del sistema.</p>
     </div>
-    <div class="field" id="tipo-otro-wrap" style="display:none;margin-top:.5rem">
-      <label>Especifique el tipo de evento</label>
-      <input type="text" id="tipo-otro-txt" placeholder="Descripción del tipo...">
-    </div>
-    <input type="hidden" id="tipo-val">
-  </div>
 
-  <!-- GENERALES -->
-  <div class="card">
-    <div class="card-title">📅 1. Datos generales</div>
-    <table class="dtable">
-      <tr>
-        <td class="lbl">Título / Tema:</td>
-        <td colspan="3"><input type="text" id="g-titulo" placeholder="Nombre descriptivo del evento"></td>
-      </tr>
-      <tr>
-        <td class="lbl" style="vertical-align:top;padding-top:10px">Descripción / Motivo:</td>
-        <td colspan="3"><textarea id="g-motivo" placeholder="Motivo o descripción del evento..." style="width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:13px;min-height:60px;resize:vertical;padding:2px 0"></textarea></td>
-      </tr>
-      <tr>
-        <td class="lbl">Fecha:</td>
-        <td><input type="date" id="g-fecha"></td>
-        <td class="lbl">Hora:</td>
-        <td><input type="time" id="g-hora"></td>
-      </tr>
-      <tr>
-        <td class="lbl">Modalidad:</td>
-        <td>
-          <select id="g-modalidad" style="width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:13px;padding:2px 0">
-            <option value="">— Seleccione —</option>
-            <option>Presencial</option><option>Virtual</option><option>Híbrida</option>
-          </select>
-        </td>
-        <td class="lbl">Duración:</td>
-        <td><input type="text" id="g-duracion" placeholder="Ej: 3 horas"></td>
-      </tr>
-      <tr>
-        <td class="lbl">Lugar:</td>
-        <td colspan="3"><input type="text" id="g-lugar" placeholder="Nombre del lugar / plataforma virtual"></td>
-      </tr>
-      <tr>
-        <td class="lbl">Institución beneficiaria:</td>
-        <td colspan="3"><input type="text" id="g-inst" placeholder="Nombre completo de la institución"></td>
-      </tr>
-      <tr><td class="lbl3" colspan="4">Enlace principal (Institución):</td></tr>
-      <tr>
-        <td class="lbl2">-Nombre:</td><td><input type="text" id="ep-nombre" placeholder="Nombre completo"></td>
-        <td class="lbl2">-Cargo:</td><td><input type="text" id="ep-cargo" placeholder="Cargo / función"></td>
-      </tr>
-      <tr>
-        <td class="lbl2">-Correo:</td><td><input type="email" id="ep-correo" placeholder="correo@inst.gob.hn"></td>
-        <td class="lbl2">-Teléfono:</td><td><input type="text" id="ep-tel" placeholder="+504 9999-9999"></td>
-      </tr>
-      <tr><td class="lbl3" colspan="4">Facilitador / Responsable DIGER:</td></tr>
-      <tr>
-        <td class="lbl2">-Nombre:</td><td><input type="text" id="fac-nombre" placeholder="Nombre completo"></td>
-        <td class="lbl2">-Cargo:</td><td><input type="text" id="fac-cargo" placeholder="Cargo / función"></td>
-      </tr>
-      <tr>
-        <td class="lbl2">-Correo:</td><td><input type="email" id="fac-correo" placeholder="correo@diger.gob.hn"></td>
-        <td class="lbl2">-Teléfono:</td><td><input type="text" id="fac-tel" placeholder="+504 9999-9999"></td>
-      </tr>
-    </table>
-  </div>
-
-  <!-- SECCIÓN CONDICIONAL: CAPACITACIÓN -->
-  <div class="seccion-cap" id="sec-cap">
+    <!-- Acceso rápido -->
     <div class="card">
-      <div class="card-title">🎓 2. Detalles de la capacitación</div>
-      <table class="dtable">
-        <tr>
-          <td class="lbl" style="vertical-align:top;padding-top:10px">Objetivo:</td>
-          <td><textarea id="cap-objetivo" placeholder="Describa el objetivo general de la capacitación..." style="width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:13px;min-height:70px;resize:vertical;padding:2px 0"></textarea></td>
-        </tr>
-        <tr>
-          <td class="lbl" style="vertical-align:top;padding-top:10px">Contenido:</td>
-          <td style="padding:10px">
-            <ul class="numlist" id="contenido-list">
-              <li><span>1.</span><input type="text" id="cont1" placeholder="Punto de contenido"></li>
-              <li><span>2.</span><input type="text" id="cont2" placeholder="Punto de contenido"></li>
-              <li><span>3.</span><input type="text" id="cont3" placeholder="Punto de contenido"></li>
-              <li><span>4.</span><input type="text" id="cont4" placeholder="Punto de contenido"></li>
-            </ul>
-            <button class="btn-add" onclick="addContenido()" style="margin-top:6px">+ Agregar punto</button>
-          </td>
-        </tr>
-      </table>
-    </div>
-  </div>
-
-  <!-- PARTICIPANTES MANUALES (opcional, además del QR) -->
-  <div class="card">
-    <div class="card-title">👥 3. Participantes (registro manual adicional)</div>
-    <p style="font-size:12px;color:#9aadcc;margin-bottom:10px">El sistema de QR captura asistencia en tiempo real. Use esta tabla para agregar participantes sin acceso al QR.</p>
-    <div style="overflow-x:auto">
-      <table class="ptable">
-        <thead><tr><th>N.</th><th>Nombre</th><th>Cargo</th><th>Institución</th><th>Correo</th><th>Teléfono</th></tr></thead>
-        <tbody id="ptbody"></tbody>
-      </table>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
-      <button class="btn-add" onclick="addParticipante()">+ Agregar fila</button>
-    </div>
-  </div>
-
-  <!-- EVIDENCIA FOTOGRÁFICA -->
-  <div class="card">
-    <div class="card-title">📷 4. Evidencia fotográfica</div>
-    <div class="foto-grid">
-      <div class="foto-box">
-        <div class="foto-header">Fotografía 1</div>
-        <div class="foto-body">
-          <div class="foto-preview" onclick="document.getElementById('f1-inp').click()">
-            <img id="f1-img" src="" alt="">
-            <div class="foto-placeholder" id="f1-ph"><div class="icon">🖼</div><p>Clic para subir imagen</p></div>
-          </div>
-          <input type="file" class="hidden" id="f1-inp" accept="image/*" onchange="previewFoto(this,'f1-img','f1-ph')">
-          <input class="foto-inp-desc" type="text" id="f1-desc" placeholder="Descripción de la fotografía...">
-        </div>
-      </div>
-      <div class="foto-box">
-        <div class="foto-header">Fotografía 2</div>
-        <div class="foto-body">
-          <div class="foto-preview" onclick="document.getElementById('f2-inp').click()">
-            <img id="f2-img" src="" alt="">
-            <div class="foto-placeholder" id="f2-ph"><div class="icon">🖼</div><p>Clic para subir imagen</p></div>
-          </div>
-          <input type="file" class="hidden" id="f2-inp" accept="image/*" onchange="previewFoto(this,'f2-img','f2-ph')">
-          <input class="foto-inp-desc" type="text" id="f2-desc" placeholder="Descripción de la fotografía...">
-        </div>
+      <div class="card-title">🚀 Acceso rápido</div>
+      <div class="quick-grid">
+        <a class="quick-link" href="tramites_estado.html" onclick="pasarSesion()">
+          <span class="quick-link-icon">📋</span>Trámites — Estado
+        </a>
+        <a class="quick-link" href="tramites_tecnica.html" onclick="pasarSesion()">
+          <span class="quick-link-icon">🔬</span>Trámites — Técnica
+        </a>
+        <a class="quick-link" href="levantamiento_reunion.html">
+          <span class="quick-link-icon">👥</span>Levantamiento de Reunión
+        </a>
+        <a class="quick-link" href="lista_asistencia.html">
+          <span class="quick-link-icon">✅</span>Lista de Asistencia
+        </a>
+        <a class="quick-link" href="levantamiento_capacitaciones.html">
+          <span class="quick-link-icon">🎓</span>Registro de Capacitaciones
+        </a>
+        <a class="quick-link" href="memorias_reuniones.html">
+          <span class="quick-link-icon">📝</span>Memorias de Reuniones
+        </a>
       </div>
     </div>
-  </div>
 
-  <!-- DOCUMENTOS -->
-  <div class="card">
-    <div class="card-title">📎 5. Documentos y recursos</div>
-    <div class="field" style="margin:0">
-      <textarea id="docs-recursos" placeholder="Liste documentos, URLs y recursos utilizados o compartidos..." style="min-height:90px"></textarea>
-    </div>
-  </div>
-
-  <!-- COMPROMISOS / ACUERDOS -->
-  <div class="card">
-    <div class="card-title">📌 6. Compromisos y próximos pasos</div>
-    <div style="display:flex;flex-direction:column;gap:7px" id="compromisos-list">
-      <div style="display:flex;align-items:center;gap:7px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:20px">1.</span><input type="text" class="comp-inp" placeholder="Compromiso o próximo paso" style="flex:1;padding:8px 10px;border:1.5px solid var(--linea);border-radius:8px;font-size:13px;font-family:inherit;background:#fafbfd"></div>
-      <div style="display:flex;align-items:center;gap:7px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:20px">2.</span><input type="text" class="comp-inp" placeholder="Compromiso o próximo paso" style="flex:1;padding:8px 10px;border:1.5px solid var(--linea);border-radius:8px;font-size:13px;font-family:inherit;background:#fafbfd"></div>
-      <div style="display:flex;align-items:center;gap:7px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:20px">3.</span><input type="text" class="comp-inp" placeholder="Compromiso o próximo paso" style="flex:1;padding:8px 10px;border:1.5px solid var(--linea);border-radius:8px;font-size:13px;font-family:inherit;background:#fafbfd"></div>
-    </div>
-    <button class="btn-add" onclick="addCompromiso()" style="margin-top:8px">+ Agregar compromiso</button>
-  </div>
-
-  <!-- SECCIÓN CONDICIONAL: RESULTADOS CAPACITACIÓN -->
-  <div class="seccion-cap" id="sec-resultados">
+    <!-- Gestión de accesos -->
     <div class="card">
-      <div class="card-title">📊 7. Resultados de la capacitación</div>
-      <table class="rtable">
-        <tr><td class="rlbl">Participantes convocados:</td><td><input type="number" id="r-convocados" placeholder="0" min="0"></td></tr>
-        <tr><td class="rlbl">Participantes asistentes:</td><td><input type="number" id="r-asistentes" placeholder="0" min="0"></td></tr>
-        <tr><td class="rlbl">% Asistencia:</td><td><input type="text" id="r-pct" readonly style="color:#6b7fa3" placeholder="Automático"></td></tr>
-        <tr><td class="rlbl">Nivel de satisfacción (%):<span class="note">*Calificado por enlace institucional</span></td><td><input type="number" id="r-satisfaccion" placeholder="0 – 100" min="0" max="100"></td></tr>
-      </table>
-    </div>
-  </div>
-
-  <!-- VALIDACIÓN -->
-  <div class="card">
-    <div class="card-title" id="val-title">✅ 7. Validación y aprobación</div>
-    <div class="val-grid">
-      <div class="val-box">
-        <div class="val-role">Responsable DIGER</div>
-        <div class="val-sign"></div>
-        <p class="val-hint">(Firma y sello)</p>
-        <input class="val-name" type="text" id="val-diger" placeholder="Nombre y cargo">
+      <div class="card-title">🔑 Gestión de accesos de funcionarios</div>
+      <div class="access-form">
+        <input class="access-inp" type="email" id="new-email" placeholder="correo@institucion.gob.hn">
+        <button class="btn-add" onclick="agregarFuncionario()">+ Agregar</button>
       </div>
-      <div class="val-box">
-        <div class="val-role">Representante Institución</div>
-        <div class="val-sign"></div>
-        <p class="val-hint">(Firma y sello)</p>
-        <input class="val-name" type="text" id="val-inst" placeholder="Nombre y cargo">
+      <div id="access-err" style="font-size:12px;color:var(--rojo);margin-bottom:.75rem;display:none"></div>
+
+      <div id="access-table-wrap">
+        <table class="access-table">
+          <thead>
+            <tr>
+              <th>Correo</th>
+              <th>Trámites Estado</th>
+              <th>Trámites Técnica</th>
+              <th>Lista Asistencia</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="access-tbody"></tbody>
+        </table>
+        <div class="empty" id="access-empty">No hay funcionarios registrados. Agregue uno arriba.</div>
       </div>
-    </div>
-  </div>
-
-  <div class="err-msg" id="crear-err"></div>
-  <div class="nav">
-    <button class="btns" onclick="volverLista()">← Cancelar</button>
-    <button class="btnp" id="btn-crear" onclick="crearEvento()">✔ Crear y obtener QR</button>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════
-  VISTA: DETALLE DE EVENTO
-══════════════════════════════════════════════ -->
-<div class="view" id="view-detalle">
-  <div class="top-bar">
-    <h2 class="page-title" id="d-titulo">Evento</h2>
-    <button class="btns btn-sm" onclick="volverLista()">← Volver</button>
-  </div>
-
-  <!-- Link y QR -->
-  <div class="link-card">
-    <div class="link-label">🔗 Link y QR para registro de asistencia</div>
-    <div class="link-row">
-      <input class="link-inp" id="d-link" type="text" readonly>
-      <button class="btn-copy" onclick="copiarLink()">Copiar</button>
-      <span class="copy-ok" id="copy-ok"></span>
-    </div>
-    <div class="qr-section">
-      <div class="qr-box">
-        <img id="qr-img" src="" alt="QR" width="180" height="180">
-        <div class="qr-label">Escanear para registrarse</div>
-      </div>
-      <div class="qr-actions">
-        <button class="btn-qr btn-qr-print" onclick="imprimirQR()">🖨 Imprimir QR</button>
-        <button class="btn-qr btn-qr-dl" onclick="descargarQR()">⬇ Descargar QR</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Info del evento -->
-  <div class="card">
-    <div class="card-title">📋 Información del evento</div>
-    <div class="dinfo" id="d-info"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-      <button class="btns btn-sm" id="btn-toggle-estado" onclick="toggleEstado()">Cerrar formulario</button>
-      <button class="btnp btn-sm" onclick="generarPDFCompleto()">⬇ Descargar PDF completo</button>
-      <button class="btn-danger btn-sm" onclick="eliminarEvento()">🗑 Eliminar evento</button>
-    </div>
-  </div>
-
-  <!-- Asistencias en vivo -->
-  <div class="card">
-    <div class="card-title" id="d-reg-title">
-      ✅ Registros de asistencia (0)
-      <span class="live-badge" id="live-badge"><span class="live-dot"></span>En vivo</span>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-      <span class="stat-chip" id="d-total">Total: 0</span>
-      <div class="summary-row" id="d-summary"></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-      <button class="btns btn-sm" onclick="descargarExcel()">⬇ Descargar Excel</button>
-      <button class="btn-danger btn-sm" onclick="borrarRegistros()">Borrar registros</button>
-    </div>
-    <div class="tbl-wrap">
-      <table class="atbl">
-        <thead><tr><th>N.</th><th>Nombre</th><th>Correo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th><th></th></tr></thead>
-        <tbody id="d-tbody"></tbody>
-      </table>
-      <div id="d-empty" style="text-align:center;padding:1.5rem;color:#9aadcc;font-size:13px;display:block">Sin registros aún. Comparta el QR o el link.</div>
     </div>
   </div>
 </div>
 
-</div><!-- /container -->
+<!-- ═══ DASHBOARD FUNCIONARIO ═══ -->
+<div id="screen-func">
+  <div class="container">
+    <div class="welcome">
+      <div class="badge">👤 Funcionario</div>
+      <h2 id="func-saludo">Bienvenido</h2>
+      <p>Seleccione el módulo al que desea acceder.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📂 Módulos habilitados</div>
+      <div class="mod-grid" id="mod-grid"></div>
+    </div>
+  </div>
+</div>
 
 <script>
-// ── SUPABASE ──────────────────────────────────────────
-const SUPABASE_URL = 'https://gnpvqiyantdtksfvqtqk.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ── CLAVES ──────────────────────────────────────────
+const ADMIN_DOMAIN = 'diger.gob.hn';
+const CONFIG_KEY   = 'diger_sol_config';
+const SESSION_KEY  = 'diger_sol_session';
 
-const SESSION_KEY = 'diger_sol_session';
-var adminEmail = '';
-var currentId = null;
-var realtimeCh = null;
-var asistenciasCache = [];
-var eventoActual = null;
-var pN = 0, contN = 4, compN = 3;
+const INST_LIST = ['CONVIVIENDA','COPECO','SIT','IHADFA','BANHPROVI','INPREUNAH','CNBS','INPREMA','IHTT','SEN','CONSUCOOP','CONATEL','IHCINE','SAG','SECAPPH','SRECI','SERNA','SGJD','CANATURH / IHT'];
 
-// ── AUTH ──────────────────────────────────────────────
-async function iniciarApp(){
-  // 1. Revisar sessionStorage (viene del portal index.html)
-  try{
-    var s = JSON.parse(sessionStorage.getItem(SESSION_KEY));
-    if(s && s.role === 'admin'){
-      adminEmail = s.email;
-      document.getElementById('admin-badge').textContent = '⚙ ' + s.email;
-      renderLista();
-      return;
-    }
-  }catch{}
+const MODULOS = [
+  { key:'tramites_estado',  label:'Trámites — Estado',   icon:'📋', desc:'Levantamiento del estado actual y checklist de trámites por institución.',   url:'tramites_estado.html' },
+  { key:'tramites_tecnica', label:'Trámites — Técnica',  icon:'🔬', desc:'Ficha técnica de campo: requisitos, flujo de actividades y racionalización.', url:'tramites_tecnica.html' },
+  { key:'lista_asistencia', label:'Lista de Asistencia', icon:'✅', desc:'Registro de asistencia a reuniones y capacitaciones.',                        url:'lista_asistencia.html' }
+];
 
-  // 2. Revisar sesión activa de Supabase Auth
-  var { data: { session } } = await sb.auth.getSession();
-  if(session && session.user){
-    var email = session.user.email || '';
-    if(email.endsWith('@diger.gob.hn') || email.endsWith('@sefin.gob.hn')){
-      adminEmail = email;
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify({role:'admin', email:email}));
-      document.getElementById('admin-badge').textContent = '⚙ ' + email;
-      renderLista();
-      return;
-    }
-  }
-
-  // 3. Mostrar pantalla de login embebida
-  mostrarLogin();
+// ── UTILS ────────────────────────────────────────────
+function loadConfig() {
+  try { return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {}; } catch { return {}; }
+}
+function saveConfig(cfg) {
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+}
+function getDomain(email) {
+  return (email.split('@')[1] || '').toLowerCase();
 }
 
-function mostrarLogin(){
-  document.querySelector('.header').style.display = 'none';
-  document.querySelector('.container').style.display = 'none';
-
-  var loginDiv = document.createElement('div');
-  loginDiv.id = 'login-screen';
-  loginDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;min-height:100vh;background:#eef1f7;font-family:Segoe UI,system-ui,sans-serif';
-  loginDiv.innerHTML =
-    '<div style="width:100%;max-width:400px;padding:1rem">'+
-    // Header card
-    '<div style="background:#fff;border-radius:16px 16px 0 0;padding:2rem 2rem 1.5rem;text-align:center;border:1px solid #dde4f0;border-bottom:none;box-shadow:0 -4px 20px rgba(10,45,110,.06)">'+
-    '<div style="width:64px;height:64px;background:linear-gradient(135deg,#1455a4,#0a2d6e);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:28px;box-shadow:0 8px 24px rgba(10,45,110,.25)">🔑</div>'+
-    '<div style="font-size:10px;font-weight:800;color:#1455a4;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Plataforma SOL — DIGER</div>'+
-    '<h2 style="font-size:20px;font-weight:800;color:#0a2d6e;margin:0 0 4px">Levantamiento de Eventos</h2>'+
-    '<p style="font-size:12.5px;color:#6b7fa3;margin:0">Ingrese con su correo institucional</p>'+
-    '</div>'+
-    // Form card
-    '<div style="background:#fff;border-radius:0 0 16px 16px;padding:1.5rem 2rem 2rem;border:1px solid #dde4f0;border-top:2px solid #eef1f7;box-shadow:0 12px 40px rgba(10,45,110,.1)">'+
-    '<div style="margin-bottom:1rem">'+
-    '<label style="display:block;font-size:12.5px;font-weight:700;color:#4a5568;margin-bottom:5px">Correo electrónico</label>'+
-    '<input id="login-email" type="email" placeholder="correo@diger.gob.hn" autocomplete="email" '+
-    'style="width:100%;padding:11px 14px;border:1.5px solid #dde4f0;border-radius:9px;font-size:14px;font-family:inherit;background:#fafbfd;transition:border .2s" '+
-    'onfocus="this.style.borderColor=\'#1455a4\';this.style.boxShadow=\'0 0 0 3px rgba(20,85,164,.1)\'" '+
-    'onblur="this.style.borderColor=\'#dde4f0\';this.style.boxShadow=\'none\'" '+
-    'onkeydown="if(event.key===\'Enter\') document.getElementById(\'login-pass-wrap\').style.display=\'block\',document.getElementById(\'login-pass\').focus()">'+
-    '</div>'+
-    '<div id="login-pass-wrap" style="display:none;margin-bottom:1rem">'+
-    '<label style="display:block;font-size:12.5px;font-weight:700;color:#4a5568;margin-bottom:5px">Contraseña</label>'+
-    '<input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" '+
-    'style="width:100%;padding:11px 14px;border:1.5px solid #dde4f0;border-radius:9px;font-size:14px;font-family:inherit;background:#fafbfd;transition:border .2s" '+
-    'onfocus="this.style.borderColor=\'#1455a4\';this.style.boxShadow=\'0 0 0 3px rgba(20,85,164,.1)\'" '+
-    'onblur="this.style.borderColor=\'#dde4f0\';this.style.boxShadow=\'none\'" '+
-    'onkeydown="if(event.key===\'Enter\') hacerLogin()">'+
-    '</div>'+
-    '<div id="login-err" style="display:none;background:#fff5f5;border:1px solid #fecaca;color:#b42318;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:12px"></div>'+
-    '<button id="login-btn" onclick="hacerLogin()" '+
-    'style="width:100%;padding:12px;background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(10,45,110,.25);transition:all .2s" '+
-    'onmouseover="this.style.transform=\'translateY(-1px)\';this.style.boxShadow=\'0 6px 20px rgba(10,45,110,.35)\'" '+
-    'onmouseout="this.style.transform=\'\';this.style.boxShadow=\'0 4px 14px rgba(10,45,110,.25)\'">'+
-    'Ingresar</button>'+
-    '<p style="font-size:11.5px;color:#9aadcc;text-align:center;margin-top:1rem">Acceso exclusivo para administradores DIGER</p>'+
-    '</div>'+
-    '</div>';
-  document.body.appendChild(loginDiv);
-}
-
-async function hacerLogin(){
-  var email = (document.getElementById('login-email').value||'').trim();
-  var pass = document.getElementById('login-pass').value;
-  var err = document.getElementById('login-err');
-  var btn = document.getElementById('login-btn');
-  var passWrap = document.getElementById('login-pass-wrap');
-
+// ── LOGIN ────────────────────────────────────────────
+function iniciarSesion() {
+  var email = document.getElementById('login-email').value.trim().toLowerCase();
+  var err   = document.getElementById('login-err');
   err.style.display = 'none';
 
-  if(!email){ err.textContent='Ingrese su correo electrónico.'; err.style.display='block'; return; }
-
-  // Mostrar campo contraseña si no está visible
-  if(passWrap.style.display === 'none'){
-    passWrap.style.display = 'block';
-    document.getElementById('login-pass').focus();
-    return;
-  }
-
-  if(!pass){ err.textContent='Ingrese su contraseña.'; err.style.display='block'; return; }
-
-  btn.disabled = true; btn.textContent = 'Verificando...';
-
-  var { data, error } = await sb.auth.signInWithPassword({ email: email, password: pass });
-
-  btn.disabled = false; btn.textContent = 'Ingresar';
-
-  if(error){
-    err.textContent = 'Credenciales incorrectas. Verifique su correo y contraseña.';
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    err.textContent = 'Ingrese un correo válido.';
     err.style.display = 'block';
     return;
   }
 
-  var userEmail = data.user.email;
-  adminEmail = userEmail;
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({role:'admin', email:userEmail}));
+  var domain = getDomain(email);
 
-  // Ocultar login y mostrar app
-  document.getElementById('login-screen').remove();
-  document.querySelector('.header').style.display = '';
-  document.querySelector('.container').style.display = '';
-  document.getElementById('admin-badge').textContent = '⚙ ' + userEmail;
-  renderLista();
-}
-
-iniciarApp();
-
-// ── TIPO DE EVENTO ────────────────────────────────────
-function selTipo(el, tipo){
-  document.querySelectorAll('.tipo-opt').forEach(function(o){ o.classList.remove('selected'); });
-  el.classList.add('selected');
-  var esOtro = tipo === 'Otro';
-  document.getElementById('tipo-otro-wrap').style.display = esOtro ? 'block' : 'none';
-  document.getElementById('tipo-val').value = esOtro ? '' : tipo;
-  // Mostrar/ocultar secciones de capacitación
-  var esCap = tipo === 'Capacitación';
-  document.querySelectorAll('.seccion-cap').forEach(function(s){
-    s.classList.toggle('visible', esCap);
-  });
-  document.getElementById('val-title').textContent = esCap ? '✅ 8. Validación y aprobación' : '✅ 7. Validación y aprobación';
-}
-
-// ── LISTA ─────────────────────────────────────────────
-async function renderLista(){
-  var cont = document.getElementById('events-list');
-  cont.innerHTML = '<div class="loader"><div class="spinner"></div><br>Cargando eventos...</div>';
-  var {data, error} = await sb.from('eventos').select('*').order('created_at',{ascending:false});
-  if(error){
-    cont.innerHTML='<div class="empty-state"><p>Error al cargar. Verifique su conexión.</p></div>';
+  if (domain === ADMIN_DOMAIN) {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ email: email, role: 'admin' }));
+    mostrarAdmin(email);
     return;
   }
-  if(!data||!data.length){
-    cont.innerHTML='<div class="empty-state"><div class="es-icon">📋</div><p>No hay eventos registrados aún.<br>Haga clic en <strong>+ Nuevo evento</strong> para comenzar.</p></div>';
+
+  var cfg = loadConfig();
+  if (cfg[email]) {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ email: email, role: 'funcionario', access: cfg[email] }));
+    mostrarFuncionario(email, cfg[email]);
     return;
   }
-  var {data:counts} = await sb.from('asistencias').select('reunion_id');
-  var cmap = {};
-  (counts||[]).forEach(function(r){ cmap[r.reunion_id]=(cmap[r.reunion_id]||0)+1; });
 
-  cont.innerHTML = '<div class="events-list">' + data.map(function(ev){
-    var tipo = ev.tipo || 'Evento';
-    var esCap = tipo.toLowerCase().includes('capacitación') || tipo.toLowerCase().includes('taller') || tipo.toLowerCase().includes('seminario');
-    var tipoClass = esCap ? 'capacitacion' : tipo.toLowerCase().includes('taller') ? 'taller' : '';
-    var est = ev.activa
-      ? '<span class="ev-estado activa">● Activo</span>'
-      : '<span class="ev-estado cerrada">○ Cerrado</span>';
-    return '<div class="event-item'+(ev.activa?' activa':'')+'">'+
-      '<div>'+
-      '<div class="ev-tipo '+tipoClass+'">'+esc(tipo)+'</div>'+
-      est+
-      '<div class="ev-titulo">'+esc(ev.titulo)+'</div>'+
-      '<div class="ev-meta">'+
-      '<span>📅 '+(ev.fecha||'—')+(ev.hora?' · '+ev.hora:'')+'</span>'+
-      '<span>🏛 '+esc(ev.institucion||'—')+'</span>'+
-      '<span>👥 '+(cmap[ev.id]||0)+' asistencias</span>'+
-      '</div>'+
-      '</div>'+
-      '<div class="ev-actions">'+
-      '<button class="btnp btn-sm" onclick="abrirDetalle(\''+ev.id+'\')">Ver detalle</button>'+
-      '</div>'+
-      '</div>';
-  }).join('') + '</div>';
+  err.textContent = 'Acceso no autorizado. Consulte con el administrador DIGER.';
+  err.style.display = 'block';
 }
 
-// ── CREAR EVENTO ──────────────────────────────────────
-function mostrarCrear(){
-  reiniciarForm();
-  cambiarVista('view-crear');
-}
-
-async function crearEvento(){
-  var tipo = document.getElementById('tipo-val').value;
-  if(!tipo && document.getElementById('tipo-otro-txt').offsetParent !== null){
-    tipo = document.getElementById('tipo-otro-txt').value.trim();
+document.addEventListener('keydown', function(ev) {
+  if (ev.key === 'Enter' && document.getElementById('screen-login').style.display !== 'none') {
+    iniciarSesion();
   }
-  var titulo = gv('g-titulo');
-  var motivo = gv('g-motivo');
-  var fecha = gv('g-fecha');
-  var err = document.getElementById('crear-err');
-  var btn = document.getElementById('btn-crear');
-  err.style.display = 'none';
-
-  if(!tipo){ err.textContent='Seleccione el tipo de evento.'; err.style.display='block'; return; }
-  if(!titulo){ err.textContent='Ingrese el título del evento.'; err.style.display='block'; return; }
-  if(!fecha){ err.textContent='Ingrese la fecha del evento.'; err.style.display='block'; return; }
-
-  btn.disabled = true; btn.textContent = 'Creando...';
-
-  // Recolectar participantes manuales
-  var partsManual = [];
-  for(var i = 1; i <= pN; i++){
-    var n = gv('pn'+i);
-    if(n) partsManual.push({nombre:n, cargo:gv('pc'+i), institucion:gv('pi'+i), correo:gv('pe'+i), telefono:gv('pt'+i)});
-  }
-
-  // Recolectar contenido
-  var contenido = [];
-  for(var j = 1; j <= contN; j++){
-    var pt = gv('cont'+j);
-    if(pt) contenido.push(pt);
-  }
-
-  // Compromisos
-  var compInputs = document.querySelectorAll('.comp-inp');
-  var compromisos = [];
-  compInputs.forEach(function(inp){ if(inp.value.trim()) compromisos.push(inp.value.trim()); });
-
-  var esCap = tipo === 'Capacitación';
-
-  var payload = {
-    id: genId(),
-    tipo: tipo,
-    titulo: titulo,
-    motivo: motivo,
-    fecha: fecha,
-    hora: gv('g-hora'),
-    modalidad: gv('g-modalidad'),
-    duracion: gv('g-duracion'),
-    lugar: gv('g-lugar'),
-    institucion: gv('g-inst'),
-    ep_nombre: gv('ep-nombre'),
-    ep_cargo: gv('ep-cargo'),
-    ep_correo: gv('ep-correo'),
-    ep_tel: gv('ep-tel'),
-    fac_nombre: gv('fac-nombre'),
-    fac_cargo: gv('fac-cargo'),
-    fac_correo: gv('fac-correo'),
-    fac_tel: gv('fac-tel'),
-    objetivo: esCap ? gv('cap-objetivo') : null,
-    contenido: contenido.length ? JSON.stringify(contenido) : null,
-    convocados: esCap ? (gv('r-convocados')||null) : null,
-    asistentes_count: esCap ? (gv('r-asistentes')||null) : null,
-    satisfaccion: esCap ? (gv('r-satisfaccion')||null) : null,
-    compromisos: compromisos.length ? JSON.stringify(compromisos) : null,
-    participantes_manual: partsManual.length ? JSON.stringify(partsManual) : null,
-    docs_recursos: gv('docs-recursos'),
-    val_diger: gv('val-diger'),
-    val_inst: gv('val-inst'),
-    activa: true,
-    creado_por: adminEmail
-  };
-
-  var {error} = await sb.from('eventos').insert(payload);
-  btn.disabled = false; btn.textContent = '✔ Crear y obtener QR';
-
-  if(error){
-    err.textContent = 'Error al crear: ' + error.message;
-    err.style.display = 'block';
-    return;
-  }
-  abrirDetalle(payload.id);
-}
-
-// ── DETALLE ───────────────────────────────────────────
-async function abrirDetalle(id){
-  currentId = id;
-  cambiarVista('view-detalle');
-  document.getElementById('d-titulo').textContent = 'Cargando...';
-
-  var {data:ev, error} = await sb.from('eventos').select('*').eq('id',id).single();
-  if(error||!ev){ volverLista(); return; }
-  eventoActual = ev;
-
-  document.getElementById('d-titulo').textContent = ev.titulo;
-  document.getElementById('d-info').innerHTML = buildInfoHTML(ev);
-  document.getElementById('btn-toggle-estado').textContent = ev.activa ? 'Cerrar formulario' : 'Reabrir formulario';
-
-  // Link y QR
-  var base = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
-  var linkUrl = base + 'lista_asistencia.html#' + id;
-  document.getElementById('d-link').value = linkUrl;
-  generarQR(linkUrl);
-
-  await cargarAsistencias(id);
-  suscribirRealtime(id);
-}
-
-function buildInfoHTML(ev){
-  var html = '';
-  html += '<div class="di"><strong>Tipo:</strong> '+esc(ev.tipo||'—')+'</div>';
-  html += '<div class="di"><strong>Fecha:</strong> '+esc(ev.fecha||'—')+(ev.hora?' — '+esc(ev.hora):'')+'</div>';
-  html += '<div class="di full"><strong>Motivo / Descripción:</strong> '+esc(ev.motivo||'—')+'</div>';
-  html += '<div class="di"><strong>Modalidad:</strong> '+esc(ev.modalidad||'—')+'</div>';
-  html += '<div class="di"><strong>Duración:</strong> '+esc(ev.duracion||'—')+'</div>';
-  html += '<div class="di full"><strong>Lugar:</strong> '+esc(ev.lugar||'—')+'</div>';
-  html += '<div class="di full"><strong>Institución beneficiaria:</strong> '+esc(ev.institucion||'—')+'</div>';
-  html += '<div class="di"><strong>Enlace ('+esc(ev.institucion||'Inst.')+'):</strong> '+esc(ev.ep_nombre||'—')+(ev.ep_cargo?' — '+esc(ev.ep_cargo):'')+'</div>';
-  html += '<div class="di"><strong>Facilitador DIGER:</strong> '+esc(ev.fac_nombre||'—')+(ev.fac_cargo?' — '+esc(ev.fac_cargo):'')+'</div>';
-  if(ev.objetivo) html += '<div class="di full"><strong>Objetivo:</strong> '+esc(ev.objetivo)+'</div>';
-  if(ev.contenido){
-    try{
-      var cont = JSON.parse(ev.contenido);
-      html += '<div class="di full"><strong>Contenido:</strong> '+cont.map(function(c,i){ return (i+1)+'. '+esc(c); }).join(' · ')+'</div>';
-    }catch{}
-  }
-  if(ev.compromisos){
-    try{
-      var comp = JSON.parse(ev.compromisos);
-      html += '<div class="di full"><strong>Compromisos:</strong> '+comp.map(function(c,i){ return (i+1)+'. '+esc(c); }).join(' · ')+'</div>';
-    }catch{}
-  }
-  if(ev.docs_recursos) html += '<div class="di full"><strong>Documentos/Recursos:</strong> '+esc(ev.docs_recursos)+'</div>';
-  if(ev.convocados||ev.asistentes_count){
-    html += '<div class="di"><strong>Convocados:</strong> '+esc(ev.convocados||'—')+'</div>';
-    html += '<div class="di"><strong>Asistentes:</strong> '+esc(ev.asistentes_count||'—')+'</div>';
-    if(ev.convocados&&ev.asistentes_count){
-      var pct = ((parseFloat(ev.asistentes_count)/parseFloat(ev.convocados))*100).toFixed(1);
-      html += '<div class="di"><strong>% Asistencia:</strong> '+pct+'%</div>';
-    }
-    if(ev.satisfaccion) html += '<div class="di"><strong>Satisfacción:</strong> '+esc(ev.satisfaccion)+'%</div>';
-  }
-  if(ev.val_diger||ev.val_inst){
-    html += '<div class="di"><strong>Validado DIGER:</strong> '+esc(ev.val_diger||'—')+'</div>';
-    html += '<div class="di"><strong>Validado Inst.:</strong> '+esc(ev.val_inst||'—')+'</div>';
-  }
-  return html;
-}
-
-// ── ASISTENCIAS ───────────────────────────────────────
-async function cargarAsistencias(id){
-  var {data, error} = await sb.from('asistencias').select('*').eq('reunion_id',id).order('created_at',{ascending:true});
-  asistenciasCache = error ? [] : (data||[]);
-  renderAsistencias();
-}
-
-function renderAsistencias(){
-  var recs = asistenciasCache;
-  var tbody = document.getElementById('d-tbody');
-  var empty = document.getElementById('d-empty');
-  var summ = document.getElementById('d-summary');
-
-  document.getElementById('d-reg-title').innerHTML =
-    '✅ Registros de asistencia ('+recs.length+') '+
-    '<span class="live-badge"><span class="live-dot"></span>En vivo</span>';
-  document.getElementById('d-total').textContent = 'Total: '+recs.length;
-
-  var counts = {};
-  recs.forEach(function(r){ counts[r.institucion]=(counts[r.institucion]||0)+1; });
-  summ.innerHTML = Object.entries(counts).sort(function(a,b){return a[0].localeCompare(b[0]);}).map(function(e){
-    return '<span class="inst-chip"><span class="cdot" style="background:'+colorInst(e[0])+'"></span>'+esc(e[0])+': '+e[1]+'</span>';
-  }).join('');
-
-  empty.style.display = recs.length ? 'none' : 'block';
-  tbody.innerHTML = recs.map(function(r,i){
-    var dt = r.created_at ? new Date(r.created_at).toLocaleString('es-HN') : '—';
-    return '<tr style="border-left-color:'+colorInst(r.institucion)+'">'+
-      '<td>'+(i+1)+'</td>'+
-      '<td>'+esc(r.nombre)+'</td>'+
-      '<td>'+esc(r.correo)+'</td>'+
-      '<td>'+esc(r.institucion)+'</td>'+
-      '<td>'+esc(r.telefono||'—')+'</td>'+
-      '<td>'+dt+'</td>'+
-      '<td><button class="btn-danger" style="padding:3px 9px;font-size:11px" onclick="eliminarRec('+r.id+')">×</button></td>'+
-      '</tr>';
-  }).join('');
-}
-
-// ── REALTIME ──────────────────────────────────────────
-function suscribirRealtime(id){
-  if(realtimeCh){ sb.removeChannel(realtimeCh); }
-  realtimeCh = sb.channel('asistencias-'+id)
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'asistencias',filter:'reunion_id=eq.'+id}, function(p){
-      asistenciasCache.push(p.new); renderAsistencias();
-    })
-    .on('postgres_changes',{event:'DELETE',schema:'public',table:'asistencias',filter:'reunion_id=eq.'+id}, function(p){
-      asistenciasCache = asistenciasCache.filter(function(r){ return r.id !== p.old.id; }); renderAsistencias();
-    })
-    .subscribe();
-}
-
-// ── ACCIONES DETALLE ──────────────────────────────────
-async function eliminarRec(recId){
-  await sb.from('asistencias').delete().eq('id',recId);
-}
-async function borrarRegistros(){
-  if(!confirm('¿Borrar todos los registros de asistencia?')) return;
-  await sb.from('asistencias').delete().eq('reunion_id',currentId);
-  asistenciasCache=[]; renderAsistencias();
-}
-async function toggleEstado(){
-  var btn = document.getElementById('btn-toggle-estado');
-  var activa = btn.textContent.includes('Cerrar');
-  await sb.from('eventos').update({activa:!activa}).eq('id',currentId);
-  btn.textContent = activa ? 'Reabrir formulario' : 'Cerrar formulario';
-}
-async function eliminarEvento(){
-  if(!confirm('¿Eliminar este evento y todos sus registros?')) return;
-  await sb.from('asistencias').delete().eq('reunion_id',currentId);
-  await sb.from('eventos').delete().eq('id',currentId);
-  if(realtimeCh){ sb.removeChannel(realtimeCh); realtimeCh=null; }
-  currentId=null; volverLista();
-}
-
-// ── PDF COMPLETO ──────────────────────────────────────
-function generarPDFCompleto(){
-  var ev = eventoActual;
-  if(!ev) return;
-  var recs = asistenciasCache;
-
-  var jsPDFLib = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-  if(!jsPDFLib){ alert('Librería PDF no disponible.'); return; }
-
-  var doc = new jsPDFLib({orientation:'portrait',unit:'mm',format:'letter'});
-  var pw = doc.internal.pageSize.getWidth();
-  var ph = doc.internal.pageSize.getHeight();
-  var mg = 18, cw = pw - mg*2;
-  var y = 0, pageNum = 1;
-
-  function normPDF(str){
-    return String(str||'')
-      .replace(/[ÁÀÄÂÃ]/g,'A').replace(/[áàäâã]/g,'a')
-      .replace(/[ÉÈËÊ]/g,'E').replace(/[éèëê]/g,'e')
-      .replace(/[ÍÌÏÎ]/g,'I').replace(/[íìïî]/g,'i')
-      .replace(/[ÓÒÖÔÕ]/g,'O').replace(/[óòöôõ]/g,'o')
-      .replace(/[ÚÙÜÛ]/g,'U').replace(/[úùüû]/g,'u')
-      .replace(/[Ñ]/g,'N').replace(/[ñ]/g,'n')
-      .replace(/[—–]/g,'-').replace(/[«»""]/g,'"');
-  }
-
-  function header(){
-    doc.setFillColor(10,45,110); doc.rect(0,0,pw,22,'F');
-    doc.setFillColor(13,140,160); doc.rect(0,22,pw,3,'F');
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('GOBIERNO DE LA REPUBLICA DE HONDURAS',pw/2,8,{align:'center'});
-    doc.setFontSize(7); doc.setFont('helvetica','normal');
-    doc.text('Direccion de Gestion por Resultados (DIGER) | Gobierno Digital - Plataforma SOL',pw/2,14,{align:'center'});
-    doc.setFontSize(6.5); doc.setTextColor(180,200,230);
-    doc.text('Pag. '+pageNum, pw-mg, ph-8, {align:'right'});
-    doc.setTextColor(150,160,180);
-    doc.text('DIGER - Levantamiento de Evento', mg, ph-8);
-    y = 30;
-  }
-
-  function checkPage(need){
-    if(y+need > ph-14){ doc.addPage(); pageNum++; header(); }
-  }
-
-  function secBar(title, rgb){
-    checkPage(10);
-    doc.setFillColor(rgb[0],rgb[1],rgb[2]); doc.rect(mg,y,cw,7,'F');
-    doc.setFillColor(13,140,160); doc.rect(mg,y,3,7,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.setFont('helvetica','bold');
-    doc.text(normPDF(title),mg+5,y+5);
-    y+=9; doc.setTextColor(30,30,30);
-  }
-
-  function renderRow(label, val){
-    if(!val) return;
-    checkPage(8);
-    doc.setFillColor(248,251,255); doc.rect(mg,y,cw,7,'F');
-    doc.setDrawColor(210,220,238); doc.setLineWidth(0.15); doc.rect(mg,y,cw,7,'S');
-    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(10,45,110);
-    doc.text(normPDF(label+':'),mg+3,y+4.8);
-    doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
-    var valLines = doc.splitTextToSize(normPDF(String(val)),cw-60);
-    doc.text(valLines[0],mg+55,y+4.8);
-    y+=7;
-    if(valLines.length>1){
-      for(var i=1;i<valLines.length;i++){
-        checkPage(6);
-        doc.setFillColor(248,251,255); doc.rect(mg,y,cw,5.5,'F');
-        doc.rect(mg,y,cw,5.5,'S');
-        doc.text(valLines[i],mg+55,y+4);
-        y+=5.5;
-      }
-    }
-  }
-
-  function renderBlock(label, val){
-    if(!val) return;
-    var lines = doc.splitTextToSize(normPDF(String(val)), cw-4);
-    var bh = lines.length*4.8+6;
-    checkPage(bh+4);
-    doc.setFillColor(245,248,255);
-    doc.setDrawColor(200,213,238); doc.setLineWidth(0.15);
-    doc.rect(mg,y,cw,bh,'FD');
-    doc.setFillColor(20,85,164); doc.rect(mg,y,3,bh,'F');
-    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(10,45,110);
-    doc.text(normPDF(label+':'),mg+6,y+4.8);
-    doc.setFont('helvetica','normal'); doc.setTextColor(30,30,30);
-    doc.text(lines,mg+6,y+9.5);
-    y+=bh+2;
-  }
-
-  header();
-
-  // Título
-  doc.setTextColor(10,45,110); doc.setFontSize(14); doc.setFont('helvetica','bold');
-  doc.text(normPDF(ev.titulo||'Levantamiento de Evento'),pw/2,y,{align:'center'}); y+=4;
-  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(100,116,139);
-  doc.text('Tipo: '+normPDF(ev.tipo||'—')+'   |   Fecha: '+normPDF(ev.fecha||'—')+(ev.hora?'   '+normPDF(ev.hora):''),pw/2,y,{align:'center'}); y+=4;
-  doc.setDrawColor(13,140,160); doc.setLineWidth(0.5); doc.line(mg,y,pw-mg,y); y+=7;
-
-  // Sección 1: Generales
-  secBar('1. DATOS GENERALES',[10,45,110]);
-  renderRow('Tipo de evento', ev.tipo);
-  renderRow('Fecha', (ev.fecha||'—')+(ev.hora?' — '+ev.hora:''));
-  renderRow('Modalidad', ev.modalidad);
-  renderRow('Duracion', ev.duracion);
-  renderRow('Lugar', ev.lugar);
-  renderRow('Institucion beneficiaria', ev.institucion);
-  if(ev.motivo) renderBlock('Motivo / Descripcion', ev.motivo);
-
-  // Enlace
-  y+=2; secBar('ENLACE PRINCIPAL (INSTITUCION)',[13,140,160]);
-  renderRow('Nombre', ev.ep_nombre);
-  renderRow('Cargo', ev.ep_cargo);
-  renderRow('Correo', ev.ep_correo);
-  renderRow('Telefono', ev.ep_tel);
-
-  // Facilitador
-  y+=2; secBar('FACILITADOR / RESPONSABLE DIGER',[13,140,160]);
-  renderRow('Nombre', ev.fac_nombre);
-  renderRow('Cargo', ev.fac_cargo);
-  renderRow('Correo', ev.fac_correo);
-  renderRow('Telefono', ev.fac_tel);
-
-  // Sección 2: Capacitación (condicional)
-  if(ev.objetivo){
-    y+=2; secBar('2. DETALLES DE LA CAPACITACION',[20,85,164]);
-    renderBlock('Objetivo', ev.objetivo);
-    if(ev.contenido){
-      try{
-        var cont = JSON.parse(ev.contenido);
-        renderBlock('Contenido desarrollado', cont.map(function(c,i){ return (i+1)+'. '+c; }).join('\n'));
-      }catch{}
-    }
-  }
-
-  // Sección 3: Asistencias
-  y+=2; secBar('3. LISTA DE ASISTENCIA ('+(recs.length)+' registros)',[10,45,110]);
-  if(recs.length){
-    // Tabla de asistencias
-    var cols = [14,52,52,52,30];
-    var headers = ['No.','Nombre','Institucion','Correo','Telefono'];
-    var tableW = cols.reduce(function(a,b){return a+b;},0);
-    var tx = mg + (cw-tableW)/2;
-
-    checkPage(10);
-    doc.setFillColor(20,85,164);
-    var cx = tx;
-    headers.forEach(function(h,i){
-      doc.rect(cx,y,cols[i],7,'F');
-      doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica','bold');
-      doc.text(h,cx+cols[i]/2,y+5,{align:'center'});
-      cx+=cols[i];
-    });
-    y+=7;
-
-    recs.forEach(function(r,idx){
-      checkPage(7);
-      doc.setFillColor(idx%2===0?248:255,idx%2===0?251:255,255);
-      cx=tx;
-      [String(idx+1),r.nombre||'',r.institucion||'',r.correo||'',r.telefono||''].forEach(function(val,i){
-        doc.rect(cx,y,cols[i],6,'FD');
-        doc.setDrawColor(210,220,238); doc.setLineWidth(0.1);
-        doc.setTextColor(30,30,30); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
-        var txt = doc.splitTextToSize(normPDF(val),cols[i]-3);
-        doc.text(txt[0]||'',cx+2,y+4.2);
-        cx+=cols[i];
-      });
-      y+=6;
-    });
-    y+=3;
-  } else {
-    checkPage(8);
-    doc.setFontSize(8); doc.setTextColor(150,160,180);
-    doc.text('Sin registros de asistencia capturados.',mg+5,y+5); y+=10;
-  }
-
-  // Participantes manuales
-  if(ev.participantes_manual){
-    try{
-      var pm = JSON.parse(ev.participantes_manual);
-      if(pm.length){
-        y+=2; secBar('PARTICIPANTES ADICIONALES (REGISTRO MANUAL)',[60,100,160]);
-        pm.forEach(function(p,i){
-          renderRow(String(i+1)+'. '+normPDF(p.nombre), normPDF(p.cargo||'')+(p.institucion?' | '+normPDF(p.institucion):''));
-        });
-      }
-    }catch{}
-  }
-
-  // Compromisos
-  if(ev.compromisos){
-    try{
-      var comp = JSON.parse(ev.compromisos);
-      if(comp.length){
-        y+=2; secBar('4. COMPROMISOS Y PROXIMOS PASOS',[10,45,110]);
-        comp.forEach(function(c,i){
-          renderRow(String(i+1), c);
-        });
-      }
-    }catch{}
-  }
-
-  // Documentos
-  if(ev.docs_recursos){
-    y+=2; secBar('5. DOCUMENTOS Y RECURSOS',[60,100,160]);
-    renderBlock('Documentos / URLs / Recursos', ev.docs_recursos);
-  }
-
-  // Resultados (capacitación)
-  if(ev.convocados||ev.asistentes_count){
-    y+=2; secBar('6. RESULTADOS DE LA CAPACITACION',[16,100,60]);
-    renderRow('Participantes convocados', ev.convocados);
-    renderRow('Participantes asistentes', ev.asistentes_count);
-    if(ev.convocados&&ev.asistentes_count){
-      renderRow('Porcentaje de asistencia', ((parseFloat(ev.asistentes_count)/parseFloat(ev.convocados))*100).toFixed(1)+'%');
-    }
-    if(ev.satisfaccion) renderRow('Nivel de satisfaccion', ev.satisfaccion+'%');
-  }
-
-  // Validación
-  y+=4; secBar('VALIDACION Y APROBACION',[120,60,20]);
-  checkPage(30);
-  var bw = (cw-12)/2;
-  // caja izquierda
-  doc.setFillColor(248,251,255); doc.rect(mg,y,bw,28,'F');
-  doc.setDrawColor(200,213,238); doc.setLineWidth(0.2); doc.rect(mg,y,bw,28,'S');
-  doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(10,45,110);
-  doc.text('Responsable DIGER',mg+bw/2,y+5,{align:'center'});
-  doc.setDrawColor(150,160,180); doc.setLineWidth(0.3);
-  doc.line(mg+8,y+22,mg+bw-8,y+22);
-  doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(100,116,139);
-  doc.text(normPDF(ev.val_diger||'(Firma y sello)'),mg+bw/2,y+26,{align:'center'});
-  // caja derecha
-  var rx = mg+bw+12;
-  doc.setFillColor(248,251,255); doc.rect(rx,y,bw,28,'F');
-  doc.rect(rx,y,bw,28,'S');
-  doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(10,45,110);
-  doc.text('Representante Institucion',rx+bw/2,y+5,{align:'center'});
-  doc.setDrawColor(150,160,180);
-  doc.line(rx+8,y+22,rx+bw-8,y+22);
-  doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(100,116,139);
-  doc.text(normPDF(ev.val_inst||'(Firma y sello)'),rx+bw/2,y+26,{align:'center'});
-  y+=32;
-
-  // Pie
-  checkPage(14); y+=4;
-  doc.setDrawColor(200,213,238); doc.setLineWidth(0.3); doc.line(mg,y,pw-mg,y); y+=5;
-  doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(150,160,180);
-  doc.text('Generado por DIGER - Plataforma SOL | '+new Date().toLocaleString('es-HN'), pw/2, y, {align:'center'});
-  doc.text('ID del evento: '+(eventoActual?eventoActual.id:'—'), mg, y);
-
-  var nombre = normPDF(ev.institucion||ev.titulo||'evento').replace(/[\s\/]/g,'_').substring(0,28);
-  doc.save('Evento_'+nombre+'_'+(ev.fecha||new Date().toISOString().split('T')[0])+'.pdf');
-}
-
-// ── EXCEL ─────────────────────────────────────────────
-async function descargarExcel(){
-  var ev = eventoActual;
-  var recs = asistenciasCache;
-  var rows = recs.map(function(r,i){
-    var dt = r.created_at ? new Date(r.created_at).toLocaleString('es-HN') : '—';
-    return '<tr><td>'+(i+1)+'</td><td>'+esc(r.nombre)+'</td><td>'+esc(r.correo)+'</td><td>'+esc(r.institucion)+'</td><td>'+esc(r.telefono||'')+'</td><td>'+dt+'</td></tr>';
-  }).join('');
-  var html = '<html><head><meta charset="utf-8"><style>table{border-collapse:collapse;font-family:Segoe UI,Arial}th,td{border:1px solid #d7e1e8;padding:8px}th{background:#0a2d6e;color:#fff}</style></head>'+
-    '<body><h2>Asistencia — '+(ev?esc(ev.titulo):'')+'</h2>'+
-    '<p>Tipo: '+(ev?esc(ev.tipo):'')+'</p><p>Fecha: '+(ev?esc(ev.fecha):'')+(ev&&ev.hora?' — '+esc(ev.hora):'')+'</p>'+
-    '<p>Institución: '+(ev?esc(ev.institucion||'—'):'')+'</p>'+
-    '<table><thead><tr><th>No.</th><th>Nombre</th><th>Correo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th></tr></thead>'+
-    '<tbody>'+rows+'</tbody></table></body></html>';
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'}));
-  a.download = 'Asistencia_'+currentId+'.xls';
-  document.body.appendChild(a); a.click(); URL.revokeObjectURL(a.href); a.remove();
-}
-
-// ── QR ────────────────────────────────────────────────
-function generarQR(url){
-  var encoded = encodeURIComponent(url);
-  document.getElementById('qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=0a2d6e&bgcolor=f0fdf4&data='+encoded;
-}
-
-function copiarLink(){
-  var inp = document.getElementById('d-link');
-  inp.select(); document.execCommand('copy');
-  var ok = document.getElementById('copy-ok');
-  ok.textContent = '✓ Copiado';
-  setTimeout(function(){ ok.textContent = ''; }, 2500);
-}
-
-function descargarQR(){
-  var url = document.getElementById('d-link').value;
-  var titulo = (eventoActual ? eventoActual.titulo : 'evento').replace(/\s+/g,'_').slice(0,30);
-  var a = document.createElement('a');
-  a.href = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&color=0a2d6e&bgcolor=ffffff&data='+encodeURIComponent(url);
-  a.download = 'QR_'+titulo+'.png';
-  a.target = '_blank'; a.click();
-}
-
-function imprimirQR(){
-  var url = document.getElementById('d-link').value;
-  var ev = eventoActual || {};
-  var titulo = ev.titulo || '';
-  var qrSrc = document.getElementById('qr-img').src;
-  var hoy = new Date().toLocaleDateString('es-HN');
-  var win = window.open('','_blank','width=620,height=880');
-  win.document.write(
-    '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>QR — '+titulo+'</title>'+
-    '<style>*{box-sizing:border-box;margin:0;padding:0}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
-    'body{font-family:"Segoe UI",Arial,sans-serif;background:#fff;display:flex;flex-direction:column;min-height:100vh}'+
-    '.hdr{background:linear-gradient(135deg,#0a2d6e,#1455a4);padding:20px 28px;color:#fff}'+
-    '.hdr h1{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.7}'+
-    '.hdr h2{font-size:18px;font-weight:800;margin-top:4px}'+
-    '.hdr p{font-size:11px;opacity:.6;margin-top:3px}'+
-    '.accent{height:4px;background:linear-gradient(90deg,#1a7fc4,#0a2d6e)}'+
-    '.body{flex:1;display:flex;flex-direction:column;align-items:center;padding:28px 28px 18px}'+
-    '.tag{background:#e8f0ff;color:#0a2d6e;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:4px 14px;border-radius:20px;border:1px solid #c0d0f0;margin-bottom:16px}'+
-    '.chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:22px}'+
-    '.chip{display:flex;align-items:center;gap:5px;font-size:11px;color:#2d3748;font-weight:600;background:#f5f8ff;border:1px solid #dde4f0;padding:5px 13px;border-radius:20px}'+
-    '.qr-wrap{background:linear-gradient(145deg,#0a2d6e,#1455a4);border-radius:24px;padding:4px;box-shadow:0 16px 48px rgba(10,45,110,.3);margin-bottom:22px}'+
-    '.qr-inner{background:#fff;border-radius:20px;padding:16px;display:flex;flex-direction:column;align-items:center}'+
-    '.qr-inner img{width:220px;height:220px;display:block;border-radius:6px}'+
-    '.qr-lbl{font-size:9px;font-weight:800;color:#9aadcc;text-transform:uppercase;letter-spacing:.12em;margin-top:9px}'+
-    '.steps{display:flex;gap:0;max-width:360px;width:100%;margin-bottom:16px}'+
-    '.step-num{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}'+
-    '.step-num:not(:last-child)::after{content:"";position:absolute;top:13px;left:50%;width:100%;height:2px;background:#dde4f0;z-index:0}'+
-    '.sc{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;box-shadow:0 3px 10px rgba(10,45,110,.25)}'+
-    '.st{font-size:9px;color:#6b7fa3;margin-top:5px;text-align:center;font-weight:600;line-height:1.4;max-width:70px}'+
-    '.url-box{font-size:8.5px;color:#9aadcc;word-break:break-all;text-align:center;max-width:400px;padding:0 8px;margin-bottom:10px}'+
-    '.footer{border-top:2px solid #eef1f7;padding:12px 28px;display:flex;align-items:center;justify-content:space-between}'+
-    '.foot-brand{font-size:10px;font-weight:800;color:#0a2d6e;text-transform:uppercase;letter-spacing:.08em}'+
-    '.foot-sub{font-size:8.5px;color:#9aadcc}'+
-    '.foot-right{font-size:8.5px;color:#c8d5ee;text-align:right}'+
-    '</style></head><body>'+
-    '<div class="hdr"><h1>Registro de Asistencia — DIGER</h1><h2>'+esc(titulo)+'</h2>'+(ev.tipo?'<p>'+esc(ev.tipo)+'</p>':'')+'</div>'+
-    '<div class="accent"></div>'+
-    '<div class="body">'+
-    '<div class="tag">📱 Escanee para registrar su asistencia</div>'+
-    '<div class="chips">'+
-    (ev.fecha?'<div class="chip">📅 '+esc(ev.fecha)+(ev.hora?' — '+esc(ev.hora):'')+'</div>':'')+
-    (ev.lugar?'<div class="chip">📍 '+esc(ev.lugar)+'</div>':'')+
-    (ev.institucion?'<div class="chip">🏛 '+esc(ev.institucion)+'</div>':'')+
-    '</div>'+
-    '<div class="qr-wrap"><div class="qr-inner"><img src="'+qrSrc+'" alt="Código QR"><div class="qr-lbl">Código QR de asistencia</div></div></div>'+
-    '<div class="steps">'+
-    '<div class="step-num"><div class="sc">1</div><div class="st">Abrir cámara del celular</div></div>'+
-    '<div class="step-num"><div class="sc">2</div><div class="st">Apuntar al código QR</div></div>'+
-    '<div class="step-num"><div class="sc">3</div><div class="st">Completar el formulario</div></div>'+
-    '</div>'+
-    '<div class="url-box">'+url+'</div>'+
-    '</div>'+
-    '<div class="footer"><div><div class="foot-brand">DIGER — Gobierno Digital</div><div class="foot-sub">Plataforma SOL — Talento Digital</div></div>'+
-    '<div class="foot-right">'+hoy+'<br>Honduras</div></div>'+
-    '<script>window.onload=function(){window.print();}<\/script></body></html>'
-  );
-  win.document.close();
-}
-
-// ── FORM HELPERS ──────────────────────────────────────
-function buildPtable(n){
-  document.getElementById('ptbody').innerHTML = '';
-  pN = 0;
-  for(var i=1;i<=n;i++) addParticipanteRow(i);
-}
-function addParticipante(){ addParticipanteRow(pN+1); }
-function addParticipanteRow(n){
-  pN = Math.max(pN,n);
-  var tr = document.createElement('tr');
-  tr.innerHTML = '<td>'+n+'</td>'+
-    '<td><input type="text" id="pn'+n+'" placeholder="Nombre"></td>'+
-    '<td><input type="text" id="pc'+n+'" placeholder="Cargo"></td>'+
-    '<td><input type="text" id="pi'+n+'" placeholder="Institución"></td>'+
-    '<td><input type="email" id="pe'+n+'" placeholder="correo@..."></td>'+
-    '<td><input type="text" id="pt'+n+'" placeholder="+504"></td>';
-  document.getElementById('ptbody').appendChild(tr);
-}
-
-function addContenido(){
-  contN++;
-  var li = document.createElement('li');
-  li.innerHTML = '<span>'+contN+'.</span><input type="text" id="cont'+contN+'" placeholder="Punto de contenido">';
-  document.getElementById('contenido-list').appendChild(li);
-}
-
-function addCompromiso(){
-  compN++;
-  var div = document.createElement('div');
-  div.style.cssText = 'display:flex;align-items:center;gap:7px';
-  div.innerHTML = '<span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:20px">'+compN+'.</span>'+
-    '<input type="text" class="comp-inp" placeholder="Compromiso o próximo paso" style="flex:1;padding:8px 10px;border:1.5px solid var(--linea);border-radius:8px;font-size:13px;font-family:inherit;background:#fafbfd">';
-  document.getElementById('compromisos-list').appendChild(div);
-}
-
-function previewFoto(inp, imgId, phId){
-  var file = inp.files[0];
-  if(!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e){
-    var img = document.getElementById(imgId);
-    img.src = e.target.result; img.style.display = 'block';
-    document.getElementById(phId).style.display = 'none';
-  };
-  reader.readAsDataURL(file);
-}
-
-document.addEventListener('DOMContentLoaded', function(){
-  ['r-convocados','r-asistentes'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(el) el.addEventListener('input', calcPct);
-  });
-  buildPtable(5);
-  var fd = document.getElementById('g-fecha');
-  if(fd) fd.valueAsDate = new Date();
 });
 
-function calcPct(){
-  var conv = parseFloat(document.getElementById('r-convocados').value)||0;
-  var asis = parseFloat(document.getElementById('r-asistentes').value)||0;
-  document.getElementById('r-pct').value = conv>0 ? ((asis/conv)*100).toFixed(1)+'%' : '';
+// ── MOSTRAR VISTAS ───────────────────────────────────
+function ocultarTodo() {
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('screen-admin').style.display = 'none';
+  document.getElementById('screen-func').style.display  = 'none';
 }
 
-function reiniciarForm(){
-  document.querySelectorAll('#view-crear input:not([type=file]),#view-crear textarea,#view-crear select').forEach(function(el){ el.value=''; });
-  document.querySelectorAll('.tipo-opt').forEach(function(o){ o.classList.remove('selected'); });
-  document.querySelectorAll('.seccion-cap').forEach(function(s){ s.classList.remove('visible'); });
-  document.getElementById('tipo-val').value = '';
-  document.getElementById('tipo-otro-wrap').style.display = 'none';
-  document.getElementById('crear-err').style.display = 'none';
-  document.getElementById('btn-crear').disabled = false;
-  document.getElementById('btn-crear').textContent = '✔ Crear y obtener QR';
-  document.querySelectorAll('.foto-preview img').forEach(function(img){ img.src=''; img.style.display='none'; });
-  document.querySelectorAll('.foto-placeholder').forEach(function(ph){ ph.style.display='block'; });
-  contN=4;
-  document.getElementById('contenido-list').innerHTML =
-    '<li><span>1.</span><input type="text" id="cont1" placeholder="Punto de contenido"></li>'+
-    '<li><span>2.</span><input type="text" id="cont2" placeholder="Punto de contenido"></li>'+
-    '<li><span>3.</span><input type="text" id="cont3" placeholder="Punto de contenido"></li>'+
-    '<li><span>4.</span><input type="text" id="cont4" placeholder="Punto de contenido"></li>';
-  compN=3;
-  document.getElementById('compromisos-list').innerHTML =
-    '<div style="display:flex;align-items:center;gap:7px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:20px">1.</span><input type="text" class="comp-inp" placeholder="Compromiso o próximo paso" style="flex:1;padding:8px 10px;border:1.5px solid var(--linea);border-radius:8px;font-size:13px;font-family:inherit;background:#fafbfd"></div>'+
-    '<div style="display:flex;align-items:center;gap:7px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:20px">2.</span><input type="text" class="comp-inp" placeholder="Compromiso o próximo paso" style="flex:1;padding:8px 10px;border:1.5px solid var(--linea);border-radius:8px;font-size:13px;font-family:inherit;background:#fafbfd"></div>'+
-    '<div style="display:flex;align-items:center;gap:7px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:20px">3.</span><input type="text" class="comp-inp" placeholder="Compromiso o próximo paso" style="flex:1;padding:8px 10px;border:1.5px solid var(--linea);border-radius:8px;font-size:13px;font-family:inherit;background:#fafbfd"></div>';
-  pN=0; buildPtable(5);
-  var fd = document.getElementById('g-fecha');
-  if(fd) fd.valueAsDate = new Date();
+function mostrarAdmin(email) {
+  ocultarTodo();
+  document.getElementById('screen-admin').style.display = 'block';
+  document.getElementById('access-err').style.display = 'none';
+  document.getElementById('admin-saludo').textContent = 'Hola, ' + email;
+  document.getElementById('session-info').textContent  = '⚙ ' + email;
+  document.getElementById('session-info').style.display = 'inline-flex';
+  document.getElementById('btn-logout').style.display   = 'inline-block';
+  renderTablaAccesos();
 }
 
-// ── VISTAS ────────────────────────────────────────────
-function cambiarVista(id){
-  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0,0);
-}
-function volverLista(){
-  if(realtimeCh){ sb.removeChannel(realtimeCh); realtimeCh=null; }
-  cambiarVista('view-list');
-  renderLista();
+function mostrarFuncionario(email, access) {
+  ocultarTodo();
+  document.getElementById('screen-func').style.display = 'block';
+  document.getElementById('func-saludo').textContent   = 'Hola, ' + email;
+  document.getElementById('session-info').textContent  = '👤 ' + email;
+  document.getElementById('session-info').style.display = 'inline-flex';
+  document.getElementById('btn-logout').style.display   = 'inline-block';
+  renderModulos(access);
 }
 
-// ── UTILS ─────────────────────────────────────────────
-function genId(){ return Math.random().toString(36).slice(2,8).toUpperCase(); }
-function gv(id){ var el=document.getElementById(id); return el?(el.value||'').trim():''; }
-function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function colorInst(inst){
-  var n=(inst||'').toLowerCase(); var h=0;
-  for(var i=0;i<n.length;i++) h=n.charCodeAt(i)+((h<<5)-h);
-  return ['#78cbd7','#0b4567','#1d6fa8','#16a34a','#b45309'][Math.abs(h)%5];
+function cerrarSesion() {
+  sessionStorage.removeItem(SESSION_KEY);
+  ocultarTodo();
+  document.getElementById('screen-login').style.display = 'flex';
+  document.getElementById('login-email').value = '';
+  document.getElementById('session-info').style.display = 'none';
+  document.getElementById('btn-logout').style.display   = 'none';
 }
+
+// ── MÓDULOS FUNCIONARIO ──────────────────────────────
+function renderModulos(access) {
+  var grid = document.getElementById('mod-grid');
+  grid.innerHTML = '';
+  var alguno = false;
+  MODULOS.forEach(function(m) {
+    if (!access[m.key]) return;
+    alguno = true;
+    var a = document.createElement('a');
+    a.className = 'mod-card';
+    a.href = m.url;
+    a.onclick = function() { pasarSesion(); };
+    a.innerHTML =
+      '<div class="mod-icon">' + m.icon + '</div>' +
+      '<div class="mod-name">' + m.label + '</div>' +
+      '<div class="mod-desc">' + m.desc + '</div>';
+    grid.appendChild(a);
+  });
+  if (!alguno) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">No tiene módulos habilitados. Contacte al administrador DIGER.</div>';
+  }
+}
+
+// ── GESTIÓN DE ACCESOS ───────────────────────────────
+function agregarFuncionario() {
+  var inp = document.getElementById('new-email');
+  var err = document.getElementById('access-err');
+  err.style.display = 'none';
+  var email = inp.value.trim().toLowerCase();
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    err.textContent = 'Ingrese un correo válido.';
+    err.style.display = 'block';
+    return;
+  }
+  if (getDomain(email) === ADMIN_DOMAIN) {
+    err.textContent = 'Los correos @diger.gob.hn ya tienen acceso como administradores.';
+    err.style.display = 'block';
+    return;
+  }
+  var cfg = loadConfig();
+  if (cfg[email]) {
+    err.textContent = 'Este correo ya está registrado.';
+    err.style.display = 'block';
+    return;
+  }
+  cfg[email] = { tramites_estado: false, tramites_tecnica: false, lista_asistencia: false };
+  saveConfig(cfg);
+  inp.value = '';
+  renderTablaAccesos();
+}
+
+function renderTablaAccesos() {
+  var cfg    = loadConfig();
+  var tbody  = document.getElementById('access-tbody');
+  var empty  = document.getElementById('access-empty');
+  var emails = Object.keys(cfg);
+  tbody.innerHTML = '';
+
+  if (emails.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  emails.forEach(function(email) {
+    var perms = cfg[email];
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="email-cell">' + email + '</td>' +
+      MODULOS.map(function(m) {
+        return '<td><label class="perm-cell"><label class="tog"><input type="checkbox" ' +
+          (perms[m.key] ? 'checked' : '') +
+          ' onchange="togglePerm(\'' + email + '\',\'' + m.key + '\',this.checked)"><span class="tog-sl"></span></label>' +
+          '<span class="perm-lbl">' + (perms[m.key] ? 'Sí' : 'No') + '</span></label></td>';
+      }).join('') +
+      '<td><button class="btn-rm" onclick="eliminarFuncionario(\'' + email + '\')">Eliminar</button></td>';
+    tbody.appendChild(tr);
+
+    if (perms.tramites_estado) {
+      var trCfg = document.createElement('tr');
+      var instOpts = INST_LIST.map(function(i) {
+        return '<option value="' + i + '"' + (perms.te_inst === i ? ' selected' : '') + '>' + i + '</option>';
+      }).join('');
+      trCfg.innerHTML =
+        '<td colspan="5" style="padding:4px 10px 14px 10px;background:#f5f8ff">' +
+          '<div style="border:1.5px solid #c8d5ee;border-radius:10px;padding:12px">' +
+            '<div style="font-size:11px;font-weight:700;color:#1455a4;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">⚙ Institución y contacto — Trámites Estado</div>' +
+            '<div style="display:grid;grid-template-columns:2fr 2fr 2fr 1fr;gap:8px">' +
+              '<div>' +
+                '<label style="font-size:11px;color:#6b7fa3;display:block;margin-bottom:3px">Institución</label>' +
+                '<select onchange="saveTeConfig(\'' + email + '\',\'te_inst\',this.value)" style="width:100%;padding:6px 8px;border:1.5px solid #dde4f0;border-radius:8px;font-size:12px;font-family:inherit">' +
+                  '<option value="">— Seleccione —</option>' + instOpts +
+                '</select>' +
+              '</div>' +
+              '<div>' +
+                '<label style="font-size:11px;color:#6b7fa3;display:block;margin-bottom:3px">Encargado</label>' +
+                '<input type="text" value="' + esc(perms.te_enc || '') + '" onchange="saveTeConfig(\'' + email + '\',\'te_enc\',this.value)" placeholder="Nombre completo" style="width:100%;padding:6px 8px;border:1.5px solid #dde4f0;border-radius:8px;font-size:12px;font-family:inherit">' +
+              '</div>' +
+              '<div>' +
+                '<label style="font-size:11px;color:#6b7fa3;display:block;margin-bottom:3px">Correo institucional</label>' +
+                '<input type="email" value="' + esc(perms.te_cor || '') + '" onchange="saveTeConfig(\'' + email + '\',\'te_cor\',this.value)" placeholder="nombre@inst.gob.hn" style="width:100%;padding:6px 8px;border:1.5px solid #dde4f0;border-radius:8px;font-size:12px;font-family:inherit">' +
+              '</div>' +
+              '<div>' +
+                '<label style="font-size:11px;color:#6b7fa3;display:block;margin-bottom:3px">Celular</label>' +
+                '<input type="text" value="' + esc(perms.te_cel || '') + '" onchange="saveTeConfig(\'' + email + '\',\'te_cel\',this.value)" placeholder="+504 9999-9999" style="width:100%;padding:6px 8px;border:1.5px solid #dde4f0;border-radius:8px;font-size:12px;font-family:inherit">' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</td>';
+      tbody.appendChild(trCfg);
+    }
+  });
+}
+
+function togglePerm(email, modulo, val) {
+  var cfg = loadConfig();
+  if (!cfg[email]) return;
+  cfg[email][modulo] = val;
+  saveConfig(cfg);
+  // actualizar label sin re-render completo
+  renderTablaAccesos();
+}
+
+function eliminarFuncionario(email) {
+  if (!confirm('¿Eliminar el acceso de ' + email + '?')) return;
+  var cfg = loadConfig();
+  delete cfg[email];
+  saveConfig(cfg);
+  renderTablaAccesos();
+}
+
+// ── CONFIG TRAMITES ESTADO ───────────────────────────
+function saveTeConfig(email, field, val) {
+  var cfg = loadConfig();
+  if (!cfg[email]) return;
+  cfg[email][field] = val;
+  saveConfig(cfg);
+}
+
+function esc(v) {
+  return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── PASAR SESIÓN A SUB-PÁGINAS ───────────────────────
+function pasarSesion() {
+  // la sesión ya está en sessionStorage, las sub-páginas la leen
+}
+
+// ── AUTO-RESTORE SESSION ─────────────────────────────
+(function() {
+  var raw = sessionStorage.getItem(SESSION_KEY);
+  if (!raw) return;
+  try {
+    var s = JSON.parse(raw);
+    if (s.role === 'admin') {
+      mostrarAdmin(s.email);
+    } else if (s.role === 'funcionario') {
+      // refresca permisos desde config (por si admin cambió algo)
+      var cfg = loadConfig();
+      var access = cfg[s.email] || s.access || {};
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ email: s.email, role: 'funcionario', access: access }));
+      mostrarFuncionario(s.email, access);
+    }
+  } catch {}
+})();
 </script>
 </body>
 </html>
