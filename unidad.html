@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DIGER SOL — Unidad</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="header.js"></script>
+<script src="modal.js"></script>
+<style>
+:root{
+  --azul:#0a2d6e;--azul-m:#1455a4;--azul-c:#e8f0ff;
+  --gris:#eef1f7;--borde:#dde4f0;--texto:#1c2333;--muted:#64748b;
+  --verde:#16a34a;--rojo:#dc2626;--blanco:#fff;
+  --amber:#d97706;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--texto);background:var(--gris);min-height:100vh}
+
+/* ── SECCIONES ── */
+.section{display:none;padding:0}
+.section.active{display:block}
+.container{max-width:1000px;margin:0 auto;padding:1.75rem 1rem 3rem}
+
+/* ── CARD ── */
+.card{background:var(--blanco);border:1px solid var(--borde);border-radius:14px;padding:1.4rem;margin-bottom:1.1rem;box-shadow:0 2px 8px rgba(10,45,110,.06)}
+.card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1.1rem;padding-bottom:.6rem;border-bottom:2px solid var(--gris);display:flex;align-items:center;justify-content:space-between;gap:6px}
+.card-title span{display:flex;align-items:center;gap:6px}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 18px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .18s}
+.btn-primary{background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;border:none}
+.btn-primary:hover{opacity:.88}
+.btn-secondary{background:#fff;border:1.5px solid var(--borde);color:var(--muted)}
+.btn-secondary:hover{border-color:var(--azul-m);color:var(--azul)}
+.btn-danger{background:#fff;border:1.5px solid var(--borde);color:var(--rojo)}
+.btn-danger:hover{background:#fff5f5;border-color:var(--rojo)}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:7px}
+.btn-icon{background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;font-size:15px;color:var(--muted);transition:background .15s}
+.btn-icon:hover{background:var(--gris)}
+
+/* ── SEARCH / FILTERS ── */
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.search-inp{flex:1;min-width:180px;padding:9px 13px;border:1.5px solid var(--borde);border-radius:9px;font-size:13px;font-family:inherit;outline:none;transition:border .2s}
+.search-inp:focus{border-color:var(--azul-m)}
+.filter-sel{padding:9px 13px;border:1.5px solid var(--borde);border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:#fff;cursor:pointer}
+
+/* ── TABLE ── */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{background:var(--gris);color:var(--muted);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:9px 12px;text-align:left;white-space:nowrap}
+.data-table td{padding:10px 12px;border-bottom:1px solid #f0f4fa;vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:#fafbff}
+.actions-cell{display:flex;gap:4px;align-items:center}
+
+/* ── EMPTY / LOADING ── */
+.empty{padding:2.5rem;text-align:center;color:var(--muted);font-size:13px}
+.loading{padding:2rem;text-align:center;color:var(--muted);font-size:13px}
+
+/* ── TAGS / BADGES ── */
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.tag-evento{background:#dbeafe;color:#1d4ed8}
+.tag-compromiso{background:#fef3c7;color:var(--amber)}
+.tag-ausencia{background:#fee2e2;color:var(--rojo)}
+.tag-vacaciones{background:#dcfce7;color:var(--verde)}
+.tag-admin{background:var(--azul-c);color:var(--azul)}
+.tag-coordinador{background:#f0fdf4;color:var(--verde)}
+.tag-colaborador{background:#fef3c7;color:var(--amber)}
+.tag-lector{background:var(--gris);color:var(--muted)}
+
+/* ── CALENDARIO ── */
+.cal-wrapper{display:grid;grid-template-columns:1fr 280px;gap:16px}
+.cal-grid{background:var(--blanco);border:1px solid var(--borde);border-radius:12px;overflow:hidden}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--borde)}
+.cal-nav h3{font-size:15px;font-weight:800;color:var(--azul)}
+.cal-days-header{display:grid;grid-template-columns:repeat(7,1fr);background:var(--gris);border-bottom:1px solid var(--borde)}
+.cal-day-name{text-align:center;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;padding:8px 4px;letter-spacing:.05em}
+.cal-cells{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-cell{min-height:80px;border-right:1px solid var(--borde);border-bottom:1px solid var(--borde);padding:6px;position:relative;cursor:pointer;transition:background .15s}
+.cal-cell:hover{background:var(--azul-c)}
+.cal-cell:nth-child(7n){border-right:none}
+.cal-cell.other-month{background:#fafbff}
+.cal-cell.today{background:#e8f0ff}
+.cal-cell.today .cal-date{background:var(--azul);color:#fff;border-radius:50%}
+.cal-date{font-size:12px;font-weight:700;color:var(--muted);width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.cal-cell.current-month .cal-date{color:var(--texto)}
+.cal-event-dot{font-size:10.5px;border-radius:4px;padding:1px 5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cal-event-dot.tipo-evento{background:#dbeafe;color:#1d4ed8}
+.cal-event-dot.tipo-compromiso{background:#fef3c7;color:var(--amber)}
+.cal-event-dot.tipo-ausencia{background:#fee2e2;color:var(--rojo)}
+.upcoming-list{display:flex;flex-direction:column;gap:8px}
+.upcoming-item{background:var(--blanco);border:1px solid var(--borde);border-radius:10px;padding:11px 12px;border-left:4px solid var(--azul-m)}
+.upcoming-item.tipo-compromiso{border-left-color:var(--amber)}
+.upcoming-item.tipo-ausencia{border-left-color:var(--rojo)}
+.upcoming-date{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:3px}
+.upcoming-title{font-size:13px;font-weight:600;color:var(--texto)}
+
+/* ── TRAMITES ── */
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.mod-card{background:var(--blanco);border:1.5px solid var(--borde);border-radius:13px;padding:1.3rem;transition:all .22s;cursor:pointer;text-decoration:none;display:flex;flex-direction:column;gap:10px}
+.mod-card:hover{border-color:var(--azul-m);box-shadow:0 6px 20px rgba(10,45,110,.12);transform:translateY(-2px)}
+.mod-icon{width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,var(--azul-c),#d5e8ff);display:flex;align-items:center;justify-content:center;font-size:22px}
+.mod-name{font-size:15px;font-weight:700;color:var(--azul)}
+.mod-desc{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ── MIEMBROS ── */
+.tog{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{position:absolute;inset:0;background:#dde4f0;border-radius:20px;cursor:pointer;transition:.25s}
+.tog-sl::before{content:'';position:absolute;left:3px;top:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.tog input:checked+.tog-sl{background:var(--azul-m)}
+.tog input:checked+.tog-sl::before{transform:translateX(16px)}
+
+/* ── FORM HELPERS ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group{margin-bottom:12px}
+.form-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px}
+.form-inp,.form-sel,.form-ta{width:100%;padding:9px 12px;border:1.5px solid var(--borde);border-radius:9px;font-size:13px;font-family:inherit;outline:none;transition:border .2s}
+.form-inp:focus,.form-sel:focus,.form-ta:focus{border-color:var(--azul-m);box-shadow:0 0 0 3px rgba(20,85,164,.09)}
+.form-ta{resize:vertical;min-height:80px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .cal-wrapper{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .data-table{font-size:12px}
+  .data-table th:nth-child(n+4){display:none}
+  .data-table td:nth-child(n+4){display:none}
+}
+@media(max-width:600px){
+  .container{padding:1rem .75rem 2rem}
+  .mod-grid{grid-template-columns:1fr}
+  .toolbar{gap:6px}
+}
+</style>
+</head>
+<body>
+
+<div id="app-header"></div>
+
+<div id="section-calendario" class="section">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">
+        <span>📅 Calendario</span>
+        <button class="btn btn-primary btn-sm" id="btn-add-evento">+ Agregar evento</button>
+      </div>
+      <div class="toolbar">
+        <select class="filter-sel" id="cal-filter-tipo">
+          <option value="">Todos los tipos</option>
+          <option value="evento">Eventos</option>
+          <option value="compromiso">Compromisos</option>
+          <option value="ausencia">Ausencias</option>
+        </select>
+      </div>
+      <div class="cal-wrapper">
+        <div>
+          <div class="cal-grid">
+            <div class="cal-nav">
+              <button class="btn-icon" id="cal-prev">◀</button>
+              <h3 id="cal-month-label">—</h3>
+              <button class="btn-icon" id="cal-next">▶</button>
+            </div>
+            <div class="cal-days-header">
+              <div class="cal-day-name">Dom</div><div class="cal-day-name">Lun</div>
+              <div class="cal-day-name">Mar</div><div class="cal-day-name">Mié</div>
+              <div class="cal-day-name">Jue</div><div class="cal-day-name">Vie</div>
+              <div class="cal-day-name">Sáb</div>
+            </div>
+            <div class="cal-cells" id="cal-cells"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Próximos eventos</div>
+          <div id="upcoming-list" class="upcoming-list"><div class="loading">Cargando...</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="section-repositorio" class="section">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">
+        <span>📁 Repositorio de Documentos</span>
+        <button class="btn btn-primary btn-sm" id="btn-upload-doc">+ Subir documento</button>
+      </div>
+      <div class="toolbar">
+        <input class="search-inp" type="search" id="repo-search" placeholder="Buscar por nombre o tema...">
+        <select class="filter-sel" id="repo-filter-creator">
+          <option value="">Todos los creadores</option>
+        </select>
+      </div>
+      <div id="repo-loading" class="loading">Cargando documentos...</div>
+      <div id="repo-table-wrap" style="display:none;overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Documento</th><th>Tipo</th><th>Tema</th>
+              <th>Descripción</th><th>Fecha</th><th>Creado por</th><th>Actualizado</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="repo-tbody"></tbody>
+        </table>
+        <div class="empty" id="repo-empty" style="display:none">No hay documentos. Suba el primero.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="section-tramites" class="section">
+  <div class="container">
+    <div class="card">
+      <div class="card-title"><span>📋 Trámites</span></div>
+      <div class="mod-grid" id="tramites-grid"></div>
+    </div>
+  </div>
+</div>
+
+<div id="section-documentos" class="section">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">
+        <span>📄 Documentos</span>
+        <button class="btn btn-primary btn-sm" id="btn-upload-doc2">+ Subir documento</button>
+      </div>
+      <div class="toolbar">
+        <input class="search-inp" type="search" id="docs-search" placeholder="Buscar por nombre o tema...">
+      </div>
+      <div id="docs-loading" class="loading">Cargando documentos...</div>
+      <div id="docs-table-wrap" style="display:none;overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Documento</th><th>Tipo</th><th>Tema</th><th>Fecha</th><th>Creado por</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="docs-tbody"></tbody>
+        </table>
+        <div class="empty" id="docs-empty" style="display:none">No hay documentos.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="section-miembros" class="section">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">
+        <span>👥 Miembros de la Unidad</span>
+        <button class="btn btn-primary btn-sm" id="btn-add-member">+ Agregar miembro</button>
+      </div>
+      <div id="members-loading" class="loading">Cargando miembros...</div>
+      <div id="members-table-wrap" style="display:none;overflow-x:auto">
+        <table class="data-table" id="members-table">
+          <thead>
+            <tr>
+              <th>Correo</th><th>Rol</th>
+              <th>Calendario</th><th>Repositorio</th><th>Trámites</th><th>Documentos</th><th>Miembros</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="members-tbody"></tbody>
+        </table>
+        <div class="empty" id="members-empty" style="display:none">No hay miembros registrados.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────
+const SUPABASE_URL  = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const SESSION_KEY = 'diger_sol_session';
+
+// ── ESTADO ────────────────────────────────────────────────────────
+var session = null;
+var unitSlug = '';
+var unitData = null;
+var currentSection = 'calendario';
+var calYear, calMonth;
+var calEvents = [];
+var allDocs = [];
+var allMembers = [];
+
+// ── BOOTSTRAP ────────────────────────────────────────────────────
+(function init() {
+  var raw = sessionStorage.getItem(SESSION_KEY);
+  if (!raw) { window.location.href = 'index.html'; return; }
+  try { session = JSON.parse(raw); } catch { window.location.href = 'index.html'; return; }
+
+  var params = new URLSearchParams(location.search);
+  unitSlug = params.get('u') || '';
+  if (!unitSlug) { window.location.href = 'index.html'; return; }
+
+  unitData = (session.unidades || []).find(function(u) { return u.slug === unitSlug; });
+  if (!unitData) { window.location.href = 'index.html'; return; }
+
+  document.title = unitData.nombre + ' — DIGER SOL';
+
+  // Render header with nav
+  var hash = location.hash.replace('#','') || 'calendario';
+  initHeader({ page: 'unidad', unitSlug: unitSlug, activeSection: hash });
+
+  // Hash routing
+  function navigate() {
+    var sec = location.hash.replace('#','') || 'calendario';
+    showSection(sec);
+  }
+  window.addEventListener('hashchange', navigate);
+  navigate();
+})();
+
+function showSection(sec) {
+  currentSection = sec;
+  document.querySelectorAll('.section').forEach(function(el) { el.classList.remove('active'); });
+  var el = document.getElementById('section-' + sec);
+  if (el) {
+    el.classList.add('active');
+    // Lazy load
+    if (sec === 'calendario' && calEvents.length === 0) initCalendario();
+    if (sec === 'repositorio') loadRepositorio();
+    if (sec === 'tramites') renderTramites();
+    if (sec === 'documentos') loadDocumentos();
+    if (sec === 'miembros') loadMiembros();
+  }
+  // Update active nav link
+  document.querySelectorAll('.diger-nav-link').forEach(function(a) {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + sec);
+  });
+}
+
+function esc(v) {
+  return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d + 'T12:00:00').toLocaleDateString('es-HN',{day:'2-digit',month:'short',year:'numeric'});
+}
+function fmtBytes(b) {
+  if (!b) return '';
+  if (b < 1024) return b + ' B';
+  if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+  return (b/(1024*1024)).toFixed(1) + ' MB';
+}
+function canEdit() {
+  return session && (session.role === 'admin' || session.role === 'coordinador' || session.role === 'colaborador');
+}
+function isPrivileged() {
+  return session && (session.role === 'admin' || session.role === 'coordinador');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SECCIÓN: CALENDARIO
+// ══════════════════════════════════════════════════════════════════
+function initCalendario() {
+  var now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  loadCalendarEvents();
+
+  document.getElementById('cal-prev').onclick = function() {
+    calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar();
+  };
+  document.getElementById('cal-next').onclick = function() {
+    calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+  };
+  document.getElementById('cal-filter-tipo').onchange = renderCalendar;
+  document.getElementById('btn-add-evento').onclick = openEventoModal;
+}
+
+async function loadCalendarEvents() {
+  try {
+    var { data, error } = await supabase
+      .from('calendario_eventos')
+      .select('*, calendario_asignados(email)')
+      .eq('unidad_id', unitData.id)
+      .order('fecha_inicio');
+    if (error) throw error;
+    calEvents = data || [];
+    renderCalendar();
+    renderUpcoming();
+  } catch(e) {
+    document.getElementById('cal-cells').innerHTML = '<div class="empty">Error al cargar eventos.</div>';
+  }
+}
+
+var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function renderCalendar() {
+  var filterTipo = document.getElementById('cal-filter-tipo').value;
+  var events = filterTipo ? calEvents.filter(function(e) { return e.tipo === filterTipo; }) : calEvents;
+
+  document.getElementById('cal-month-label').textContent = MESES[calMonth] + ' ' + calYear;
+
+  var firstDay = new Date(calYear, calMonth, 1).getDay();
+  var daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  var today = new Date();
+  var cells = document.getElementById('cal-cells');
+  cells.innerHTML = '';
+
+  // Events indexed by date string
+  var evByDate = {};
+  events.forEach(function(ev) {
+    var d = ev.fecha_inicio;
+    if (!evByDate[d]) evByDate[d] = [];
+    evByDate[d].push(ev);
+  });
+
+  // Previous month filler
+  var prevDays = new Date(calYear, calMonth, 0).getDate();
+  for (var i = firstDay - 1; i >= 0; i--) {
+    var cell = document.createElement('div');
+    cell.className = 'cal-cell other-month';
+    cell.innerHTML = '<div class="cal-date">' + (prevDays - i) + '</div>';
+    cells.appendChild(cell);
+  }
+
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dateStr = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    var isToday = today.getFullYear()===calYear && today.getMonth()===calMonth && today.getDate()===d;
+    var cell = document.createElement('div');
+    cell.className = 'cal-cell current-month' + (isToday ? ' today' : '');
+    var html = '<div class="cal-date">' + d + '</div>';
+    (evByDate[dateStr] || []).slice(0,2).forEach(function(ev) {
+      html += '<div class="cal-event-dot tipo-' + ev.tipo + '">' + esc(ev.titulo) + '</div>';
+    });
+    if ((evByDate[dateStr]||[]).length > 2) {
+      html += '<div style="font-size:10px;color:var(--muted);margin-top:1px">+' + ((evByDate[dateStr].length-2)) + ' más</div>';
+    }
+    cell.innerHTML = html;
+    cell.onclick = (function(ds) { return function() { openEventoModal(ds); }; })(dateStr);
+    cells.appendChild(cell);
+  }
+
+  // Next month filler
+  var total = firstDay + daysInMonth;
+  var rem = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (var n = 1; n <= rem; n++) {
+    var cell = document.createElement('div');
+    cell.className = 'cal-cell other-month';
+    cell.innerHTML = '<div class="cal-date">' + n + '</div>';
+    cells.appendChild(cell);
+  }
+}
+
+function renderUpcoming() {
+  var today = new Date().toISOString().slice(0,10);
+  var upcoming = calEvents.filter(function(e) { return e.fecha_inicio >= today; }).slice(0,8);
+  var el = document.getElementById('upcoming-list');
+  if (!upcoming.length) { el.innerHTML = '<div class="empty">No hay eventos próximos.</div>'; return; }
+  el.innerHTML = upcoming.map(function(e) {
+    return '<div class="upcoming-item tipo-' + e.tipo + '">' +
+      '<div class="upcoming-date">' + fmtDate(e.fecha_inicio) + '</div>' +
+      '<div class="upcoming-title">' + esc(e.titulo) + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function openEventoModal(dateStr) {
+  var prefill = typeof dateStr === 'string' ? dateStr : '';
+  Modal.show({
+    title: 'Agregar Evento',
+    saveLabel: 'Guardar',
+    content: `
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Título *</label>
+          <input class="form-inp" id="ev-titulo" required placeholder="Nombre del evento">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo *</label>
+          <select class="form-sel" id="ev-tipo" required>
+            <option value="evento">Evento</option>
+            <option value="compromiso">Compromiso</option>
+            <option value="ausencia">Ausencia</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Fecha inicio *</label>
+          <input class="form-inp" id="ev-fecha-inicio" type="date" required value="${esc(prefill)}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha fin</label>
+          <input class="form-inp" id="ev-fecha-fin" type="date">
+        </div>
+      </div>
+      <div class="form-group" id="ev-subtipo-wrap" style="display:none">
+        <label class="form-label">Subtipo de ausencia</label>
+        <select class="form-sel" id="ev-subtipo">
+          <option value="">— Ninguno —</option>
+          <option value="vacaciones">Vacaciones</option>
+          <option value="falta_justificada">Falta justificada</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea class="form-ta" id="ev-desc" placeholder="Descripción opcional..."></textarea>
+      </div>
+    `,
+    onSave: async function() {
+      var titulo = document.getElementById('ev-titulo').value.trim();
+      var tipo   = document.getElementById('ev-tipo').value;
+      var fi     = document.getElementById('ev-fecha-inicio').value;
+      var ff     = document.getElementById('ev-fecha-fin').value;
+      var sub    = tipo === 'ausencia' ? (document.getElementById('ev-subtipo').value || null) : null;
+      var desc   = document.getElementById('ev-desc').value.trim();
+      if (!titulo || !tipo || !fi) throw new Error('Complete los campos obligatorios.');
+
+      var { error } = await supabase.from('calendario_eventos').insert([{
+        unidad_id: unitData.id, tipo, subtipo: sub,
+        titulo, descripcion: desc || null,
+        fecha_inicio: fi, fecha_fin: ff || null,
+        creado_por: session.email
+      }]);
+      if (error) throw error;
+      await loadCalendarEvents();
+    }
+  });
+
+  // Show subtipo when tipo=ausencia
+  setTimeout(function() {
+    var tipoSel = document.getElementById('ev-tipo');
+    if (tipoSel) tipoSel.onchange = function() {
+      document.getElementById('ev-subtipo-wrap').style.display = this.value === 'ausencia' ? 'block' : 'none';
+    };
+  }, 60);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SECCIÓN: REPOSITORIO
+// ══════════════════════════════════════════════════════════════════
+async function loadRepositorio() {
+  document.getElementById('repo-loading').style.display = 'block';
+  document.getElementById('repo-table-wrap').style.display = 'none';
+  try {
+    var { data, error } = await supabase.from('documentos')
+      .select('*').eq('unidad_id', unitData.id).order('created_at', {ascending:false});
+    if (error) throw error;
+    allDocs = data || [];
+    renderRepoTable();
+    populateCreatorFilter('repo-filter-creator', allDocs);
+  } catch(e) {
+    document.getElementById('repo-loading').textContent = 'Error al cargar documentos.';
+    return;
+  }
+  document.getElementById('repo-loading').style.display = 'none';
+  document.getElementById('repo-table-wrap').style.display = 'block';
+
+  document.getElementById('repo-search').oninput = renderRepoTable;
+  document.getElementById('repo-filter-creator').onchange = renderRepoTable;
+  document.getElementById('btn-upload-doc').onclick = openUploadModal.bind(null, 'repo');
+}
+
+function populateCreatorFilter(id, docs) {
+  var sel = document.getElementById(id);
+  var creators = [...new Set(docs.map(function(d) { return d.creado_por; }))];
+  sel.innerHTML = '<option value="">Todos los creadores</option>' +
+    creators.map(function(c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
+}
+
+function renderRepoTable() {
+  var q = (document.getElementById('repo-search').value || '').toLowerCase();
+  var cr = document.getElementById('repo-filter-creator').value;
+  var filtered = allDocs.filter(function(d) {
+    var match = !q || d.nombre.toLowerCase().includes(q) || (d.tema||'').toLowerCase().includes(q);
+    var matchCr = !cr || d.creado_por === cr;
+    return match && matchCr;
+  });
+
+  var tbody = document.getElementById('repo-tbody');
+  var empty = document.getElementById('repo-empty');
+  if (!filtered.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = filtered.map(function(d) {
+    var icon = fileIcon(d.tipo_archivo);
+    var actions = [];
+    if (d.archivo_path) {
+      actions.push('<button class="btn-icon" title="Descargar" onclick="downloadDoc(\'' + d.id + '\',\'' + esc(d.archivo_path) + '\')">⬇</button>');
+      actions.push('<button class="btn-icon" title="Ver" onclick="viewDoc(\'' + esc(d.archivo_path) + '\')">👁</button>');
+    }
+    if (canEdit()) actions.push('<button class="btn-icon" title="Editar" onclick="editDoc(\'' + d.id + '\')">✏️</button>');
+    if (isPrivileged() || d.creado_por === session.email) {
+      actions.push('<button class="btn-icon" title="Eliminar" onclick="deleteDoc(\'' + d.id + '\',\'' + esc(d.archivo_path||'') + '\')">🗑</button>');
+    }
+    return '<tr>' +
+      '<td><div style="display:flex;align-items:center;gap:8px">' + icon + '<span>' + esc(d.nombre) + '</span></div></td>' +
+      '<td>' + esc(d.tipo||'—') + '</td>' +
+      '<td>' + esc(d.tema||'—') + '</td>' +
+      '<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(d.descripcion||'—') + '</td>' +
+      '<td>' + fmtDate(d.created_at ? d.created_at.slice(0,10) : null) + '</td>' +
+      '<td>' + esc(d.creado_por) + '</td>' +
+      '<td>' + fmtDate(d.updated_at ? d.updated_at.slice(0,10) : null) + '</td>' +
+      '<td><div class="actions-cell">' + actions.join('') + '</div></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function fileIcon(tipo) {
+  if (!tipo) return '📄';
+  if (tipo.includes('pdf')) return '📕';
+  if (tipo.includes('word') || tipo.includes('doc')) return '📘';
+  if (tipo.includes('sheet') || tipo.includes('excel') || tipo.includes('xls')) return '📗';
+  if (tipo.includes('image') || tipo.includes('png') || tipo.includes('jpg')) return '🖼';
+  if (tipo.includes('zip') || tipo.includes('rar')) return '📦';
+  return '📄';
+}
+
+async function downloadDoc(id, path) {
+  try {
+    var { data, error } = await supabase.storage.from('documentos').download(path);
+    if (error) throw error;
+    var url = URL.createObjectURL(data);
+    var a = document.createElement('a');
+    a.href = url; a.download = path.split('/').pop(); a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  } catch(e) { alert('Error al descargar: ' + e.message); }
+}
+
+async function viewDoc(path) {
+  try {
+    var { data } = await supabase.storage.from('documentos').getPublicUrl(path);
+    window.open(data.publicUrl, '_blank');
+  } catch(e) { alert('Error al obtener URL.'); }
+}
+
+async function editDoc(id) {
+  var doc = allDocs.find(function(d) { return d.id === id; });
+  if (!doc) return;
+  Modal.show({
+    title: 'Editar Documento',
+    content: `
+      <div class="form-group"><label class="form-label">Nombre *</label>
+        <input class="form-inp" id="ed-nombre" required value="${esc(doc.nombre)}"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Tipo</label>
+          <input class="form-inp" id="ed-tipo" value="${esc(doc.tipo||'')}"></div>
+        <div class="form-group"><label class="form-label">Tema</label>
+          <input class="form-inp" id="ed-tema" value="${esc(doc.tema||'')}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Descripción</label>
+        <textarea class="form-ta" id="ed-desc">${esc(doc.descripcion||'')}</textarea></div>
+    `,
+    onSave: async function() {
+      var nombre = document.getElementById('ed-nombre').value.trim();
+      if (!nombre) throw new Error('El nombre es obligatorio.');
+      var { error } = await supabase.from('documentos').update({
+        nombre,
+        tipo: document.getElementById('ed-tipo').value.trim() || null,
+        tema: document.getElementById('ed-tema').value.trim() || null,
+        descripcion: document.getElementById('ed-desc').value.trim() || null
+      }).eq('id', id);
+      if (error) throw error;
+      await loadRepositorio();
+    }
+  });
+}
+
+async function deleteDoc(id, path) {
+  if (!confirm('¿Eliminar este documento?')) return;
+  try {
+    if (path) await supabase.storage.from('documentos').remove([path]);
+    var { error } = await supabase.from('documentos').delete().eq('id', id);
+    if (error) throw error;
+    await loadRepositorio();
+  } catch(e) { alert('Error al eliminar: ' + e.message); }
+}
+
+function openUploadModal(section) {
+  Modal.show({
+    title: 'Subir Documento',
+    saveLabel: 'Guardar',
+    content: `
+      <div class="form-group"><label class="form-label">Archivo *</label>
+        <input class="form-inp" id="up-file" type="file" required accept="*/*"></div>
+      <div class="form-group"><label class="form-label">Nombre del documento *</label>
+        <input class="form-inp" id="up-nombre" required placeholder="Nombre descriptivo"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Tipo</label>
+          <input class="form-inp" id="up-tipo" placeholder="Ej: Informe, Resolución..."></div>
+        <div class="form-group"><label class="form-label">Tema</label>
+          <input class="form-inp" id="up-tema" placeholder="Tema o área"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Descripción</label>
+        <textarea class="form-ta" id="up-desc" placeholder="Descripción opcional..."></textarea></div>
+    `,
+    onSave: async function() {
+      var fileEl = document.getElementById('up-file');
+      var nombre = document.getElementById('up-nombre').value.trim();
+      if (!nombre) throw new Error('El nombre es obligatorio.');
+      if (!fileEl.files || !fileEl.files[0]) throw new Error('Seleccione un archivo.');
+
+      var file = fileEl.files[0];
+      var ext = file.name.split('.').pop();
+      var path = unitData.slug + '/' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+
+      var saveBtn = document.getElementById('diger-modal-save');
+      if (saveBtn) saveBtn.textContent = 'Subiendo...';
+
+      var { error: upErr } = await supabase.storage.from('documentos').upload(path, file);
+      if (upErr && !upErr.message.includes('already exists')) throw upErr;
+
+      var { error } = await supabase.from('documentos').insert([{
+        unidad_id: unitData.id,
+        nombre,
+        tipo: document.getElementById('up-tipo').value.trim() || null,
+        tema: document.getElementById('up-tema').value.trim() || null,
+        descripcion: document.getElementById('up-desc').value.trim() || null,
+        archivo_path: path,
+        tipo_archivo: file.type || ext,
+        tamano_bytes: file.size,
+        creado_por: session.email
+      }]);
+      if (error) throw error;
+      if (section === 'repo') await loadRepositorio();
+      else await loadDocumentos();
+    }
+  });
+
+  // Auto-fill nombre from filename
+  setTimeout(function() {
+    var f = document.getElementById('up-file');
+    if (f) f.onchange = function() {
+      var n = document.getElementById('up-nombre');
+      if (n && !n.value && f.files[0]) {
+        n.value = f.files[0].name.replace(/\.[^.]+$/,'');
+      }
+    };
+  }, 60);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SECCIÓN: TRÁMITES
+// ══════════════════════════════════════════════════════════════════
+var TRAMITES_MODULES = [
+  { label:'Trámites Estado',        icon:'📋', desc:'Estado actual y checklist de trámites por institución.',       url:'tramites_estado.html' },
+  { label:'Trámites Técnica',       icon:'🔬', desc:'Ficha técnica: requisitos, flujo de actividades.',             url:'tramites_tecnica.html' },
+  { label:'Levantamiento Reunión',  icon:'👥', desc:'Registro y gestión de reuniones de levantamiento.',            url:'levantamiento_reunion.html' },
+  { label:'Capacitaciones',         icon:'🎓', desc:'Registro de capacitaciones impartidas.',                       url:'levantamiento_capacitaciones.html' },
+  { label:'Memorias de Reuniones',  icon:'📝', desc:'Memorias y actas de reuniones.',                               url:'memorias_reuniones.html' },
+  { label:'Lista de Asistencia',    icon:'✅', desc:'Control de asistencia a reuniones y eventos.',                 url:'lista_asistencia.html' },
+];
+
+function renderTramites() {
+  var grid = document.getElementById('tramites-grid');
+  grid.innerHTML = TRAMITES_MODULES.map(function(m) {
+    return '<a class="mod-card" href="' + m.url + '">' +
+      '<div class="mod-icon">' + m.icon + '</div>' +
+      '<div class="mod-name">' + m.label + '</div>' +
+      '<div class="mod-desc">' + m.desc + '</div>' +
+      '</a>';
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SECCIÓN: DOCUMENTOS (similar a repositorio, filtro diferente)
+// ══════════════════════════════════════════════════════════════════
+async function loadDocumentos() {
+  document.getElementById('docs-loading').style.display = 'block';
+  document.getElementById('docs-table-wrap').style.display = 'none';
+  try {
+    var { data, error } = await supabase.from('documentos')
+      .select('*').eq('unidad_id', unitData.id).order('created_at', {ascending:false});
+    if (error) throw error;
+    var docs = data || [];
+    renderDocsTable(docs);
+  } catch(e) {
+    document.getElementById('docs-loading').textContent = 'Error al cargar.';
+    return;
+  }
+  document.getElementById('docs-loading').style.display = 'none';
+  document.getElementById('docs-table-wrap').style.display = 'block';
+  document.getElementById('btn-upload-doc2').onclick = openUploadModal.bind(null, 'docs');
+  var searchEl = document.getElementById('docs-search');
+  searchEl._docs = data || [];
+  searchEl.oninput = function() { renderDocsTable(this._docs); };
+}
+
+function renderDocsTable(docs) {
+  var q = (document.getElementById('docs-search').value || '').toLowerCase();
+  var filtered = docs.filter(function(d) {
+    return !q || d.nombre.toLowerCase().includes(q) || (d.tema||'').toLowerCase().includes(q);
+  });
+  var tbody = document.getElementById('docs-tbody');
+  var empty = document.getElementById('docs-empty');
+  if (!filtered.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = filtered.map(function(d) {
+    var icon = fileIcon(d.tipo_archivo);
+    var actions = [];
+    if (d.archivo_path) actions.push('<button class="btn-icon" title="Descargar" onclick="downloadDoc(\'' + d.id + '\',\'' + esc(d.archivo_path) + '\')">⬇</button>');
+    return '<tr>' +
+      '<td><div style="display:flex;align-items:center;gap:8px">' + icon + '<span>' + esc(d.nombre) + '</span></div></td>' +
+      '<td>' + esc(d.tipo||'—') + '</td>' +
+      '<td>' + esc(d.tema||'—') + '</td>' +
+      '<td>' + fmtDate(d.created_at ? d.created_at.slice(0,10) : null) + '</td>' +
+      '<td>' + esc(d.creado_por) + '</td>' +
+      '<td><div class="actions-cell">' + actions.join('') + '</div></td>' +
+      '</tr>';
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SECCIÓN: MIEMBROS
+// ══════════════════════════════════════════════════════════════════
+async function loadMiembros() {
+  document.getElementById('members-loading').style.display = 'block';
+  document.getElementById('members-table-wrap').style.display = 'none';
+  try {
+    var { data, error } = await supabase.from('unidad_miembros')
+      .select('*').eq('unidad_id', unitData.id).order('email');
+    if (error) throw error;
+    allMembers = data || [];
+    renderMiembros();
+  } catch(e) {
+    document.getElementById('members-loading').textContent = 'Error al cargar miembros.';
+    return;
+  }
+  document.getElementById('members-loading').style.display = 'none';
+  document.getElementById('members-table-wrap').style.display = 'block';
+  document.getElementById('btn-add-member').onclick = openAddMemberModal;
+}
+
+function renderMiembros() {
+  var tbody = document.getElementById('members-tbody');
+  var empty = document.getElementById('members-empty');
+  if (!allMembers.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  var PERMS = ['calendario','repositorio','tramites','documentos','miembros'];
+  tbody.innerHTML = allMembers.map(function(m) {
+    var perms = m.permisos || {};
+    var rolClass = 'tag-' + (m.rol||'lector');
+    return '<tr>' +
+      '<td>' + esc(m.email) + '</td>' +
+      '<td><span class="tag ' + rolClass + '">' + esc(m.rol||'lector') + '</span></td>' +
+      PERMS.map(function(p) {
+        return '<td><label class="tog"><input type="checkbox"' + (perms[p]?' checked':'') +
+          ' onchange="toggleMemberPerm(\'' + m.id + '\',\'' + p + '\',this.checked)"><span class="tog-sl"></span></label></td>';
+      }).join('') +
+      '<td><button class="btn btn-danger btn-sm" onclick="removeMember(\'' + m.id + '\',\'' + esc(m.email) + '\')">Eliminar</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+async function toggleMemberPerm(id, perm, val) {
+  var member = allMembers.find(function(m) { return m.id === id; });
+  if (!member) return;
+  var perms = Object.assign({}, member.permisos || {});
+  perms[perm] = val;
+  var { error } = await supabase.from('unidad_miembros').update({ permisos: perms }).eq('id', id);
+  if (error) { alert('Error al actualizar permiso.'); await loadMiembros(); }
+  else member.permisos = perms;
+}
+
+async function removeMember(id, email) {
+  if (!confirm('¿Eliminar el acceso de ' + email + '?')) return;
+  var { error } = await supabase.from('unidad_miembros').delete().eq('id', id);
+  if (error) { alert('Error al eliminar miembro.'); return; }
+  await loadMiembros();
+}
+
+function openAddMemberModal() {
+  Modal.show({
+    title: 'Agregar Miembro',
+    saveLabel: 'Agregar',
+    content: `
+      <div class="form-group"><label class="form-label">Correo electrónico *</label>
+        <input class="form-inp" id="nm-email" type="email" required placeholder="correo@institucion.gob.hn"></div>
+      <div class="form-group"><label class="form-label">Rol *</label>
+        <select class="form-sel" id="nm-rol" required>
+          <option value="lector">Lector</option>
+          <option value="colaborador">Colaborador</option>
+          <option value="coordinador">Coordinador</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Permisos</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+        ${['calendario','repositorio','tramites','documentos','miembros'].map(function(p) {
+          return '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">' +
+            '<label class="tog"><input type="checkbox" id="nm-p-' + p + '" ' + (p!=='miembros'?'checked':'') + '><span class="tog-sl"></span></label>' +
+            p.charAt(0).toUpperCase() + p.slice(1) + '</label>';
+        }).join('')}
+      </div>
+    `,
+    onSave: async function() {
+      var email = (document.getElementById('nm-email').value||'').trim().toLowerCase();
+      var rol   = document.getElementById('nm-rol').value;
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Correo inválido.');
+      var permisos = {};
+      ['calendario','repositorio','tramites','documentos','miembros'].forEach(function(p) {
+        permisos[p] = document.getElementById('nm-p-' + p).checked;
+      });
+      var { error } = await supabase.from('unidad_miembros').insert([{
+        unidad_id: unitData.id, email, rol, permisos
+      }]);
+      if (error) throw error;
+      await loadMiembros();
+    }
+  });
+}
+</script>
+</body>
+</html>
