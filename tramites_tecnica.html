@@ -190,6 +190,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 </head>
 <body>
 
+<div id="app-header"></div>
+
 <!-- GATE -->
 <div id="gate">
   <div class="gate-card">
@@ -858,5 +860,7 @@ function imprimirPDF(){
   },1200);
 }
 </script>
+<script src="header.js"></script>
+<script>initHeader({ page: 'module', unitSlug: new URLSearchParams(location.search).get('u') || '' });</script>
 </body>
 </html>
