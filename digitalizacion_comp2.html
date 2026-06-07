@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digitalización Comp. 2 — DIGER</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#eef1f7;min-height:100vh}
+
+/* HEADER */
+.header{background:#fff;padding:16px 2rem;display:flex;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.08);position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;right:0;top:0;bottom:0;width:200px;background:linear-gradient(135deg,transparent 30px,#1455a4 30px)}
+.header::after{content:'';position:absolute;right:0;top:0;bottom:0;width:130px;background:linear-gradient(135deg,transparent 30px,#0a2d6e 30px)}
+.header img{height:70px;width:auto;position:relative;z-index:1}
+.header-title{margin-left:1.5rem;position:relative;z-index:1}
+.header-title h1{font-size:16px;font-weight:700;color:#0a2d6e;line-height:1.3}
+.header-title p{font-size:12px;color:#6b7fa3;margin-top:2px}
+
+/* CONTAINER */
+.container{max-width:100%;padding:1.5rem 1.5rem 3rem}
+
+/* SUMMARY CARDS */
+.summary{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.scard{background:#fff;border-radius:14px;padding:1rem 1.4rem;flex:1;min-width:160px;box-shadow:0 2px 8px rgba(10,45,110,.07);border-left:4px solid transparent;display:flex;align-items:center;gap:12px}
+.scard.op{border-left-color:#16a34a}
+.scard.proc{border-left-color:#d97706}
+.scard.noinit{border-left-color:#dc2626}
+.scard-num{font-size:2rem;font-weight:800;line-height:1}
+.scard.op .scard-num{color:#16a34a}
+.scard.proc .scard-num{color:#d97706}
+.scard.noinit .scard-num{color:#dc2626}
+.scard-label{font-size:12px;color:#6b7fa3;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+
+/* FILTER BAR */
+.filterbar{display:flex;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.filterbar input,.filterbar select{padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;font-family:inherit;background:#fff;color:#1a1a1a;transition:border .2s}
+.filterbar input:focus,.filterbar select:focus{outline:none;border-color:#1455a4}
+.filterbar input{min-width:240px}
+.filter-label{font-size:12px;color:#6b7fa3;font-weight:600}
+
+/* TABLE WRAPPER */
+.table-wrap{overflow-x:auto;border-radius:14px;box-shadow:0 2px 12px rgba(10,45,110,.08);background:#fff}
+table{width:100%;border-collapse:collapse;white-space:nowrap}
+thead{background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;position:sticky;top:0;z-index:10}
+thead th{padding:10px 8px;font-size:10px;font-weight:700;text-align:center;letter-spacing:.04em;text-transform:uppercase;border-right:1px solid rgba(255,255,255,.1)}
+thead th:first-child{text-align:left;padding-left:14px;min-width:32px}
+thead th.col-inst{min-width:110px;text-align:left}
+thead th.col-tram{min-width:260px;text-align:left;white-space:normal}
+thead th.col-fin{min-width:60px}
+thead th.col-est{min-width:110px}
+thead th.col-stage{min-width:52px;font-size:9px;white-space:normal;line-height:1.2;padding:6px 4px}
+thead th.col-pct{min-width:100px}
+thead th.col-aloj{min-width:70px}
+thead th.col-pdi{min-width:90px;white-space:normal}
+thead th.col-obs{min-width:160px;text-align:left;white-space:normal}
+/* Group headers */
+.th-group{background:#0a2d6e;font-size:9px;text-transform:uppercase;letter-spacing:.06em;text-align:center;padding:5px 4px;color:rgba(255,255,255,.8)}
+
+tbody tr{border-bottom:1px solid #f0f4fa;transition:background .15s}
+tbody tr:hover{background:#f5f8ff}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:8px 8px;font-size:12px;text-align:center;vertical-align:middle;border-right:1px solid #f0f4fa}
+tbody td:first-child{text-align:center;font-weight:700;color:#9aadcc;padding-left:14px}
+tbody td.col-inst{text-align:left;font-weight:700;color:#0a2d6e;font-size:11px}
+tbody td.col-tram{text-align:left;white-space:normal;max-width:280px;line-height:1.35;color:#2d3748;font-size:12px}
+tbody td.col-est{text-align:left}
+tbody td.col-obs{text-align:left;white-space:normal;max-width:200px;font-size:11px;color:#555;line-height:1.3}
+tbody td.col-pdi{white-space:normal;font-size:11px}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge.op{background:#dcfce7;color:#15803d}
+.badge.proc{background:#fef3c7;color:#b45309}
+.badge.noinit{background:#fee2e2;color:#b91c1c}
+.badge.fin{background:#dbeafe;color:#1d4ed8}
+
+/* Stage dot */
+.dot{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin:0 auto}
+.dot.si{background:#dcfce7;color:#15803d}
+.dot.no{background:#f1f5f9;color:#cbd5e1}
+.dot.ep{background:#fef3c7;color:#b45309}
+
+/* Progress bar */
+.pbar-wrap{display:flex;align-items:center;gap:6px;min-width:90px}
+.pbar{flex:1;height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:4px;transition:width .3s}
+.pct-txt{font-size:11px;font-weight:700;min-width:32px;text-align:right}
+
+/* ACTA/ACTIVO small badge */
+.yn{font-size:10px;font-weight:700}
+.yn.si{color:#16a34a}
+.yn.no{color:#dc2626}
+.yn.ep{color:#d97706}
+
+/* Pagination / count */
+.table-footer{padding:10px 14px;background:#f8faff;border-top:1px solid #e2e8f0;font-size:12px;color:#6b7fa3;display:flex;justify-content:space-between;align-items:center;border-radius:0 0 14px 14px}
+
+/* Sticky cols */
+td:nth-child(1),th:nth-child(1){position:sticky;left:0;z-index:5;background:#fff}
+td:nth-child(2),th:nth-child(2){position:sticky;left:36px;z-index:5;background:#fff}
+td:nth-child(3),th:nth-child(3){position:sticky;left:146px;z-index:5;background:#fff}
+thead th:nth-child(1),thead th:nth-child(2),thead th:nth-child(3){background:linear-gradient(135deg,#1455a4,#0a2d6e)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="https://www.diger.gob.hn/wp-content/uploads/2021/05/logo-diger.png" alt="DIGER" onerror="this.style.display='none'">
+  <div class="header-title">
+    <h1>Avance en la Digitalización y Lanzamiento de Trámites — Componente 2</h1>
+    <p>PDI · CNI / DIGER &nbsp;·&nbsp; Control de avance por institución</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Summary -->
+  <div class="summary">
+    <div class="scard op">
+      <div class="scard-num" id="cnt-op">28</div>
+      <div class="scard-label">En operación</div>
+    </div>
+    <div class="scard proc">
+      <div class="scard-num" id="cnt-proc">25</div>
+      <div class="scard-label">En proceso</div>
+    </div>
+    <div class="scard noinit">
+      <div class="scard-num" id="cnt-noinit">1</div>
+      <div class="scard-label">No iniciado / otro</div>
+    </div>
+    <div class="scard" style="border-left-color:#1455a4;min-width:200px">
+      <div class="scard-num" style="color:#1455a4;font-size:1.6rem" id="cnt-pct-avg">—</div>
+      <div class="scard-label">Avance promedio</div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="filterbar">
+    <span class="filter-label">Filtrar:</span>
+    <input type="text" id="fSearch" placeholder="Buscar institución o trámite…" oninput="filtrar()">
+    <select id="fEstado" onchange="filtrar()">
+      <option value="">Todos los estados</option>
+      <option value="En operación">En operación</option>
+      <option value="En proceso">En proceso</option>
+      <option value="No iniciado">No iniciado</option>
+    </select>
+    <select id="fAloj" onchange="filtrar()">
+      <option value="">Todos los alojos</option>
+      <option value="DIGER">DIGER</option>
+      <option value="PROPIA">Propia</option>
+      <option value="PROPIO">Propio</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th rowspan="2">#</th>
+          <th class="col-inst" rowspan="2">Institución</th>
+          <th class="col-tram" rowspan="2">Servicios / Trámites</th>
+          <th class="col-fin" rowspan="2">Financia</th>
+          <th class="col-est" rowspan="2">Estado</th>
+          <th rowspan="2" style="min-width:40px;font-size:9px">Acta</th>
+          <th rowspan="2" style="min-width:44px;font-size:9px">Activo<br>PDI</th>
+          <th colspan="12" class="th-group">Etapas de digitalización</th>
+          <th class="col-pct" rowspan="2">% Avance</th>
+          <th class="col-aloj" rowspan="2">Alojam.</th>
+          <th class="col-pdi" rowspan="2">Func.<br>PDI</th>
+          <th class="col-obs" rowspan="2">Observaciones</th>
+        </tr>
+        <tr>
+          <th class="col-stage">I. Relev.<br>Base</th>
+          <th class="col-stage">II. Model.<br>SOL</th>
+          <th class="col-stage">III. Autom.<br>Interop.</th>
+          <th class="col-stage">IV. Pruebas<br>Testing</th>
+          <th class="col-stage">V. Model.<br>Prod.</th>
+          <th class="col-stage">VI. Instruc.<br>Video</th>
+          <th class="col-stage">VII. Talleres<br>Transfer.</th>
+          <th class="col-stage">VIII. Traslado<br>Hosting</th>
+          <th class="col-stage">IX. Pruebas<br>Prod.</th>
+          <th class="col-stage">X. Acuerdos<br>Comun.</th>
+          <th class="col-stage">XI. Social.<br>Redes</th>
+          <th class="col-stage">XII. Dispon.<br>Ciudadano</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="table-footer">
+      <span id="count-label">67 trámites</span>
+      <span style="color:#1455a4;font-weight:600">PDI — Componente 2</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const data = [
+  [1,"CONVIVIENDA","Registro de actores","","Digitalizado","No","No","Si","Si","Si","Si","Si","Si","Si","Si","No","No","No","No",0.80,"En proceso","DIGER","SI",""],
+  [2,"COPECO","Certificado de evaluación de riesgo","","Digitalizado","No","No","Si","Si","Si","Si","Si","Si","Si","Si","No","No","No","No",0.80,"En proceso","DIGER","SI",""],
+  [3,"SIT","Constancia de inafectabilidad","","Digitalizado","No","No","Si","Si","Si","Si","Si","Si","Si","Si","No","No","No","No",0.80,"En proceso","DIGER","SI",""],
+  [4,"IHADFA","Nuevo certificado para comercializar bebidas alcohólicas","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [5,"IHADFA","Renovación para comercializar bebidas alcohólicas","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [6,"IHADFA","Nuevo certificado para comercializar productos derivados del tabaco","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [7,"IHADFA","Renovación del certificado para comercializar productos derivados del tabaco","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [8,"IHADFA","Nuevo certificado para comercializar productos farmacéuticos","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [9,"IHADFA","Renovación certificada para comercializar productos farmacéuticos","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [10,"BANHPROVI","Precalificación de solicitud de vivienda (Banca de Primer Piso)","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","No","No","No","No",0.80,"En proceso","PROPIA","SI",""],
+  [11,"BANHPROVI","Solicitud de redescuento para vivienda Banca de Segundo Piso","","En proceso","Si","No","Si","Si","No","No","No","No","No","No","No","No","No","No",0.40,"En proceso","PROPIA","NO",""],
+  [12,"BANHPROVI","Reserva para emisión de Certificado de Cobertura Fondo Garantía BCH-FG-MIPYME","","Finalizando digitalización","Si","No","Si","Si","No","No","No","No","No","No","No","No","No","No",0.40,"En proceso","PROPIA","NO",""],
+  [13,"INPREUNAH","Solicitud de Historial de Cotizaciones","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [14,"INPREUNAH","Solicitud de Váucher","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [15,"INPREUNAH","Solicitud de Constancia","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [16,"CNBS","Inscripción en el Registro de Auditores Externos (RAE)","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","PROPIO","NO APLICA",""],
+  [17,"CNBS","Actualización del Registro de Auditores Externos (RAE)","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","PROPIO","NO APLICA",""],
+  [18,"CNBS","Reclasificación en el Registro de Auditores Externos (RAE)","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","PROPIO","NO APLICA",""],
+  [19,"INPREMA","Actualización de Datos Docentes","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [20,"INPREMA","Pre-análisis para otorgamiento de Préstamo Rapibono","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [21,"INPREMA","Pre-análisis para el otorgamiento de Préstamo Hipotecario","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [22,"INPREMA","Pre-análisis para el Otorgamiento de Préstamo Personal","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [23,"INPREMA","Pre-análisis para el otorgamiento de Préstamo Personal Consolidación de deudas","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [24,"INPREMA","Registro y atención de Denuncias (Protocolo de atención de casos externos)","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [25,"IHTT","Certificación de expediente en trámite","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [26,"IHTT","Certificación de código aduanero","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [27,"IHTT","Certificación de ser concesionario","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [28,"SEN","Inscripción de empresas suplidoras de sistemas y equipos de energía solar fotovoltaica y solar térmica","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [29,"SEN","Autorización mediante registro de equipos de radiodiagnóstico dental de tipo intraoral","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [30,"SEN","Inscripción de la sociedad mercantil o comerciante individual en la cadena de comercialización de hidrocarburos bajo la figura de estación de servicio de combustibles líquidos","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [31,"CONSUCOOP","Constancia de solvencia de cooperativas","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [32,"CONSUCOOP","Emisión de constancia de inscripción de cooperativas","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [33,"CONSUCOOP","Petición de cálculo de aporte","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","No","No","No","No","No","No","No",0.65,"En proceso","DIGER","SI",""],
+  [34,"CONSUCOOP","Certificación de inscripción de junta directiva y junta de vigilancia","DIGER","Digitalizado","Si","Si","Si","Si","Si","No","No","No","No","No","No","No","No","No",0.65,"En proceso","DIGER","SI",""],
+  [35,"CONATEL","Certificado de Homologación","","Digitalizado","No","Si","Si","Si","Si","No","No","No","No","No","No","No","No","No",0.50,"En proceso","DIGER","SI",""],
+  [36,"CONATEL","Servicio Móvil Marítimo - Licencia","","Finalizando digitalización","No","No","Si","Si","Si","No","No","No","No","No","No","No","No","No",0.50,"En proceso","DIGER","No activo aún / NO APARECE",""],
+  [37,"IHCINE","Inscripción en el Registro Nacional de Cinematografía Persona Natural","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","No","No","No","No","No","No","No",0.65,"En proceso","DIGER","SI",""],
+  [38,"IHCINE","Inscripción en el Registro Nacional de Cinematografía Persona Jurídica","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","No","No","No","No","No","No","No",0.65,"En proceso","DIGER","SI",""],
+  [39,"IHCINE","Solicitud de Fondos de Apoyo Financiero y Patrocinio Persona Natural y Persona Jurídica","DIGER","Digitalizado","Si","Si","Si","Si","Si","Si","Si","No","No","No","No","No","No","No",0.65,"En proceso","DIGER","SI",""],
+  [40,"SAG","Solicitud de carné para comercialización de productos pesqueros y acuícolas","","Digitalizado","en proceso","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [41,"SAG","Solicitud de constancia de trazabilidad de origen para exportación de pepino de mar","","Digitalizado","en proceso","Si","Si","Si","Si","Si","Si","Si","Si","No","No","No","No","No",0.70,"En proceso","DIGER","SI",""],
+  [42,"SAG","Solicitud de constancia de trazabilidad de origen para comercio local de Caracol rosado (Aliger gigas)","","Digitalizado","en proceso","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [43,"SECAPPH","Solicitud de agrupaciones artísticas","DIGER","Digitalizado","Si","Si","Si","Si","Si","No","No","No","No","No","No","No","No","No",0.50,"En proceso","DIGER","SI",""],
+  [44,"SECAPPH","Registro de Matrícula Anual Academia Nacional de Arte Dramático \"Santiago Fernández Toffé\"","DIGER","Digitalizado","Si","Si","Si","Si","Si","No","No","No","No","No","No","No","No","No",0.50,"En proceso","DIGER","SI",""],
+  [45,"SECAPPH","Registro de Matrícula Escolar de la Academia Nacional de Danza \"Mercedes Agurcia Membreño\"","DIGER","Digitalizado","Si","Si","Si","Si","Si","No","No","No","No","No","No","No","No","No",0.50,"En proceso","DIGER","SI",""],
+  [46,"SECAPPH","Solicitud de Teatros","DIGER","Digitalizado","Si","No","Si","Si","Si","No","No","No","No","No","No","No","No","No",0.50,"En proceso","DIGER","No activo aún / NO APARECE",""],
+  [47,"SECAPPH","Solicitud de Artes Plásticas y Audiovisuales","DIGER","Digitalizado","Si","Si","Si","Si","Si","No","No","No","No","No","No","No","No","No",0.50,"En proceso","DIGER","SI",""],
+  [48,"SRECI","Auténticas y apostillas (se requiere una actualización del trámite)","","Finalizando digitalización","No","No","Si","No","No","No","No","No","No","No","No","No","No","No",0.10,"En proceso","Propia","NO APLICA",""],
+  [49,"SRECI","Certificación de traducción (se requiere una actualización del trámite)","","Finalizando digitalización","No","No","Si","No","No","No","No","No","No","No","No","No","No","No",0.10,"En proceso","Propia","NO APLICA",""],
+  [50,"SERNA","Constancia de no requerir licencia ambiental","","Digitalizado","No","No","Si","Si","Si","Si","Si","No","No","No","No","No","No","No",0.65,"En proceso","DIGER","SI",""],
+  [51,"SERNA","Registro de prestadores de servicios ambientales","","Digitalizado","No","No","Si","Si","Si","Si","Si","No","No","No","No","No","No","No",0.65,"En proceso","DIGER","SI",""],
+  [52,"SERNA","Registro de importadores de equipos","","Digitalizado","No","No","Si","Si","Si","Si","Si","No","No","No","No","No","No","No",0.65,"En proceso","DIGER","SI",""],
+  [53,"SERNA","Registro de importadores de sustancias","","Digitalizado","No","No","Si","Si","Si","Si","Si","No","No","No","No","No","No","No",0.65,"En proceso","DIGER","SI",""],
+  [54,"SERNA","Pre-autorización de importación de equipos","","En proceso","No","No","No","No","No","No","No","No","No","No","No","No","No","No",0.00,"No iniciado","","",""],
+  [55,"SGJD","Registro de contratos de la Dirección de Inquilinatos","","Digitalizado","No","No","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","No","No",0.90,"En proceso","DIGER","SI",""],
+  [56,"SGJD","Auténticas de documentación","","Digitalizado","No","No","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","No","No",0.90,"En proceso","DIGER","SI",""],
+  [57,"SGJD","Reconocimiento de personas jurídicas","","Finalizando digitalización","No","No","Si","No","No","No","No","No","No","No","No","No","No","No",0.10,"En proceso","DIGER","SI / Aún en proceso",""],
+  [58,"SGJD","Autorización para promociones, sorteos y otros similares","","Finalizando digitalización","No","No","Si","No","No","No","No","No","No","No","No","No","No","No",0.10,"En proceso","DIGER","SI / Aún en proceso",""],
+  [59,"SGJD","Autorización para eventos y espectáculos públicos","","En proceso","No","No","Si","No","No","No","No","No","No","No","No","No","No","No",0.10,"En proceso","DIGER","NO APARECE ACTIVO",""],
+  [60,"CANATURH / IHT","Inscripción RNT: Servicios de hospitalidad, recreación y espacios para eventos","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [61,"CANATURH / IHT","Inscripción RNT: Prestadores de servicios de transporte y arrendadoras de vehículos","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [62,"CANATURH / IHT","Inscripción RNT: Guías turísticos","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [63,"CANATURH / IHT","Inscripción RNT: Operadoras de turismo receptivo y agencias de viaje","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [64,"CANATURH / IHT","Renovación RNT: Servicios intermediación y facilitación turística","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","No aparece ese trámite sino otro",""],
+  [65,"CANATURH / IHT","Renovación RNT: Prestadores de servicios de transporte y arrendadoras de vehículos","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [66,"CANATURH / IHT","Renovación RNT: Guías turísticos","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""],
+  [67,"CANATURH / IHT","Renovación RNT: Servicios de hospitalidad, recreación y espacios para eventos","","Digitalizado","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si","Si",1.00,"En operación","DIGER","SI",""]
+];
+
+function estadoBadge(e){
+  if(!e) return '';
+  if(e==="En operación") return `<span class="badge op">✓ En operación</span>`;
+  if(e==="No iniciado") return `<span class="badge noinit">✗ No iniciado</span>`;
+  return `<span class="badge proc">⏳ ${e}</span>`;
+}
+function dotHtml(v){
+  const lv=(v||"").toLowerCase();
+  if(lv==="si"||lv==="s") return `<span class="dot si">✓</span>`;
+  if(lv==="en proceso"||lv==="ep") return `<span class="dot ep">~</span>`;
+  return `<span class="dot no">–</span>`;
+}
+function ynHtml(v){
+  const lv=(v||"").toLowerCase();
+  if(lv==="si"||lv==="s") return `<span class="yn si">Sí</span>`;
+  if(lv==="en proceso") return `<span class="yn ep">E/P</span>`;
+  return `<span class="yn no">No</span>`;
+}
+function pbarHtml(pct){
+  const p=Math.round(pct*100);
+  let color="#1455a4";
+  if(p===100) color="#16a34a";
+  else if(p>=70) color="#d97706";
+  else if(p<30) color="#dc2626";
+  return `<div class="pbar-wrap"><div class="pbar"><div class="pbar-fill" style="width:${p}%;background:${color}"></div></div><span class="pct-txt" style="color:${color}">${p}%</span></div>`;
+}
+
+function renderRows(rows){
+  const tb=document.getElementById("tbody");
+  tb.innerHTML=rows.map(r=>{
+    const stages=r.slice(7,19);
+    return `<tr data-inst="${r[1]}" data-estado="${r[20]}" data-aloj="${r[21]}">
+      <td>${r[0]}</td>
+      <td class="col-inst">${r[1]}</td>
+      <td class="col-tram">${r[2]}</td>
+      <td style="font-size:11px;color:#6b7fa3">${r[3]||"—"}</td>
+      <td class="col-est">${estadoBadge(r[4])}</td>
+      <td>${ynHtml(r[5])}</td>
+      <td>${ynHtml(r[6])}</td>
+      ${stages.map(s=>`<td>${dotHtml(s)}</td>`).join("")}
+      <td>${pbarHtml(r[19])}</td>
+      <td style="font-size:11px;font-weight:600;color:#0a2d6e">${r[21]||"—"}</td>
+      <td class="col-pdi">${r[22]||"—"}</td>
+      <td class="col-obs">${r[23]||""}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("count-label").textContent=`${rows.length} trámites`;
+}
+
+function filtrar(){
+  const q=document.getElementById("fSearch").value.toLowerCase();
+  const est=document.getElementById("fEstado").value;
+  const aloj=document.getElementById("fAloj").value;
+  const filtered=data.filter(r=>{
+    const text=(r[1]+" "+r[2]).toLowerCase();
+    const okQ=!q||text.includes(q);
+    const okE=!est||r[20]===est;
+    const okA=!aloj||(r[21]||"").toUpperCase()===aloj.toUpperCase();
+    return okQ&&okE&&okA;
+  });
+  renderRows(filtered);
+}
+
+// Calc avg
+const avg=data.reduce((s,r)=>s+r[19],0)/data.length;
+document.getElementById("cnt-pct-avg").textContent=Math.round(avg*100)+"%";
+
+renderRows(data);
+</script>
+</body>
+</html>
