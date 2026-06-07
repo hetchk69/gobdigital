@@ -8,26 +8,6 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#eef1f7;min-height:100vh}
 
-/* ── HEADER ── */
-.header{
-  background:#fff;
-  padding:16px 2rem;
-  display:flex;align-items:center;
-  box-shadow:0 2px 12px rgba(0,0,0,.08);
-  position:relative;overflow:hidden;
-}
-.header::before{
-  content:'';position:absolute;right:0;top:0;bottom:0;
-  width:200px;
-  background:linear-gradient(135deg,transparent 30px,#1455a4 30px);
-}
-.header::after{
-  content:'';position:absolute;right:0;top:0;bottom:0;
-  width:130px;
-  background:linear-gradient(135deg,transparent 30px,#0a2d6e 30px);
-}
-.header img{height:70px;width:auto;position:relative;z-index:1}
-
 /* ── CONTAINER ── */
 .container{max-width:780px;margin:0 auto;padding:2rem 1rem 3rem}
 
@@ -228,8 +208,6 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
 @media (max-width:600px){
   .container{padding:1rem .75rem 2rem}
   .card{padding:1.1rem;border-radius:12px}
-  .header{padding:12px 1rem}
-  .header img{height:50px}
   .step-label{display:none}
   .step-circle{width:34px;height:34px;font-size:12px}
   .step-item:not(:last-child)::after{top:17px;left:calc(50% + 18px);right:calc(-50% + 18px)}
@@ -258,10 +236,7 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
 </style>
 </head>
 <body>
-
-<div class="header">
-  <img id="logo" src="logo_diger-14.png" alt="Gobierno de Honduras — DIGER">
-</div>
+<script src="header.js"></script>
 
 <div class="container">
 
@@ -583,27 +558,17 @@ function buildResumen() {
 
 function goStep(n) {
   if (n >= 2) {
-    // Institucion
     if (!getVal('inst')) { alert('Por favor seleccione una institucion.'); return; }
-    // Encargado
     if (!getVal('enc')) { alert('Por favor ingrese el nombre del encargado.'); return; }
-    // Correo
     if (!getVal('cor')) { alert('Por favor ingrese el correo institucional.'); return; }
-    // Estado actual (radio)
     if (!document.querySelector('[name=estado]:checked')) { alert('Por favor seleccione el estado actual de los tramites.'); return; }
-    // SOL migrada (radio)
     if (!document.querySelector('[name=migrada]:checked')) { alert('Por favor indique si la plataforma SOL fue migrada.'); return; }
-    // Limitante si selecciono No
     var migVal = document.querySelector('[name=migrada]:checked').value;
     if (migVal === 'No' && !getVal('limitante')) { alert('Por favor seleccione la principal limitante para la migracion.'); return; }
-    // Personal tecnico (radio)
     if (!document.querySelector('[name=personal]:checked')) { alert('Por favor indique si la institucion cuenta con personal tecnico.'); return; }
-    // Acompanamiento (radio)
     if (!document.querySelector('[name=acomp]:checked')) { alert('Por favor indique si requiere acompanamiento.'); return; }
-    // Habilidades si selecciono Si
     var acompVal = document.querySelector('[name=acomp]:checked').value;
     if (acompVal === 'Sí' && !getVal('habilidades')) { alert('Por favor seleccione el tipo de habilidades requeridas.'); return; }
-    // Al menos un miembro en equipo institucional
     var tieneEquipo = false;
     for (var i = 1; i <= eqN; i++) {
       if (getVal('ef'+i) || getVal('en'+i) || getVal('ec'+i)) { tieneEquipo = true; break; }
@@ -616,7 +581,6 @@ function goStep(n) {
   var steps = document.querySelectorAll('.step');
   for (var i = 0; i < steps.length; i++) steps[i].classList.remove('active');
   document.getElementById('step' + n).classList.add('active');
-  // Update step indicator
   var sitems = ['si1','si2','si3'];
   for (var j = 0; j < sitems.length; j++) {
     var el = document.getElementById(sitems[j]);
@@ -711,20 +675,16 @@ function reiniciar() {
   eqN = 0; addRow(); goStep(1);
 }
 
-// Radio pill click handlers
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.rpill input[type=radio]').forEach(function(input) {
     input.addEventListener('change', function() { pill(this); });
   });
-  // Cargar asistentes al cambiar institución
   document.getElementById('inst').addEventListener('change', function() {
     cargarAsistentesInst(this.value);
   });
 
   // ── RESTAURAR SESIÓN DE FUNCIONARIO ──────────────────
-  var SESSION_KEY = 'diger_sol_session';
-  var _ses = null;
-  try { _ses = JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch {}
+  var _ses = window.DIGER_SESSION;
   if (_ses && _ses.role === 'funcionario') {
     var acc = _ses.access || {};
     if (acc.te_inst) {
@@ -773,7 +733,6 @@ async function cargarAsistentesInst(inst) {
     return;
   }
 
-  // Deduplicar por correo (más reciente primero)
   var vistos = {};
   var unicos = data.filter(function(r) {
     if (vistos[r.correo]) return false;
@@ -800,7 +759,6 @@ async function cargarAsistentesInst(inst) {
     '</div>';
   }).join('');
 
-  // Guardar para importar
   window._asistentesData = unicos;
 }
 
@@ -817,7 +775,6 @@ function importarAsistente(idx) {
     '<input type="text" id="en' + eqN + '" value="' + esc(r.nombre) + '" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit">' +
     '<input type="text" id="ec' + eqN + '" value="' + esc(r.correo + (r.telefono ? ' / ' + r.telefono : '')) + '" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit">';
   cont.appendChild(d);
-  // Feedback visual en el botón
   var btn = document.querySelector('[data-idx="' + idx + '"]');
   if (btn) { btn.textContent = '✓ Importado'; btn.style.background = '#e8f0ff'; btn.disabled = true; }
 }

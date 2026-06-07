@@ -8,16 +8,6 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#eef1f7;min-height:100vh}
 
-/* ── HEADER ── */
-.header{background:#fff;padding:14px 2rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.08);position:relative;overflow:hidden}
-.header::before{content:'';position:absolute;right:0;top:0;bottom:0;width:200px;background:linear-gradient(135deg,transparent 30px,#1455a4 30px)}
-.header::after{content:'';position:absolute;right:0;top:0;bottom:0;width:130px;background:linear-gradient(135deg,transparent 30px,#0a2d6e 30px)}
-.header img{height:60px;width:auto;position:relative;z-index:1}
-.header-right{position:relative;z-index:1;display:flex;align-items:center;gap:10px}
-.admin-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.3)}
-.btn-back{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:7px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;transition:background .2s}
-.btn-back:hover{background:rgba(255,255,255,.35)}
-
 /* ── VIEWS ── */
 .view{display:none}
 .view.active{display:block;animation:fadeUp .3s ease}
@@ -164,12 +154,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
   .card{padding:1.1rem}
   .row2,.row3,.val-grid,.comp-row,.detalle-meta{grid-template-columns:1fr}
   .step-label{display:none}
-  .header{padding:12px 1rem}
-  .header img{height:46px}
-  .mem-item{grid-template-columns:1fr}
 }
 @media print{
-  .header,.step-bar,.nav,.btnp,.btns,.btn-danger,.btn-add-sec,.top-bar,.btn-rm-punto{display:none!important}
+  .nav,.btnp,.btns,.btn-danger,.btn-add-sec,.top-bar,.btn-rm-punto{display:none!important}
   .view,.fstep{display:block!important}
   body{background:#fff}
   .container{max-width:100%;padding:0}
@@ -178,14 +165,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
 </style>
 </head>
 <body>
-
-<div class="header">
-  <img src="logo_diger-14.png" alt="Gobierno de Honduras — DIGER">
-  <div class="header-right">
-    <span class="admin-badge" id="admin-badge">⚙ Administrador</span>
-    <a class="btn-back" href="index.html">← Portal</a>
-  </div>
-</div>
+<script src="header.js"></script>
 
 <div class="container">
 
@@ -459,20 +439,20 @@ var currentDetalleId = null;
 // ── AUTH ──────────────────────────────────────────────
 (function(){
   try{
-    var s = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    var s = window.DIGER_SESSION;
     if(s && s.role === 'admin'){
-      document.getElementById('admin-badge').textContent = '⚙ ' + s.email;
+      // session display handled by header.js
       renderLista();
       return;
     }
   }catch{}
-  document.body.innerHTML =
-    '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Segoe UI,sans-serif;background:#eef1f7">'+
+  document.querySelector('.container').innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:center;min-height:70vh;font-family:Segoe UI,sans-serif">'+
     '<div style="text-align:center;background:#fff;border-radius:16px;padding:2.5rem 2rem;box-shadow:0 12px 40px rgba(0,0,0,.1);max-width:380px">'+
     '<div style="font-size:40px;margin-bottom:1rem">🔒</div>'+
     '<h2 style="color:#0a2d6e;margin:0 0 .5rem">Acceso restringido</h2>'+
     '<p style="color:#6b7fa3;font-size:13px;margin-bottom:1.5rem">Este módulo es exclusivo para administradores DIGER.</p>'+
-    '<a href="index.html" style="display:inline-block;background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;padding:11px 24px;border-radius:9px;text-decoration:none;font-weight:700;font-size:14px">← Ir al portal</a>'+
+    '<a href="unidad.html" style="display:inline-block;background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;padding:11px 24px;border-radius:9px;text-decoration:none;font-weight:700;font-size:14px">← Ir al portal</a>'+
     '</div></div>';
 })();
 
@@ -613,7 +593,6 @@ document.addEventListener('DOMContentLoaded', function(){
   buildPtable(5);
   var fd=document.getElementById('g-fecha');
   if(fd) fd.valueAsDate=new Date();
-  // Un punto y un compromiso de ejemplo
   addPunto(); addCompromiso();
 });
 
@@ -769,7 +748,6 @@ function descargar(){
   generarPDF(window._txt, gv('g-inst'), gv('g-fecha'));
 }
 
-// Normaliza caracteres para que jsPDF no falle con acentos
 function normPDF(str){
   return String(str||'')
     .replace(/[ÁÀÄÂÃ]/g,'A').replace(/[áàäâã]/g,'a')
@@ -778,7 +756,7 @@ function normPDF(str){
     .replace(/[ÓÒÖÔÕ]/g,'O').replace(/[óòöôõ]/g,'o')
     .replace(/[ÚÙÜÛ]/g,'U').replace(/[úùüû]/g,'u')
     .replace(/[Ñ]/g,'N').replace(/[ñ]/g,'n')
-    .replace(/[—–]/g,'-').replace(/[«»“”]/g,'"')
+    .replace(/[—–]/g,'-').replace(/[«»""]/g,'"')
     .replace(/[·]/g,'*');
 }
 
@@ -838,13 +816,11 @@ function generarPDF(texto, inst, fecha){
       y+=bh;
     }
 
-    /* Encabezado del doc */
     header();
     doc.setTextColor(10,45,110); doc.setFontSize(15); doc.setFont('helvetica','bold');
     doc.text('MEMORIA DE REUNION', pw/2, y, {align:'center'}); y+=5;
     doc.setDrawColor(20,85,164); doc.setLineWidth(0.5); doc.line(mg,y,pw-mg,y); y+=7;
 
-    /* Parsear y renderizar */
     var SECCIONES = {
       'DATOS GENERALES':[10,45,110],
       'PARTICIPANTES':[13,140,160],
@@ -867,7 +843,6 @@ function generarPDF(texto, inst, fecha){
       }
     });
 
-    /* Pie */
     checkPage(14); y+=5;
     doc.setDrawColor(200,213,238); doc.setLineWidth(0.3); doc.line(mg,y,pw-mg,y); y+=5;
     doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(150,160,180);

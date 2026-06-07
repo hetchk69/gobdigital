@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selección de Unidad — DIGER</title>
+<style>
+:root{
+  --azul:#0a2d6e;--azul-m:#1455a4;--azul-c:#e8f0ff;
+  --gris:#eef1f7;--borde:#dde4f0;--texto:#1c2333;--muted:#64748b;
+  --verde:#16a34a;--rojo:#dc2626;--blanco:#fff;
+  --verde-d:#14532d;--morado:#5b21b6;--morado-c:#ede9fe;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--texto);background:var(--gris);min-height:100vh}
+
+/* ── CONTAINER ── */
+.container{max-width:960px;margin:0 auto;padding:2rem 1rem 3rem}
+
+/* ── WELCOME ── */
+.welcome{margin-bottom:2rem}
+.welcome h2{font-size:22px;font-weight:800;color:var(--azul);margin-bottom:.25rem}
+.welcome p{font-size:13px;color:var(--muted)}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:linear-gradient(135deg,var(--azul-c),#d5e8ff);
+  color:var(--azul);font-size:11px;font-weight:700;
+  padding:4px 12px;border-radius:20px;border:1px solid #c0d0f0;
+  margin-bottom:.75rem;
+}
+
+/* ── SECTION TITLE ── */
+.sec-title{
+  font-size:11px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:1.1rem;padding-bottom:.6rem;
+  border-bottom:2px solid var(--gris);
+  display:flex;align-items:center;gap:6px;
+}
+
+/* ── CARD ── */
+.card{
+  background:var(--blanco);border:1px solid var(--borde);
+  border-radius:14px;padding:1.4rem;margin-bottom:1.25rem;
+  box-shadow:0 2px 8px rgba(10,45,110,.06);
+}
+
+/* ── UNIT CARDS (selector) ── */
+.unit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-bottom:1.5rem}
+.unit-card{
+  background:var(--blanco);border:2px solid var(--borde);
+  border-radius:16px;padding:1.75rem 1.5rem;
+  text-decoration:none;color:var(--texto);
+  transition:all .25s;cursor:pointer;display:flex;flex-direction:column;gap:14px;
+}
+.unit-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(10,45,110,.14)}
+.unit-card.proyectos:hover{border-color:#16a34a}
+.unit-card.digitalizacion:hover{border-color:var(--azul-m)}
+.unit-icon{
+  width:56px;height:56px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+}
+.unit-icon.green{background:linear-gradient(135deg,#d1fae5,#a7f3d0)}
+.unit-icon.blue{background:linear-gradient(135deg,var(--azul-c),#d5e8ff)}
+.unit-name{font-size:17px;font-weight:800;color:var(--azul)}
+.unit-desc{font-size:12.5px;color:var(--muted);line-height:1.6}
+.unit-arrow{font-size:18px;color:var(--muted);align-self:flex-end}
+
+/* ── MODULE GRID ── */
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.mod-card{
+  background:var(--blanco);border:1.5px solid var(--borde);
+  border-radius:13px;padding:1.3rem;
+  transition:all .22s;cursor:pointer;text-decoration:none;
+  display:flex;flex-direction:column;gap:10px;
+}
+.mod-card:hover{border-color:var(--azul-m);box-shadow:0 6px 20px rgba(10,45,110,.12);transform:translateY(-2px)}
+.mod-card.disabled{opacity:.45;pointer-events:none;filter:grayscale(.5)}
+.mod-icon{
+  width:46px;height:46px;border-radius:11px;
+  background:linear-gradient(135deg,var(--azul-c),#d5e8ff);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+.mod-name{font-size:15px;font-weight:700;color:var(--azul)}
+.mod-desc{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ── BREADCRUMB ── */
+.breadcrumb{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:var(--muted);margin-bottom:1.5rem;
+}
+.breadcrumb a{color:var(--azul-m);text-decoration:none;font-weight:600}
+.breadcrumb a:hover{text-decoration:underline}
+.breadcrumb span{color:var(--muted)}
+
+/* ── ADMIN PANEL ── */
+.access-form{display:flex;gap:8px;margin-bottom:1rem}
+.access-inp{
+  flex:1;padding:9px 12px;border:1.5px solid var(--borde);border-radius:9px;
+  font-size:13px;font-family:inherit;outline:none;transition:border .2s;
+}
+.access-inp:focus{border-color:var(--azul-m)}
+.btn-add{
+  padding:9px 18px;background:linear-gradient(135deg,var(--azul-m),var(--azul));
+  color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;
+  cursor:pointer;white-space:nowrap;transition:opacity .2s;
+}
+.btn-add:hover{opacity:.9}
+.access-table{width:100%;border-collapse:collapse;font-size:13px}
+.access-table th{
+  background:var(--gris);color:var(--muted);
+  font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;padding:8px 10px;text-align:left;
+}
+.access-table td{padding:9px 10px;border-bottom:1px solid #f0f4fa;vertical-align:middle}
+.access-table tr:last-child td{border-bottom:none}
+.access-table tr:hover td{background:#fafbff}
+.email-cell{font-size:13px;color:var(--texto);font-weight:500}
+
+/* ── TOGGLES ── */
+.tog{position:relative;display:inline-block;width:38px;height:21px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{position:absolute;inset:0;background:#dde4f0;border-radius:21px;cursor:pointer;transition:.25s}
+.tog-sl::before{content:'';position:absolute;left:3px;top:3px;width:15px;height:15px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.tog input:checked+.tog-sl{background:var(--azul-m)}
+.tog input:checked+.tog-sl::before{transform:translateX(17px)}
+.perm-cell{display:flex;align-items:center;gap:7px}
+.perm-lbl{font-size:11.5px;color:var(--muted)}
+.btn-rm{
+  background:#fff;border:1.5px solid var(--borde);
+  color:var(--muted);border-radius:7px;padding:5px 10px;
+  font-size:11.5px;cursor:pointer;transition:all .2s;
+}
+.btn-rm:hover{border-color:var(--rojo);color:var(--rojo);background:#fff5f5}
+.empty{padding:1.5rem;text-align:center;color:var(--muted);font-size:13px}
+
+/* ── INST CONFIG ROW ── */
+.inst-cfg{
+  padding:4px 10px 14px 10px;background:#f5f8ff;
+}
+.inst-cfg-inner{border:1.5px solid #c8d5ee;border-radius:10px;padding:12px}
+.inst-cfg-title{font-size:11px;font-weight:700;color:#1455a4;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em}
+.inst-cfg-grid{display:grid;grid-template-columns:2fr 2fr 2fr 1fr;gap:8px}
+.inst-lbl{font-size:11px;color:#6b7fa3;display:block;margin-bottom:3px}
+.inst-inp{width:100%;padding:6px 8px;border:1.5px solid var(--borde);border-radius:8px;font-size:12px;font-family:inherit}
+
+/* ── MOBILE ── */
+@media(max-width:600px){
+  .container{padding:1rem .75rem 2rem}
+  .card{padding:1.1rem;border-radius:11px}
+  .unit-grid{grid-template-columns:1fr}
+  .mod-grid{grid-template-columns:1fr}
+  .access-form{flex-direction:column}
+  .access-table{font-size:12px}
+  .inst-cfg-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<!-- header.js will prepend the header -->
+<script src="header.js"></script>
+
+<div class="container" id="app"></div>
+
+<script>
+// ── CONSTANTS ───────────────────────────────────────────────────
+var CONFIG_KEY  = 'diger_sol_config';
+var SESSION_KEY = 'diger_sol_session';
+
+var INST_LIST = [
+  'CONVIVIENDA','COPECO','SIT','IHADFA','BANHPROVI','INPREUNAH',
+  'CNBS','INPREMA','IHTT','SEN','CONSUCOOP','CONATEL','IHCINE',
+  'SAG','SECAPPH','SRECI','SERNA','SGJD','CANATURH / IHT'
+];
+
+// Modules grouped by unit
+var UNITS = {
+  proyectos: {
+    label: 'Proyectos Especiales',
+    icon: '📁',
+    color: 'green',
+    desc: 'Reuniones, asistencia, capacitaciones y memorias institucionales.',
+    modulos: [
+      { key:'levantamiento_reunion',     label:'Levantamiento de Reunión',     icon:'👥', desc:'Registro del levantamiento de reuniones con instituciones.', url:'levantamiento_reunion.html' },
+      { key:'lista_asistencia',          label:'Lista de Asistencia',          icon:'✅', desc:'Registro de asistencia a reuniones y capacitaciones.',        url:'lista_asistencia.html' },
+      { key:'levantamiento_capacitaciones', label:'Registro de Capacitaciones',icon:'🎓', desc:'Levantamiento y seguimiento de capacitaciones realizadas.',   url:'levantamiento_capacitaciones.html' },
+      { key:'memorias_reuniones',        label:'Memorias de Reuniones',        icon:'📝', desc:'Documentación y seguimiento de memorias de reuniones.',       url:'memorias_reuniones.html' }
+    ]
+  },
+  digitalizacion: {
+    label: 'Digitalización de Trámites',
+    icon: '🖥',
+    color: 'blue',
+    desc: 'Estado técnico y checklist de digitalización de trámites SOL.',
+    modulos: [
+      { key:'tramites_estado',  label:'Trámites — Estado',  icon:'📋', desc:'Levantamiento del estado actual de trámites por institución.',    url:'tramites_estado.html' },
+      { key:'tramites_tecnica', label:'Trámites — Técnica', icon:'🔬', desc:'Ficha técnica: requisitos, flujo de actividades y racionalización.', url:'tramites_tecnica.html' }
+    ]
+  }
+};
+
+// All module keys (for admin access table)
+var ALL_MODULOS = [];
+['proyectos','digitalizacion'].forEach(function(u) {
+  UNITS[u].modulos.forEach(function(m) { ALL_MODULOS.push(m); });
+});
+
+// ── UTILS ────────────────────────────────────────────────────────
+function loadConfig() {
+  try { return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {}; } catch { return {}; }
+}
+function saveConfig(cfg) { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); }
+function getDomain(email) { return (email.split('@')[1] || '').toLowerCase(); }
+function esc(v) {
+  return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── READ SESSION ─────────────────────────────────────────────────
+// header.js already guards — DIGER_SESSION is set by it
+var ses = window.DIGER_SESSION;
+if (!ses) { window.location.replace('index.html'); }
+
+// ── ROUTING ─────────────────────────────────────────────────────
+var params = new URLSearchParams(window.location.search);
+var unitParam = params.get('u'); // 'proyectos' | 'digitalizacion' | null
+
+var app = document.getElementById('app');
+
+if (unitParam && UNITS[unitParam]) {
+  renderUnitPage(unitParam);
+} else {
+  renderSelector();
+}
+
+// ════════════════════════════════════════════════════════════════
+// UNIT SELECTOR (home page)
+// ════════════════════════════════════════════════════════════════
+function renderSelector() {
+  document.title = 'Selección de Unidad — DIGER';
+  var isAdmin = ses.role === 'admin';
+  var badge   = isAdmin ? '⚙ Administrador' : '👤 Funcionario';
+
+  var html = '<div class="welcome">' +
+    '<div class="badge">' + badge + '</div>' +
+    '<h2>Seleccione una unidad</h2>' +
+    '<p>Acceda a los módulos habilitados según su unidad de trabajo.</p>' +
+    '</div>';
+
+  html += '<div class="unit-grid">';
+  ['proyectos','digitalizacion'].forEach(function(key) {
+    var u = UNITS[key];
+    // For funcionarios, check if they have at least one module in this unit
+    var hasAccess = isAdmin;
+    if (!isAdmin) {
+      var acc = ses.access || {};
+      hasAccess = u.modulos.some(function(m) { return acc[m.key]; });
+    }
+    var disabled = hasAccess ? '' : ' style="opacity:.45;pointer-events:none;filter:grayscale(.5)"';
+    html += '<a class="unit-card ' + key + '" href="unidad.html?u=' + key + '"' + disabled + '>' +
+      '<div class="unit-icon ' + u.color + '">' + u.icon + '</div>' +
+      '<div>' +
+        '<div class="unit-name">' + u.label + '</div>' +
+        '<div class="unit-desc">' + u.desc + '</div>' +
+      '</div>' +
+      '<div class="unit-arrow">→</div>' +
+    '</a>';
+  });
+  html += '</div>';
+
+  // Admin panel
+  if (isAdmin) {
+    html += '<div class="card" id="admin-panel">' +
+      '<div class="sec-title">🔑 Gestión de accesos de funcionarios</div>' +
+      '<div class="access-form">' +
+        '<input class="access-inp" type="email" id="new-email" placeholder="correo@institucion.gob.hn">' +
+        '<button class="btn-add" onclick="agregarFuncionario()">+ Agregar</button>' +
+      '</div>' +
+      '<div id="access-err" style="font-size:12px;color:var(--rojo);margin-bottom:.75rem;display:none"></div>' +
+      '<div id="access-table-wrap">' +
+        '<table class="access-table">' +
+          '<thead><tr>' +
+            '<th>Correo</th>' +
+            ALL_MODULOS.map(function(m){return '<th style="font-size:10px">' + m.label + '</th>';}).join('') +
+            '<th></th>' +
+          '</tr></thead>' +
+          '<tbody id="access-tbody"></tbody>' +
+        '</table>' +
+        '<div class="empty" id="access-empty">No hay funcionarios registrados. Agregue uno arriba.</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  app.innerHTML = html;
+  if (isAdmin) renderTablaAccesos();
+}
+
+// ════════════════════════════════════════════════════════════════
+// UNIT PAGE (module grid for a specific unit)
+// ════════════════════════════════════════════════════════════════
+function renderUnitPage(unitKey) {
+  var u = UNITS[unitKey];
+  document.title = u.label + ' — DIGER';
+  var isAdmin = ses.role === 'admin';
+  var acc = ses.access || {};
+
+  var html = '<div class="breadcrumb">' +
+    '<a href="unidad.html">Inicio</a>' +
+    '<span>›</span>' +
+    '<span>' + u.label + '</span>' +
+  '</div>' +
+  '<div class="welcome">' +
+    '<div class="badge">' + u.icon + ' ' + u.label + '</div>' +
+    '<h2>Módulos habilitados</h2>' +
+    '<p>Seleccione el módulo al que desea acceder.</p>' +
+  '</div>' +
+  '<div class="card">' +
+    '<div class="sec-title">📂 Módulos de ' + u.label + '</div>' +
+    '<div class="mod-grid">';
+
+  var alguno = false;
+  u.modulos.forEach(function(m) {
+    var allowed = isAdmin || acc[m.key];
+    if (!allowed) return;
+    alguno = true;
+    html += '<a class="mod-card" href="' + m.url + '">' +
+      '<div class="mod-icon">' + m.icon + '</div>' +
+      '<div class="mod-name">' + m.label + '</div>' +
+      '<div class="mod-desc">' + m.desc + '</div>' +
+    '</a>';
+  });
+
+  if (!alguno) {
+    html += '<div class="empty" style="grid-column:1/-1">No tiene módulos habilitados en esta unidad. Contacte al administrador DIGER.</div>';
+  }
+
+  html += '</div></div>';
+  app.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════
+// ADMIN — ACCESS MANAGEMENT
+// ════════════════════════════════════════════════════════════════
+function agregarFuncionario() {
+  var inp = document.getElementById('new-email');
+  var err = document.getElementById('access-err');
+  err.style.display = 'none';
+  var email = inp.value.trim().toLowerCase();
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    err.textContent = 'Ingrese un correo válido.'; err.style.display = 'block'; return;
+  }
+  if (getDomain(email) === 'diger.gob.hn') {
+    err.textContent = 'Los correos @diger.gob.hn ya tienen acceso como administradores.';
+    err.style.display = 'block'; return;
+  }
+  var cfg = loadConfig();
+  if (cfg[email]) {
+    err.textContent = 'Este correo ya está registrado.'; err.style.display = 'block'; return;
+  }
+  // Initialize all module keys to false
+  var perms = {};
+  ALL_MODULOS.forEach(function(m) { perms[m.key] = false; });
+  cfg[email] = perms;
+  saveConfig(cfg);
+  inp.value = '';
+  renderTablaAccesos();
+}
+
+function renderTablaAccesos() {
+  var cfg    = loadConfig();
+  var tbody  = document.getElementById('access-tbody');
+  var empty  = document.getElementById('access-empty');
+  var emails = Object.keys(cfg);
+  tbody.innerHTML = '';
+
+  if (emails.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  emails.forEach(function(email) {
+    var perms = cfg[email];
+    var tr = document.createElement('tr');
+
+    var permCells = ALL_MODULOS.map(function(m) {
+      var checked = perms[m.key] ? 'checked' : '';
+      return '<td>' +
+        '<label class="perm-cell">' +
+          '<label class="tog"><input type="checkbox" ' + checked +
+            ' onchange="togglePerm(\'' + email + '\',\'' + m.key + '\',this.checked)">' +
+            '<span class="tog-sl"></span></label>' +
+          '<span class="perm-lbl">' + (perms[m.key] ? 'Sí' : 'No') + '</span>' +
+        '</label>' +
+      '</td>';
+    }).join('');
+
+    tr.innerHTML =
+      '<td class="email-cell">' + esc(email) + '</td>' +
+      permCells +
+      '<td><button class="btn-rm" onclick="eliminarFuncionario(\'' + email + '\')">Eliminar</button></td>';
+    tbody.appendChild(tr);
+
+    // Tramites Estado config sub-row (only if that module is enabled)
+    if (perms.tramites_estado) {
+      var trCfg = document.createElement('tr');
+      var instOpts = INST_LIST.map(function(i) {
+        return '<option value="' + i + '"' + (perms.te_inst === i ? ' selected' : '') + '>' + i + '</option>';
+      }).join('');
+      trCfg.innerHTML =
+        '<td colspan="' + (ALL_MODULOS.length + 2) + '" class="inst-cfg">' +
+          '<div class="inst-cfg-inner">' +
+            '<div class="inst-cfg-title">⚙ Institución y contacto — Trámites Estado</div>' +
+            '<div class="inst-cfg-grid">' +
+              '<div><label class="inst-lbl">Institución</label>' +
+                '<select class="inst-inp" onchange="saveTeConfig(\'' + email + '\',\'te_inst\',this.value)">' +
+                  '<option value="">— Seleccione —</option>' + instOpts +
+                '</select></div>' +
+              '<div><label class="inst-lbl">Encargado</label>' +
+                '<input class="inst-inp" type="text" value="' + esc(perms.te_enc||'') + '" onchange="saveTeConfig(\'' + email + '\',\'te_enc\',this.value)" placeholder="Nombre completo"></div>' +
+              '<div><label class="inst-lbl">Correo institucional</label>' +
+                '<input class="inst-inp" type="email" value="' + esc(perms.te_cor||'') + '" onchange="saveTeConfig(\'' + email + '\',\'te_cor\',this.value)" placeholder="nombre@inst.gob.hn"></div>' +
+              '<div><label class="inst-lbl">Celular</label>' +
+                '<input class="inst-inp" type="text" value="' + esc(perms.te_cel||'') + '" onchange="saveTeConfig(\'' + email + '\',\'te_cel\',this.value)" placeholder="+504 9999-9999"></div>' +
+            '</div>' +
+          '</div>' +
+        '</td>';
+      tbody.appendChild(trCfg);
+    }
+  });
+}
+
+function togglePerm(email, modulo, val) {
+  var cfg = loadConfig();
+  if (!cfg[email]) return;
+  cfg[email][modulo] = val;
+  saveConfig(cfg);
+  renderTablaAccesos();
+}
+
+function eliminarFuncionario(email) {
+  if (!confirm('¿Eliminar el acceso de ' + email + '?')) return;
+  var cfg = loadConfig();
+  delete cfg[email];
+  saveConfig(cfg);
+  renderTablaAccesos();
+}
+
+function saveTeConfig(email, field, val) {
+  var cfg = loadConfig();
+  if (!cfg[email]) return;
+  cfg[email][field] = val;
+  saveConfig(cfg);
+}
+</script>
+</body>
+</html>
