@@ -500,6 +500,7 @@ input[type=file].hidden{display:none}
     </div>
     <div class="nav">
       <button class="btns" onclick="goStep(1)">← Anterior</button>
+      <button class="btns" onclick="guardarBorrador(2)" style="border-color:#16a34a;color:#16a34a" id="btn-save2">💾 Guardar</button>
       <button class="btnp" onclick="goStep(3)">Continuar →</button>
     </div>
   </div>
@@ -556,6 +557,7 @@ input[type=file].hidden{display:none}
     </div>
     <div class="nav">
       <button class="btns" onclick="goStep(2)">← Anterior</button>
+      <button class="btns" onclick="guardarBorrador(3)" style="border-color:#16a34a;color:#16a34a" id="btn-save3">💾 Guardar</button>
       <button class="btnp" onclick="goStep(4)">Continuar →</button>
     </div>
   </div>
@@ -602,6 +604,7 @@ input[type=file].hidden{display:none}
     </div>
     <div class="nav">
       <button class="btns" onclick="goStep(3)">← Anterior</button>
+      <button class="btns" onclick="guardarBorrador(4)" style="border-color:#16a34a;color:#16a34a" id="btn-save4">💾 Guardar</button>
       <button class="btnp" onclick="goStep(5)">Revisar y enviar →</button>
     </div>
   </div>
@@ -942,13 +945,17 @@ async function guardarGeneral(){
   var btn = document.getElementById('btn-guardar-gen');
   btn.disabled = true; btn.textContent = 'Guardando...';
 
-  var datos = {
+  // Preservar datos cap existentes al actualizar paso 1
+  var datosExistentes = {};
+  if(currentId && currentReunion) { try{ datosExistentes = JSON.parse(currentReunion.tema||'{}'); }catch{} }
+
+  var datos = Object.assign({}, datosExistentes, {
     modalidad: modalidad,
     modalidad_otro: modalidad === 'Otro' ? gv('g-modalidad-otro') : '',
     institucion_beneficiaria: inst,
     tipo_cap: tipo,
     tipo_cap_otro: tipo === 'Otro' ? gv('g-tipo-otro') : ''
-  };
+  });
 
   var id = currentId || genId();
 
@@ -970,13 +977,14 @@ async function guardarGeneral(){
     }
     currentId = id;
   } else {
-    await sb.from('reuniones').update({
+    var {data:updated} = await sb.from('reuniones').update({
       titulo: titulo,
       tema  : JSON.stringify(datos),
       fecha : fecha,
       hora  : gv('g-hora'),
       lugar : gv('g-lugar')
-    }).eq('id', currentId);
+    }).eq('id', currentId).select().single();
+    if(updated) currentReunion = updated;
   }
 
   btn.disabled=false; btn.textContent='✔ Guardado';
@@ -1028,20 +1036,24 @@ async function abrirDetalle(id){
   document.getElementById('det-qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(linkUrl);
   document.getElementById('btn-toggle-estado').textContent = r.activa ? 'Cerrar formulario' : 'Reabrir formulario';
 
-  // Datos de capacitación guardados
-  var capData = null;
-  try { capData = JSON.parse(localStorage.getItem('diger_cap_' + id)); } catch{}
+  // Datos de capacitación desde Supabase
+  var cap = datos.cap || null;
   var capEl = document.getElementById('cap-data-content');
-  if(capData){
+  if(cap && cap.tema){
+    var pct_completado = [cap.tema,cap.ep_nombre||cap.fac_nombre,cap.r_convocados,cap.r_asistentes,cap.val_diger].filter(Boolean).length;
     capEl.innerHTML =
       '<div class="res-section"><h4>Capacitación</h4><div class="res-grid">' +
-        '<div class="res-row">Tema: <span>'+esc(capData.tema||'—')+'</span></div>' +
-        '<div class="res-row">Facilitador: <span>'+esc(capData.fac_nombre||'—')+'</span></div>' +
-        '<div class="res-row">Convocados: <span>'+esc(capData.convocados||'—')+'</span></div>' +
-        '<div class="res-row">Asistentes: <span>'+esc(capData.asistentes||'—')+'</span></div>' +
-        '<div class="res-row">% Asistencia: <span>'+esc(capData.pct||'—')+'</span></div>' +
-        '<div class="res-row">Satisfacción: <span>'+esc(capData.satisfaccion?capData.satisfaccion+'%':'—')+'</span></div>' +
-      '</div></div>';
+        '<div class="res-row">Tema: <span>'+esc(cap.tema||'—')+'</span></div>' +
+        '<div class="res-row">Facilitador: <span>'+esc(cap.fac_nombre||'—')+'</span></div>' +
+        '<div class="res-row">Convocados: <span>'+esc(cap.r_convocados||'—')+'</span></div>' +
+        '<div class="res-row">Asistentes: <span>'+esc(cap.r_asistentes||'—')+'</span></div>' +
+        '<div class="res-row">% Asistencia: <span>'+esc(cap.r_pct||'—')+'</span></div>' +
+        '<div class="res-row">Satisfacción: <span>'+(cap.r_satisfaccion?cap.r_satisfaccion+'%':'—')+'</span></div>' +
+        (cap.compromisos&&cap.compromisos.filter(Boolean).length?'<div class="res-row" style="grid-column:1/-1">Compromisos: <span>'+cap.compromisos.filter(Boolean).join(' / ')+'</span></div>':'')+
+      '</div></div>' +
+      '<div style="margin-top:.5rem"><span style="font-size:11px;color:#16a34a;font-weight:700">✓ Borrador guardado</span></div>';
+  } else {
+    capEl.innerHTML = '<p style="font-size:13px;color:#9aadcc">Sin datos de capacitación guardados aún.</p>';
   }
 
   // Cargar asistencias
@@ -1121,11 +1133,11 @@ async function eliminarEvento(){
 }
 
 function irAFormulatioCompleto(){
-  // Cargar datos del evento en el form y ir al paso 2
   if(!currentReunion) return;
   var r = currentReunion;
   var datos = {}; try{ datos = JSON.parse(r.tema||'{}'); }catch{}
 
+  // ── Paso 1: campos básicos ──
   document.getElementById('g-titulo').value = r.titulo || '';
   document.getElementById('g-fecha').value = r.fecha || '';
   document.getElementById('g-hora').value = r.hora || '';
@@ -1136,7 +1148,11 @@ function irAFormulatioCompleto(){
   if(datos.tipo_cap === 'Otro') { document.getElementById('g-tipo-otro').value = datos.tipo_cap_otro||''; toggleTipoOtro(); }
   if(datos.modalidad === 'Otro') { document.getElementById('g-modalidad-otro').value = datos.modalidad_otro||''; toggleModalidadOtro(); }
 
-  // Mostrar QR existente
+  // ── Pasos 2-4: datos de capacitación guardados ──
+  var cap = datos.cap || {};
+  cargarDatosCap(cap);
+
+  // ── QR existente ──
   var base = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
   var linkUrl = base + 'proyectos_especiales.html?reg=' + currentId;
   document.getElementById('qr-link-inp').value = linkUrl;
@@ -1145,10 +1161,122 @@ function irAFormulatioCompleto(){
   document.getElementById('btn-guardar-gen').style.display = 'none';
   document.getElementById('btn-sig1').style.display = 'inline-flex';
 
-  document.getElementById('form-titulo').textContent = 'Completar registro';
+  document.getElementById('form-titulo').textContent = 'Editar registro';
   cambiarVista('view-form');
   goStep(2);
 }
+
+// ── Carga todos los campos de pasos 2-4 desde objeto cap ──
+function cargarDatosCap(cap){
+  if(!cap) return;
+  sv('cap-tema',     cap.tema||'');
+  sv('cap-objetivo', cap.objetivo||'');
+  sv('ep-nombre',    cap.ep_nombre||'');
+  sv('ep-cargo',     cap.ep_cargo||'');
+  sv('ep-correo',    cap.ep_correo||'');
+  sv('ep-tel',       cap.ep_tel||'');
+  sv('fac-nombre',   cap.fac_nombre||'');
+  sv('fac-cargo',    cap.fac_cargo||'');
+  sv('fac-correo',   cap.fac_correo||'');
+  sv('docs-recursos',cap.docs_recursos||'');
+  sv('r-convocados', cap.r_convocados||'');
+  sv('r-asistentes', cap.r_asistentes||'');
+  sv('r-satisfaccion',cap.r_satisfaccion||'');
+  sv('val-diger',    cap.val_diger||'');
+  sv('val-inst',     cap.val_inst||'');
+  // Compromisos
+  var coms = cap.compromisos || [];
+  ['com1','com2','com3','com4'].forEach(function(id,i){ sv(id, coms[i]||''); });
+  // Contenido
+  var cont = cap.contenido || [];
+  contN = Math.max(4, cont.length);
+  var ul = document.getElementById('contenido-list');
+  ul.innerHTML = '';
+  for(var i=0;i<contN;i++){
+    var li=document.createElement('li');
+    li.innerHTML='<span>'+(i+1)+'.</span><input type="text" id="cont'+(i+1)+'" placeholder="Punto de contenido" value="'+esc(cont[i]||'')+'">';
+    ul.appendChild(li);
+  }
+  // Participantes manuales
+  pN=0;
+  document.getElementById('ptbody').innerHTML='';
+  var parts = cap.participantes || [];
+  if(parts.length) {
+    parts.forEach(function(p,i){
+      addParticipanteRow(i+1);
+      sv('pn'+(i+1), p.nombre||'');
+      sv('pc'+(i+1), p.cargo||'');
+      sv('pe'+(i+1), p.correo||'');
+      sv('pt'+(i+1), p.tel||'');
+      sv('pf'+(i+1), p.firma||'');
+    });
+  } else {
+    buildPtable(8);
+  }
+  // Recalcular % asistencia
+  calcPct();
+}
+
+// ── Colecta todos los campos en un objeto cap ──
+function colectarDatosCap(){
+  var cont=[], parts=[];
+  for(var i=1;i<=contN;i++){ var v=gv('cont'+i); if(v) cont.push(v); }
+  for(var j=1;j<=pN;j++){
+    var n=gv('pn'+j);
+    if(n) parts.push({nombre:n,cargo:gv('pc'+j),correo:gv('pe'+j),tel:gv('pt'+j),firma:gv('pf'+j)});
+  }
+  return {
+    tema:        gv('cap-tema'),
+    objetivo:    gv('cap-objetivo'),
+    contenido:   cont,
+    ep_nombre:   gv('ep-nombre'),
+    ep_cargo:    gv('ep-cargo'),
+    ep_correo:   gv('ep-correo'),
+    ep_tel:      gv('ep-tel'),
+    fac_nombre:  gv('fac-nombre'),
+    fac_cargo:   gv('fac-cargo'),
+    fac_correo:  gv('fac-correo'),
+    participantes: parts,
+    docs_recursos: gv('docs-recursos'),
+    r_convocados:  gv('r-convocados'),
+    r_asistentes:  gv('r-asistentes'),
+    r_pct:         gv('r-pct'),
+    r_satisfaccion:gv('r-satisfaccion'),
+    compromisos:   [gv('com1'),gv('com2'),gv('com3'),gv('com4')],
+    val_diger:     gv('val-diger'),
+    val_inst:      gv('val-inst'),
+    guardado_en:   new Date().toLocaleString('es-HN')
+  };
+}
+
+// ── Guarda datos cap en Supabase ──
+async function guardarDatosCap(){
+  if(!currentId || !currentReunion) return false;
+  var datosActuales = {}; try{ datosActuales = JSON.parse(currentReunion.tema||'{}'); }catch{}
+  datosActuales.cap = colectarDatosCap();
+  var {data:updated, error} = await sb.from('reuniones')
+    .update({tema: JSON.stringify(datosActuales)})
+    .eq('id', currentId).select().single();
+  if(!error && updated) currentReunion = updated;
+  return !error;
+}
+
+// ── Botón guardar borrador por paso ──
+async function guardarBorrador(paso){
+  var btnId = 'btn-save'+paso;
+  var btn = document.getElementById(btnId);
+  if(btn){ btn.textContent='Guardando...'; btn.disabled=true; }
+  var ok = await guardarDatosCap();
+  if(btn){
+    btn.disabled=false;
+    btn.textContent = ok ? '✓ Guardado' : '✗ Error';
+    btn.style.color = ok ? '#16a34a' : '#dc2626';
+    setTimeout(function(){ btn.textContent='💾 Guardar'; btn.style.color='#16a34a'; }, 2500);
+  }
+}
+
+// util para setear value
+function sv(id,val){ var el=document.getElementById(id); if(el) el.value=val; }
 
 // ── EXCEL ASISTENCIAS ─────────────────────────────────────────
 function descargarExcelAsis(){
@@ -1346,23 +1474,18 @@ function buildTexto(){
 }
 
 // ── ENVIAR ────────────────────────────────────────────────────
-function enviarRegistro(){
+async function enviarRegistro(){
   var btn = document.getElementById('btn-enviar');
-  btn.textContent='Enviando...'; btn.disabled=true;
+  btn.textContent='Guardando...'; btn.disabled=true;
+
+  // Guardar en Supabase primero
+  await guardarDatosCap();
+
   var txt = buildTexto();
   window._lastTxt = txt;
 
-  // Guardar en localStorage
-  var capData = {
-    tema: gv('cap-tema'), objetivo: gv('cap-objetivo'),
-    fac_nombre: gv('fac-nombre'), fac_cargo: gv('fac-cargo'),
-    convocados: gv('r-convocados'), asistentes: gv('r-asistentes'),
-    pct: gv('r-pct'), satisfaccion: gv('r-satisfaccion'),
-    fecha_guardado: new Date().toLocaleString('es-HN')
-  };
-  if(currentId) localStorage.setItem('diger_cap_'+currentId, JSON.stringify(capData));
-
   var datos = {}; try{ datos = JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
+  btn.textContent='Enviando...';
   emailjs.send('service_ddpjb4o','template_56ilb2e',{
     institucion: gv('g-inst')||datos.institucion_beneficiaria||'',
     resumen: txt
