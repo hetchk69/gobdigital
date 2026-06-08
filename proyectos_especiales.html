@@ -247,6 +247,7 @@ input[type=file].hidden{display:none}
       </div>
       <div class="pub-field"><label>Nombre completo *</label><input type="text" id="pub-nombre" placeholder="Ingrese su nombre completo" autocomplete="name"></div>
       <div class="pub-field"><label>Correo electrónico *</label><input type="email" id="pub-correo" placeholder="correo@institución.gob.hn" autocomplete="email"></div>
+      <div class="pub-field"><label>Cargo</label><input type="text" id="pub-cargo" placeholder="Cargo o función que desempeña"></div>
       <div class="pub-field"><label>Institución</label><input type="text" id="pub-inst" placeholder="Nombre de su institución"></div>
       <div class="pub-field"><label>Teléfono</label><input type="tel" id="pub-tel" placeholder="+504 ????-????"></div>
       <div class="err-msg" id="pub-err"></div>
@@ -418,7 +419,7 @@ input[type=file].hidden{display:none}
     </div>
     <div class="tbl-wrap">
       <table class="atbl">
-        <thead><tr><th>N.</th><th>Nombre</th><th>Correo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th><th></th></tr></thead>
+        <thead><tr><th>N.</th><th>Nombre</th><th>Correo</th><th>Cargo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th><th></th></tr></thead>
         <tbody id="det-tbody"></tbody>
       </table>
       <div class="empty-row" id="det-empty">Sin registros capturados aún. Comparta el QR con los participantes.</div>
@@ -463,20 +464,7 @@ input[type=file].hidden{display:none}
     </table>
   </div>
 
-  <!-- ═══ SECCIÓN 4: PARTICIPANTES MANUALES ═══ -->
-  <div class="card">
-    <div class="stitle">3. 👥 Lista de Participantes (registro manual)</div>
-    <p style="font-size:12px;color:#9aadcc;margin-bottom:10px">Los participantes registrados vía QR aparecen en la lista de asistencia de arriba. Aquí agregue a quienes no usaron el QR.</p>
-    <div style="overflow-x:auto">
-      <table class="ptable">
-        <thead><tr><th>N.</th><th>Nombre</th><th>Cargo</th><th>Correo Electrónico</th><th>Teléfono</th><th>Firma</th></tr></thead>
-        <tbody id="ptbody"></tbody>
-      </table>
-    </div>
-    <div style="margin-top:10px">
-      <button onclick="addParticipante()" style="padding:7px 16px;background:#fff;border:1.5px solid #c8d5ee;border-radius:8px;color:#6b7fa3;font-size:12px;cursor:pointer;font-weight:700" onmouseover="this.style.borderColor='#1455a4';this.style.color='#1455a4'" onmouseout="this.style.borderColor='#c8d5ee';this.style.color='#6b7fa3'">+ Agregar fila</button>
-    </div>
-  </div>
+  <!-- Sección de participantes manuales eliminada — se usa la lista de asistencia QR -->
 
   <!-- ═══ SECCIÓN 5: EVIDENCIA FOTOGRÁFICA ═══ -->
   <div class="card">
@@ -660,6 +648,7 @@ var pN = 0, contN = 4;
 async function registrarAsistencia(){
   var nombre = (document.getElementById('pub-nombre').value||'').trim();
   var correo = (document.getElementById('pub-correo').value||'').trim();
+  var cargo  = (document.getElementById('pub-cargo').value||'').trim();
   var inst   = (document.getElementById('pub-inst').value||'').trim();
   var tel    = (document.getElementById('pub-tel').value||'').trim();
   var err    = document.getElementById('pub-err');
@@ -670,7 +659,7 @@ async function registrarAsistencia(){
   btn.disabled=true; btn.textContent='Registrando...';
   var {error} = await sb.from('asistencias').insert({
     reunion_id: window._REG_ID, nombre, correo,
-    institucion: inst||'—', telefono: tel||'—'
+    cargo: cargo||'—', institucion: inst||'—', telefono: tel||'—'
   });
   btn.disabled=false; btn.textContent='✔ Registrar mi asistencia';
   if(error){ err.textContent='Error al registrar: '+error.message; err.style.display='block'; return; }
@@ -942,7 +931,7 @@ function renderTabla(){
     var dt=r.created_at?new Date(r.created_at).toLocaleString('es-HN'):'—';
     return '<tr>'+
       '<td>'+(i+1)+'</td><td>'+esc(r.nombre)+'</td><td>'+esc(r.correo)+'</td>'+
-      '<td>'+esc(r.institucion)+'</td><td>'+esc(r.telefono)+'</td><td>'+dt+'</td>'+
+      '<td>'+esc(r.cargo||'—')+'</td><td>'+esc(r.institucion)+'</td><td>'+esc(r.telefono)+'</td><td>'+dt+'</td>'+
       '<td><button class="btn-danger" style="padding:3px 8px;font-size:11px" onclick="eliminarRec('+r.id+')">×</button></td>'+
     '</tr>';
   }).join('');
@@ -1042,11 +1031,11 @@ function descargarExcelAsis(){
   var r=currentReunion||{titulo:'',tema:'{}'};
   var rows=asisCache.map(function(rec,i){
     var dt=rec.created_at?new Date(rec.created_at).toLocaleString('es-HN'):'—';
-    return '<tr><td>'+(i+1)+'</td><td>'+esc(rec.nombre)+'</td><td>'+esc(rec.correo)+'</td><td>'+esc(rec.institucion)+'</td><td>'+esc(rec.telefono)+'</td><td>'+dt+'</td></tr>';
+    return '<tr><td>'+(i+1)+'</td><td>'+esc(rec.nombre)+'</td><td>'+esc(rec.correo)+'</td><td>'+esc(rec.cargo||'—')+'</td><td>'+esc(rec.institucion)+'</td><td>'+esc(rec.telefono)+'</td><td>'+dt+'</td></tr>';
   }).join('');
   var html='<html><head><meta charset="utf-8"><style>table{border-collapse:collapse;font-family:Segoe UI}th,td{border:1px solid #d0d8e8;padding:8px}th{background:#1455a4;color:#fff}</style></head>'+
     '<body><h2>Lista de asistencia — '+esc(r.titulo)+'</h2>'+
-    '<table><thead><tr><th>No.</th><th>Nombre</th><th>Correo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>';
+    '<table><thead><tr><th>No.</th><th>Nombre</th><th>Correo</th><th>Cargo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>';
   var blob=new Blob([html],{type:'application/vnd.ms-excel'});
   var a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
