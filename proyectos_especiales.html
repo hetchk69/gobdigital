@@ -1314,7 +1314,6 @@ async function descargarPDF(){
   var datos={}; try{ datos=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
   var cap=datos.cap||{};
   var logo=await urlToBase64('logo_diger-14.png');
-  if(logo) logo=await comprimirParaPDF(logo,600,0.9);
   var foto1=_foto1_url||'', foto2=_foto2_url||'';
   if(foto1&&!foto1.startsWith('data:')) foto1=(await urlToBase64(foto1))||'';
   if(foto2&&!foto2.startsWith('data:')) foto2=(await urlToBase64(foto2))||'';
