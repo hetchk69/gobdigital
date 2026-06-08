@@ -83,19 +83,18 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
 .rgroup{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
 .rgroup-center{justify-content:center}
 .rpill{
-  display:flex;align-items:center;gap:7px;
+  display:flex;align-items:center;gap:6px;
   padding:8px 16px;border:1.5px solid #e2e8f0;
   border-radius:25px;cursor:pointer;font-size:13px;
-  transition:all .2s;user-select:none;background:#fafbfd;
-  font-weight:500;
+  transition:border-color .15s, background .15s, color .15s;
+  user-select:none;background:#fafbfd;font-weight:500;
 }
 .rpill:hover{border-color:#1455a4;background:#f0f5ff}
 .rpill.on{
-  border-color:#1455a4;background:linear-gradient(135deg,#e8f0ff,#ddeeff);
+  border-color:#1455a4;background:#e8f0ff;
   color:#0a2d6e;font-weight:600;
-  box-shadow:0 2px 8px rgba(20,85,164,.15);
 }
-.rpill input{accent-color:#1455a4;cursor:pointer}
+.rpill input{display:none}
 
 /* ── MEMBER CARD ── */
 .miembro{
