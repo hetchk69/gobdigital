@@ -51,6 +51,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
 /* MAIN LAYOUT */
 .main-layout{display:grid;grid-template-columns:1fr 360px;gap:1.25rem;align-items:start}
+.main-layout.all-view{grid-template-columns:1fr}
 @media(max-width:900px){.main-layout{grid-template-columns:1fr}}
 
 /* TRAMITES SIDE */
@@ -485,6 +486,7 @@ function seleccionar(inst){
   document.getElementById('placeholder').style.display='none';
   const isAll = inst==='__ALL__';
   document.getElementById('notasCol').style.display = isAll ? 'none' : '';
+  document.getElementById('mainLayout').classList.toggle('all-view', isAll);
   renderInfoBar(inst);
   renderTramites(inst);
   if(!isAll){
