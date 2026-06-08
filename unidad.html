@@ -428,7 +428,7 @@ function renderUnitPage(unitKey) {
     '<div class="welcome">' +
       '<div class="badge">' + u.label + '</div>' +
       '<h2>Módulos habilitados</h2>' +
-      '<p>' + visibles.length + ' documento' + (visibles.length !== 1 ? 's' : '') + ' disponible' + (visibles.length !== 1 ? 's' : '') + ' · Haga clic en una fila para ver versiones por institución.</p>' +
+      '<p>Seleccione el módulo al que desea acceder.</p>' +
     '</div>' +
     '<div class="card" style="padding:0;overflow:hidden">' +
       '<div style="padding:1rem 1.25rem .5rem;border-bottom:1px solid var(--borde)">' +
@@ -453,41 +453,18 @@ function renderUnitPage(unitKey) {
     html += '<div class="mod-list">';
 
     visibles.forEach(function(m, idx) {
-      var hasVers = m.versiones && m.versiones.length > 0;
-
-      // Main row
       html +=
         '<div class="mod-row" id="modrow-' + idx + '">' +
-          '<div class="mod-row-head" onclick="toggleModRow(' + idx + ', ' + hasVers + ')">' +
+          '<div class="mod-row-head" style="cursor:default">' +
             '<div class="mod-row-icon" style="color:var(--azul-m)">' + (SVGS[m.icon]||m.icon) + '</div>' +
-            '<div class="mod-row-name">' + esc(m.label) +
-              '<small>' + (m.versiones ? m.versiones.length + ' institución' + (m.versiones.length !== 1 ? 'es' : '') : 'Global') + '</small>' +
-            '</div>' +
+            '<div class="mod-row-name">' + esc(m.label) + '</div>' +
             '<div><span class="mod-type-badge ' + (m.tipoCls||'') + '">' + esc(m.tipo||'Módulo') + '</span></div>' +
             '<div class="mod-row-desc">' + esc(m.desc) + '</div>' +
             '<div class="mod-row-actions">' +
-              '<a class="btn-open" href="' + m.url + '" onclick="event.stopPropagation()">Abrir →</a>' +
-              (hasVers ? '<span class="mod-chevron" id="chev-' + idx + '">▾</span>' : '<span style="width:20px"></span>') +
+              '<a class="btn-open" href="' + m.url + '">Abrir →</a>' +
             '</div>' +
-          '</div>';
-
-      // Versions panel
-      if (hasVers) {
-        html += '<div class="mod-versions" id="modver-' + idx + '">' +
-          '<div class="versions-label">Instituciones con versión en este módulo</div>' +
-          '<div class="versions-grid">';
-
-        m.versiones.forEach(function(inst) {
-          var instParam = encodeURIComponent(inst);
-          html += '<a class="ver-chip activo" href="' + m.url + '?inst=' + instParam + '" onclick="event.stopPropagation()">' +
-            '<span class="dot"></span>' + esc(inst) +
-          '</a>';
-        });
-
-        html += '</div></div>';
-      }
-
-      html += '</div>'; // mod-row
+          '</div>' +
+        '</div>';
     });
 
     html += '</div>'; // mod-list
