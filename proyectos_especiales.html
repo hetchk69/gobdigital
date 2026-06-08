@@ -607,7 +607,7 @@ var currentId     = null;
 var currentReunion= null;
 var realtimeCh    = null;
 var asisCache     = [];
-var pN = 0, contN = 4;
+var contN = 4;
 
 // ─────────────────────────────────────────────────────────────
 // MODO PÚBLICO
@@ -975,14 +975,13 @@ async function eliminarEvento(){
 
 // ── DATOS CAP ─────────────────────────────────────────────────
 function colectarDatosCap(){
-  var cont=[], parts=[];
+  var cont=[];
   for(var i=1;i<=contN;i++){ var v=gv('cont'+i); if(v) cont.push(v); }
-  for(var j=1;j<=pN;j++){ var n=gv('pn'+j); if(n) parts.push({nombre:n,cargo:gv('pc'+j),correo:gv('pe'+j),tel:gv('pt'+j),firma:gv('pf'+j)}); }
   return {
     tema:gv('cap-tema'),objetivo:gv('cap-objetivo'),contenido:cont,
     ep_nombre:gv('ep-nombre'),ep_cargo:gv('ep-cargo'),ep_correo:gv('ep-correo'),ep_tel:gv('ep-tel'),
     fac_nombre:gv('fac-nombre'),fac_cargo:gv('fac-cargo'),fac_correo:gv('fac-correo'),
-    participantes:parts,docs_recursos:gv('docs-recursos'),
+    participantes:[],docs_recursos:gv('docs-recursos'),
     r_convocados:gv('r-convocados'),r_asistentes:gv('r-asistentes'),r_pct:gv('r-pct'),r_satisfaccion:gv('r-satisfaccion'),
     compromisos:[gv('com1'),gv('com2'),gv('com3'),gv('com4')],
     val_diger:gv('val-diger'),val_inst:gv('val-inst'),
@@ -1010,18 +1009,6 @@ function cargarDatosCap(cap){
     var li=document.createElement('li');
     li.innerHTML='<span>'+(i+1)+'.</span><input type="text" id="cont'+(i+1)+'" placeholder="Punto de contenido" value="'+esc(cont[i]||'')+'">';
     ul.appendChild(li);
-  }
-  // Participantes
-  pN=0; document.getElementById('ptbody').innerHTML='';
-  var parts=cap.participantes||[];
-  if(parts.length){
-    parts.forEach(function(p,i){
-      addParticipanteRow(i+1);
-      sv('pn'+(i+1),p.nombre||''); sv('pc'+(i+1),p.cargo||'');
-      sv('pe'+(i+1),p.correo||''); sv('pt'+(i+1),p.tel||''); sv('pf'+(i+1),p.firma||'');
-    });
-  } else {
-    buildPtable(8);
   }
   calcPct();
 }
@@ -1053,20 +1040,7 @@ function descargarQR(){
   a.href=document.getElementById('qr-img').src; a.download='QR_DIGER_'+Date.now()+'.png'; a.click();
 }
 
-// ── PARTICIPANTES ─────────────────────────────────────────────
-function buildPtable(n){ document.getElementById('ptbody').innerHTML=''; pN=0; for(var i=1;i<=n;i++) addParticipanteRow(i); }
-function addParticipante(){ addParticipanteRow(pN+1); }
-function addParticipanteRow(n){
-  pN=Math.max(pN,n);
-  var tr=document.createElement('tr');
-  tr.innerHTML='<td>'+n+'</td>'+
-    '<td><input type="text" id="pn'+n+'" placeholder="Nombre completo"></td>'+
-    '<td><input type="text" id="pc'+n+'" placeholder="Cargo"></td>'+
-    '<td><input type="email" id="pe'+n+'" placeholder="correo@inst.gob.hn"></td>'+
-    '<td><input type="text" id="pt'+n+'" placeholder="+504"></td>'+
-    '<td><input type="text" id="pf'+n+'"></td>';
-  document.getElementById('ptbody').appendChild(tr);
-}
+// participantes manuales eliminados
 
 // ── FOTO ──────────────────────────────────────────────────────
 function previewFoto(inp,imgId,phId){
@@ -1132,7 +1106,6 @@ function buildTexto(){
   var tipoDisplay=gv('g-tipo')||datos.tipo_cap||'—'; if(tipoDisplay==='Otro') tipoDisplay=gv('g-tipo-otro')||datos.tipo_cap_otro||'Otro';
   var modalDisplay=gv('g-modalidad')||datos.modalidad||'—'; if(modalDisplay==='Otro') modalDisplay=gv('g-modalidad-otro')||datos.modalidad_otro||'Otro';
   var fecha=new Date().toLocaleDateString('es-HN')+' '+new Date().toLocaleTimeString('es-HN');
-  var partsLn=''; for(var i=1;i<=pN;i++){ var n=gv('pn'+i); if(n) partsLn+='  '+i+'. '+n+' | '+gv('pc'+i)+' | '+gv('pe'+i)+'\n'; }
   var contLn=''; for(var j=1;j<=contN;j++){ var pt=gv('cont'+j); if(pt) contLn+='  '+j+'. '+pt+'\n'; }
   return 'FORMATO INSTITUCIONAL DE REGISTRO DE CAPACITACIONES - DIGER\n=============================================================\n\n'+
     '1. GENERALES\n-------------------------------------------------------------\n'+
@@ -1143,7 +1116,7 @@ function buildTexto(){
     'Tema: '+gv('cap-tema')+'\nObjetivo: '+gv('cap-objetivo')+'\n\nContenido:\n'+(contLn||'  —\n')+'\n'+
     'Enlace principal: '+gv('ep-nombre')+' | '+gv('ep-cargo')+' | '+gv('ep-correo')+'\n'+
     'Facilitador: '+gv('fac-nombre')+' | '+gv('fac-cargo')+' | '+gv('fac-correo')+'\n\n'+
-    '3. PARTICIPANTES (registro manual)\n-------------------------------------------------------------\n'+(partsLn||'  (Ver lista de asistencia QR)\n')+'\n'+
+    '3. PARTICIPANTES\n-------------------------------------------------------------\n  (Ver lista de asistencia QR)\n'+
     '5. DOCUMENTOS Y RECURSOS\n-------------------------------------------------------------\n'+(gv('docs-recursos')||'—')+'\n\n'+
     '6. RESULTADOS\n-------------------------------------------------------------\n'+
     'Convocados: '+(gv('r-convocados')||'—')+'\nAsistentes: '+(gv('r-asistentes')||'—')+'\n'+
@@ -1198,7 +1171,6 @@ function reiniciarForm(){
     '<li><span>2.</span><input type="text" id="cont2" placeholder="Punto de contenido"></li>'+
     '<li><span>3.</span><input type="text" id="cont3" placeholder="Punto de contenido"></li>'+
     '<li><span>4.</span><input type="text" id="cont4" placeholder="Punto de contenido"></li>';
-  pN=0; buildPtable(8);
   var fd=document.getElementById('g-fecha'); if(fd) fd.valueAsDate=new Date();
   var btn=document.getElementById('btn-guardar-gen');
   if(btn){btn.textContent='💾 Guardar y generar QR';btn.disabled=false;btn.style.background='';}
