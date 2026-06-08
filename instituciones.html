@@ -149,6 +149,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   .tram-body{display:block!important}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <!-- header.js prepends the shared DIGER header -->
@@ -325,23 +326,33 @@ const NOTAS_INICIALES = {
   "IHCINE":    [{fecha:"2026-06-03",nota:"De momento el instituto está suprimido, en espera de directrices para traslado institucional a SECAPPH",autor:"DIGER"}],
 };
 
-// ── STORAGE TRAMITES ─────────────────────────────────────────────
-const LS_TRAM = 'diger_inst_tram_v1';
-const LS_NOTAS = 'diger_inst_notas_v1';
+// ── SUPABASE ─────────────────────────────────────────────────────
+const SUPA_URL = 'https://gnpvqiyantdtksfvqtqk.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-function loadTram(){ try{ return JSON.parse(localStorage.getItem(LS_TRAM))||{}; }catch{ return {}; } }
-function saveTram(s){ localStorage.setItem(LS_TRAM, JSON.stringify(s)); }
+let tramCache = {};
+let notasCache = {};
+let _pendingTramSave = false;
+let _pendingNotasSave = false;
+
+function loadTram(){ return tramCache; }
+function saveTram(s){
+  tramCache = s;
+  _pendingTramSave = true;
+  sb.from('diger_tram').upsert({key:'tram', value:s, updated_at:new Date().toISOString()})
+    .then(()=>{ setTimeout(()=>{ _pendingTramSave=false; }, 1000); });
+}
 function getRecord(id){ const s=loadTram(); const def=DEFAULT_DATA.find(d=>d.id===id); return Object.assign({},def,s[id]||{}); }
 function patchRecord(id,patch){ const s=loadTram(); s[id]=Object.assign({},s[id]||{},patch); saveTram(s); }
 
-function loadNotas(){
-  const stored = localStorage.getItem(LS_NOTAS);
-  if(stored) return JSON.parse(stored);
-  // Primera vez: cargar notas iniciales
-  localStorage.setItem(LS_NOTAS, JSON.stringify(NOTAS_INICIALES));
-  return NOTAS_INICIALES;
+function loadNotas(){ return notasCache; }
+function saveNotas(n){
+  notasCache = n;
+  _pendingNotasSave = true;
+  sb.from('diger_notas').upsert({key:'notas', value:n, updated_at:new Date().toISOString()})
+    .then(()=>{ setTimeout(()=>{ _pendingNotasSave=false; }, 1000); });
 }
-function saveNotas(n){ localStorage.setItem(LS_NOTAS, JSON.stringify(n)); }
 function getNotas(inst){ return (loadNotas()[inst]||[]); }
 
 // ── HELPERS ──────────────────────────────────────────────────────
@@ -633,10 +644,50 @@ function eliminarNota(inst,fecha,timestamp,idx){
 }
 
 // ── INIT ─────────────────────────────────────────────────────────
-buildDropdown();
-refreshStats();
-// Fecha de hoy por defecto
-document.getElementById('nota-fecha').value = new Date().toISOString().split('T')[0];
+(async function init(){
+  // Cargar tramites desde Supabase
+  const { data: tRow } = await sb.from('diger_tram').select('value').eq('key','tram').maybeSingle();
+  tramCache = tRow?.value || {};
+
+  // Cargar notas (sembrar NOTAS_INICIALES si la tabla está vacía)
+  const { data: nRow } = await sb.from('diger_notas').select('value').eq('key','notas').maybeSingle();
+  if(nRow?.value && Object.keys(nRow.value).length){
+    notasCache = nRow.value;
+  } else {
+    notasCache = JSON.parse(JSON.stringify(NOTAS_INICIALES));
+    await sb.from('diger_notas').upsert({key:'notas', value:notasCache, updated_at:new Date().toISOString()});
+  }
+
+  buildDropdown();
+  refreshStats();
+  document.getElementById('nota-fecha').value = new Date().toISOString().split('T')[0];
+
+  // Tiempo real: cambios en trámites
+  sb.channel('diger-tram')
+    .on('postgres_changes', {event:'*', schema:'public', table:'diger_tram', filter:'key=eq.tram'},
+      ({new: row}) => {
+        if(_pendingTramSave) return;
+        tramCache = row?.value || {};
+        refreshStats();
+        buildDropdown();
+        if(activeInst){
+          renderTramites(activeInst);
+          renderInfoBar(activeInst);
+          document.getElementById('instSelect').value = activeInst;
+        }
+      }
+    ).subscribe();
+
+  // Tiempo real: cambios en notas
+  sb.channel('diger-notas')
+    .on('postgres_changes', {event:'*', schema:'public', table:'diger_notas', filter:'key=eq.notas'},
+      ({new: row}) => {
+        if(_pendingNotasSave) return;
+        notasCache = row?.value || {};
+        if(activeInst && activeInst !== '__ALL__') renderNotas(activeInst);
+      }
+    ).subscribe();
+})();
 </script>
 </body>
 </html>
