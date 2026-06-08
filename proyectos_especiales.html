@@ -1338,7 +1338,7 @@ function generarPDFProfesional(d){
     var CA=[10,45,110],CM=[20,85,164],CT=[13,140,160],CN=[26,26,26],CG=[100,116,139],CB=[210,220,238],CR=[248,250,252];
 
     function pageBands(){
-      if(d.logo){ try{ var lw=56,lh=12; doc.addImage(d.logo,'PNG',ML,3,lw,lh); }catch(e){} }
+      if(d.logo){ try{ var lw=72,lh=16; doc.addImage(d.logo,'PNG',(PW-lw)/2,2,lw,lh); }catch(e){} }
       doc.setDrawColor(CT[0],CT[1],CT[2]); doc.setLineWidth(0.8); doc.line(0,17,PW,17);
       doc.setFontSize(6.5); doc.setFont('helvetica','italic'); doc.setTextColor(160,170,190);
       doc.text('DIGER - Registro de Reunion',ML,PH-7);
