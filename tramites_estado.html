@@ -256,12 +256,48 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
   .check-wrap{width:74px;height:74px}
   .check-wrap svg{width:36px;height:36px}
 }
+
+/* ── HISTORIAL ── */
+.hist-view{display:none}.hist-view.active{display:block}
+.form-view{display:none}.form-view.active{display:block}
+.hist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px}
+.hist-header h2{font-size:20px;font-weight:800;color:#0a2d6e;margin:0}
+.hist-header p{font-size:12.5px;color:#6b7fa3;margin-top:2px}
+.hist-item{background:#fff;border:1.5px solid #e2e8f0;border-radius:13px;padding:1.1rem 1.3rem;margin-bottom:.85rem;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(10,45,110,.06);transition:all .22s;cursor:pointer}
+.hist-item:hover{border-color:#1455a4;box-shadow:0 6px 20px rgba(10,45,110,.12);transform:translateY(-1px)}
+.hist-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 10px rgba(10,45,110,.25)}
+.hist-info{flex:1;min-width:0}
+.hist-inst{font-size:15px;font-weight:700;color:#0a2d6e;margin-bottom:3px}
+.hist-meta{font-size:12px;color:#6b7fa3;display:flex;flex-wrap:wrap;gap:10px}
+.hist-badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700}
+.hist-badge.op{background:#dcfce7;color:#15803d}
+.hist-badge.proc{background:#fef3c7;color:#b45309}
+.hist-badge.ni{background:#fee2e2;color:#b91c1c}
+.hist-arrow{font-size:18px;color:#c8d5ee;flex-shrink:0}
+.hist-empty{text-align:center;padding:3rem 1rem;color:#9aadcc}
+.hist-empty .ico{font-size:40px;margin-bottom:.75rem}
+.hist-empty p{font-size:14px}
 </style>
 </head>
 <body>
 <script src="header.js"></script>
 
 <div class="container">
+
+  <!-- ══ VISTA: HISTORIAL ══ -->
+  <div class="hist-view active" id="hist-view">
+    <div class="hist-header">
+      <div>
+        <h2>Trámites — Estado</h2>
+        <p>Levantamientos de estado de trámites por institución</p>
+      </div>
+      <button class="btnp" onclick="mostrarFormulario()">+ Nuevo levantamiento</button>
+    </div>
+    <div id="hist-lista"></div>
+  </div>
+
+  <!-- ══ VISTA: FORMULARIO ══ -->
+  <div class="form-view" id="form-view">
 
   <!-- STEP BAR -->
   <div class="step-bar">
@@ -484,9 +520,12 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
         <p id="okmsg">El formulario fue enviado correctamente al equipo de coordinación de la Plataforma SOL.</p>
         <button class="btnp" onclick="descargar()" style="margin-bottom:12px">⬇ Descargar resumen (.txt)</button><br>
         <button class="btns" onclick="reiniciar()" style="margin-top:8px;font-size:13px">↺ Nuevo levantamiento</button>
+        <br><button class="btns" onclick="verHistorial()" style="margin-top:8px;font-size:13px">← Ver todos los levantamientos</button>
       </div>
     </div>
   </div>
+
+  </div><!-- /form-view -->
 
 </div>
 
@@ -694,6 +733,7 @@ function enviar() {
     institucion: inst,
     resumen: txt
   }).then(function() {
+    guardarEnHistorial();
     document.getElementById('ok-inst').textContent = inst;
     document.getElementById('okmsg').textContent = 'El resumen completo fue enviado al equipo de coordinación de la Plataforma SOL.';
     goStep(4);
@@ -722,7 +762,7 @@ function reiniciar() {
   document.getElementById('equipo').innerHTML = '';
   document.getElementById('lim-wrap').style.display = 'none';
   document.getElementById('acomp-wrap').style.display = 'none';
-  eqN = 0; addRow(); goStep(1);
+  eqN = 0; addRow(); verHistorial();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -833,6 +873,151 @@ function esc(v) {
   return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── HISTORIAL ────────────────────────────────────────────────────
+var LS_HIST = 'diger_estado_hist_v1';
+
+function loadHist(){ try{ return JSON.parse(localStorage.getItem(LS_HIST))||[]; } catch{ return []; } }
+function saveHist(arr){ localStorage.setItem(LS_HIST, JSON.stringify(arr)); }
+
+function guardarEnHistorial(){
+  var inst = getVal('inst');
+  var tramites = DB[inst]||[];
+  var tData = tramites.map(function(t,i){
+    return {
+      nombre: t,
+      acta: checked('acta'+i)==='SI',
+      mejoras: checked('mej'+i)==='SI',
+      instructivo: checked('instr'+i)==='SI',
+      socializacion: checked('soc'+i)==='SI',
+      obs: getVal('obs'+i)
+    };
+  });
+  var equipo = [];
+  for(var i=1;i<=eqN;i++){
+    var f=getVal('ef'+i),n=getVal('en'+i),c=getVal('ec'+i);
+    if(f||n||c) equipo.push({funcion:f,nombre:n,contacto:c});
+  }
+  var entrada = {
+    id: 'est_'+Date.now(),
+    inst: inst,
+    enc: getVal('enc'),
+    cor: getVal('cor'),
+    cel: getVal('cel'),
+    estado: document.querySelector('[name=estado]:checked')?document.querySelector('[name=estado]:checked').value:'—',
+    migrada: document.querySelector('[name=migrada]:checked')?document.querySelector('[name=migrada]:checked').value:'—',
+    personal: document.querySelector('[name=personal]:checked')?document.querySelector('[name=personal]:checked').value:'—',
+    acomp: document.querySelector('[name=acomp]:checked')?document.querySelector('[name=acomp]:checked').value:'—',
+    obsEstado: getVal('obs-estado'),
+    obsGen: getVal('obs-gen'),
+    tramites: tData,
+    equipo: equipo,
+    fecha: new Date().toISOString(),
+    email: (window.DIGER_SESSION&&window.DIGER_SESSION.email)||''
+  };
+  var hist = loadHist();
+  // Reemplazar si ya existe una entrada para la misma institución
+  var idx = hist.findIndex(function(h){ return h.inst===inst; });
+  if(idx>=0) hist[idx] = entrada;
+  else hist.unshift(entrada);
+  saveHist(hist);
+}
+
+function renderHistorial(){
+  var lista = document.getElementById('hist-lista');
+  var hist = loadHist();
+  if(!hist.length){
+    lista.innerHTML = '<div class="hist-empty"><div class="ico">📋</div><p>No hay levantamientos registrados.<br>Crea el primero con el botón de arriba.</p></div>';
+    return;
+  }
+  lista.innerHTML = hist.map(function(h){
+    var initials = (h.inst||'?').replace(/[\s\/]+/g,' ').trim().split(' ').slice(0,2).map(function(w){ return w[0]||''; }).join('').toUpperCase()||'?';
+    var fecha = h.fecha ? new Date(h.fecha).toLocaleDateString('es-HN',{year:'numeric',month:'short',day:'numeric'}) : '—';
+    var bcls = h.estado==='Digitalizado y en producción'?'op': h.estado==='No iniciado'?'ni':'proc';
+    var tramN = (h.tramites||[]).length;
+    var tramOk = (h.tramites||[]).filter(function(t){ return t.acta; }).length;
+    return '<div class="hist-item" onclick="verDetalle(\''+h.id+'\')">'+
+      '<div class="hist-avatar">'+esc(initials)+'</div>'+
+      '<div class="hist-info">'+
+        '<div class="hist-inst">'+esc(h.inst)+'</div>'+
+        '<div class="hist-meta">'+
+          '<span>'+esc(h.enc||'—')+'</span>'+
+          '<span class="hist-badge '+bcls+'">'+esc(h.estado)+'</span>'+
+          '<span>'+tramOk+'/'+tramN+' trámites con acta</span>'+
+          '<span>'+fecha+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="hist-arrow">›</div>'+
+    '</div>';
+  }).join('');
+}
+
+function mostrarFormulario(){
+  document.getElementById('hist-view').classList.remove('active');
+  document.getElementById('form-view').classList.add('active');
+  goStep(1);
+}
+
+function verHistorial(){
+  document.getElementById('form-view').classList.remove('active');
+  document.getElementById('hist-view').classList.add('active');
+  renderHistorial();
+}
+
+function verDetalle(id){
+  var hist = loadHist();
+  var h = hist.find(function(x){ return x.id===id; });
+  if(!h) return;
+  // Pre-popular el formulario con los datos guardados y abrirlo
+  document.getElementById('hist-view').classList.remove('active');
+  document.getElementById('form-view').classList.add('active');
+  // Poblar campos
+  document.getElementById('inst').value = h.inst||'';
+  document.getElementById('enc').value  = h.enc||'';
+  document.getElementById('cor').value  = h.cor||'';
+  document.getElementById('cel').value  = h.cel||'';
+  // Paso 1 radio pills
+  setRadio('estado',   h.estado);
+  setRadio('migrada',  h.migrada);
+  setRadio('personal', h.personal);
+  setRadio('acomp',    h.acomp);
+  document.getElementById('obs-estado').value = h.obsEstado||'';
+  // Ir a paso 2
+  buildTramites(h.inst);
+  renderDocsEstado();
+  // Restaurar tramites checkboxes
+  (h.tramites||[]).forEach(function(t,i){
+    var setChk = function(id,val){ var el=document.getElementById(id); if(el) el.checked=val; };
+    setChk('acta'+i,     t.acta||false);
+    setChk('mej'+i,      t.mejoras||false);
+    setChk('instr'+i,    t.instructivo||false);
+    setChk('soc'+i,      t.socializacion||false);
+    var ob = document.getElementById('obs'+i); if(ob) ob.value = t.obs||'';
+  });
+  document.getElementById('obs-gen').value = h.obsGen||'';
+  // Mostrar paso 2 directamente
+  var steps = document.querySelectorAll('.step');
+  for(var i=0;i<steps.length;i++) steps[i].classList.remove('active');
+  document.getElementById('step2').classList.add('active');
+  ['si1','si2','si3'].forEach(function(sid,j){
+    var el=document.getElementById(sid);
+    if(j===0) el.className='step-item done';
+    else if(j===1) el.className='step-item active';
+    else el.className='step-item';
+  });
+  window.scrollTo(0,0);
+}
+
+function setRadio(name, val){
+  var inputs = document.querySelectorAll('[name='+name+']');
+  for(var i=0;i<inputs.length;i++){
+    if(inputs[i].value===val){
+      inputs[i].checked=true;
+      pill(inputs[i]);
+      break;
+    }
+  }
+}
+
 // ── DOCUMENTOS ADJUNTOS ────────────────────────────────────────
 var DOC_LS_KEY = 'diger_docs_estado_v1';
 var DOC_TIPO_ICO = {
@@ -903,10 +1088,11 @@ function eliminarDocEstado(idx) {
   renderDocsEstado();
 }
 
-// Inicializar fecha de doc-fecha con hoy
+// Inicializar historial y fecha
 document.addEventListener('DOMContentLoaded', function() {
   var df = document.getElementById('doc-fecha');
   if (df) df.value = new Date().toISOString().split('T')[0];
+  renderHistorial();
 });
 
 </script>
