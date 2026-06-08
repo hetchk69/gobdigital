@@ -101,6 +101,27 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .save-ind{font-size:11px;font-weight:700;color:var(--verde);margin-top:.5rem;opacity:0;transition:opacity .3s}
 .save-ind.show{opacity:1}
 
+/* MODAL TRAMITE */
+.modal-overlay{position:fixed;inset:0;background:rgba(8,25,70,.55);backdrop-filter:blur(4px);z-index:900;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal-panel{background:var(--blanco);border-radius:20px;width:100%;max-width:800px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 32px 100px rgba(8,25,70,.3);animation:modalIn .22s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(14px)}to{opacity:1;transform:none}}
+.modal-header{display:flex;align-items:flex-start;gap:14px;padding:1.25rem 1.5rem;border-bottom:1.5px solid var(--borde);background:linear-gradient(135deg,#edf4ff,#f7fbff);border-radius:20px 20px 0 0;flex-shrink:0}
+.modal-title{display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0}
+.modal-id{width:32px;height:32px;border-radius:9px;background:var(--azul-c);color:var(--azul-m);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.modal-name{font-size:15px;font-weight:800;color:var(--azul);line-height:1.35;margin-bottom:3px}
+.modal-inst{font-size:11.5px;font-weight:700;color:var(--azul-m);opacity:.7}
+.modal-close{background:none;border:1.5px solid var(--borde);color:var(--muted);border-radius:9px;width:34px;height:34px;font-size:15px;cursor:pointer;flex-shrink:0;transition:all .15s;display:flex;align-items:center;justify-content:center;margin-top:0}
+.modal-close:hover{background:#fee2e2;border-color:#fca5a5;color:#b91c1c}
+.modal-body{overflow-y:auto;padding:1.25rem 1.5rem;flex:1}
+.modal-prog{display:flex;align-items:center;gap:10px;background:var(--azul-c);border-radius:12px;padding:.8rem 1rem;margin-bottom:1.25rem}
+.modal-pbar{height:10px;flex:1;background:#d4e4f7;border-radius:5px;overflow:hidden}
+.modal-pbar-fill{height:100%;border-radius:5px;transition:width .4s}
+
+/* Card clickable (sin body expandible) */
+.tram-card{cursor:pointer}
+.tram-card:hover{box-shadow:0 8px 24px rgba(10,45,110,.15);transform:translateY(-1px);transition:all .18s}
+
 /* NOTAS SIDE */
 .notas-col{position:sticky;top:1rem}
 .notas-panel{background:var(--blanco);border-radius:14px;box-shadow:0 2px 8px rgba(10,45,110,.07);overflow:hidden}
@@ -154,6 +175,23 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 <body>
 <!-- header.js prepends the shared DIGER header -->
 <script src="header.js"></script>
+
+<!-- Modal detalle trámite -->
+<div class="modal-overlay" id="tram-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <div class="modal-title">
+        <div class="modal-id" id="modal-id"></div>
+        <div>
+          <div class="modal-name" id="modal-name"></div>
+          <div class="modal-inst" id="modal-inst"></div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal()" title="Cerrar">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
 
 <div class="wrap">
 
@@ -458,112 +496,141 @@ function renderTramite(r, showInst){
   const bcls=badgeCls(estado);
   const color=pctColor(pct);
 
-  const stagesHtml=ETAPAS.map((e,i)=>{
-    return `<div class="stage-item ${r.etapas[i]?'checked':''}" id="si-${r.id}-${i}" onclick="toggleStage(${r.id},${i})">
-      <div class="stage-cb">${r.etapas[i]?'✓':''}</div>
-      <div class="stage-text">
-        <div class="stage-num">Etapa ${esc(e.num)} · ${Math.round(e.peso*100)}%</div>
-        <div class="stage-name">${esc(e.label)}</div>
-      </div>
-    </div>`;
-  }).join('');
-
-  const alojOpts=['DIGER','PROPIA','PROPIO','Propia','Propio',''].map(v=>
-    `<option value="${v}" ${r.aloj===v?'selected':''}>${v||'— No definido —'}</option>`).join('');
-
-  return `<div class="tram-card" id="tc-${r.id}">
-    <div class="tram-head" onclick="toggleCard(${r.id})">
+  return `<div class="tram-card" id="tc-${r.id}" onclick="openModal(${r.id})">
+    <div class="tram-head">
       <div class="tram-num">${r.id}</div>
       <div class="tram-info">
         <div class="tram-name">${esc(r.tramite)}</div>
         <div class="tram-meta">
-          <span class="badge ${bcls}">${esc(estado)}</span>
+          <span class="badge ${bcls}" id="badge-${r.id}">${esc(estado)}</span>
           ${showInst?`<span class="meta-tag" style="font-weight:600;color:#1455a4">🏛 ${esc(r.inst)}</span>`:''}
           ${r.financia?`<span class="meta-tag">Financia: ${esc(r.financia)}</span>`:''}
-          <span class="meta-tag">Acta: ${esc(r.acta)||'—'}</span>
-          <span class="meta-tag">PDI: ${esc(r.activo)||'—'}</span>
         </div>
         <div class="tram-pbar">
-          <div class="pbar"><div class="pbar-fill" style="width:${pctP}%;background:${color}"></div></div>
-          <span class="pct-lbl" style="color:${color}">${pctP}%</span>
+          <div class="pbar"><div class="pbar-fill" id="fill-${r.id}" style="width:${pctP}%;background:${color}"></div></div>
+          <span class="pct-lbl" id="pct-${r.id}" style="color:${color}">${pctP}%</span>
         </div>
       </div>
-      <div class="tram-toggle" id="tog-${r.id}">▾</div>
-    </div>
-    <div class="tram-body" id="tb-${r.id}">
-      <div class="stages-grid">${stagesHtml}</div>
-      <div class="extra-row">
-        <div class="extra-field">
-          <label class="extra-lbl">Acta firmada</label>
-          <select class="extra-sel" onchange="patchField(${r.id},'acta',this.value)">
-            <option ${r.acta==='Si'?'selected':''}>Si</option>
-            <option ${r.acta==='No'?'selected':''}>No</option>
-            <option ${r.acta==='en proceso'?'selected':''}>en proceso</option>
-          </select>
-        </div>
-        <div class="extra-field">
-          <label class="extra-lbl">Activo en PDI</label>
-          <select class="extra-sel" onchange="patchField(${r.id},'activo',this.value)">
-            <option ${r.activo==='Si'?'selected':''}>Si</option>
-            <option ${r.activo==='No'?'selected':''}>No</option>
-            <option ${r.activo==='en proceso'?'selected':''}>en proceso</option>
-          </select>
-        </div>
-        <div class="extra-field">
-          <label class="extra-lbl">Alojamiento</label>
-          <select class="extra-sel" onchange="patchField(${r.id},'aloj',this.value)">${alojOpts}</select>
-        </div>
-        <div class="extra-field">
-          <label class="extra-lbl">Func. en PDI</label>
-          <input class="extra-inp" value="${esc(r.pdi||'')}" placeholder="SI / NO / —" style="width:140px"
-            onchange="patchField(${r.id},'pdi',this.value)">
-        </div>
-        <div class="extra-field extra-obs">
-          <label class="extra-lbl">Observaciones internas</label>
-          <textarea onchange="patchField(${r.id},'obs',this.value)" placeholder="Notas adicionales sobre este trámite…">${esc(r.obs||'')}</textarea>
-        </div>
-      </div>
-      <div class="save-ind" id="saved-${r.id}">✓ Guardado</div>
+      <div style="font-size:18px;color:var(--muted);flex-shrink:0;margin-top:4px">›</div>
     </div>
   </div>`;
 }
 
-function toggleCard(id){
-  const body=document.getElementById('tb-'+id);
-  const tog=document.getElementById('tog-'+id);
-  const open=body.classList.toggle('open');
-  tog.classList.toggle('open',open);
-}
-
-function toggleStage(id,idx){
+function openModal(id){
   const r=getRecord(id);
-  r.etapas[idx]=r.etapas[idx]?0:1;
-  patchRecord(id,{etapas:r.etapas});
-  // Update UI
   const pct=calcPct(r.etapas);
   const pctP=Math.round(pct*100);
   const estado=estadoFromPct(pct);
   const bcls=badgeCls(estado);
   const color=pctColor(pct);
+
+  document.getElementById('modal-id').textContent=r.id;
+  document.getElementById('modal-name').textContent=r.tramite;
+  document.getElementById('modal-inst').textContent=r.inst;
+
+  const alojOpts=['DIGER','PROPIA','PROPIO','Propia','Propio',''].map(v=>
+    `<option value="${v}" ${r.aloj===v?'selected':''}>${v||'— No definido —'}</option>`).join('');
+
+  const stagesHtml=ETAPAS.map((e,i)=>
+    `<div class="stage-item ${r.etapas[i]?'checked':''}" id="msi-${id}-${i}" onclick="toggleStage(${id},${i})">
+      <div class="stage-cb">${r.etapas[i]?'✓':''}</div>
+      <div class="stage-text">
+        <div class="stage-num">Etapa ${esc(e.num)} · ${Math.round(e.peso*100)}%</div>
+        <div class="stage-name">${esc(e.label)}</div>
+      </div>
+    </div>`
+  ).join('');
+
+  document.getElementById('modal-body').innerHTML=`
+    <div class="modal-prog">
+      <div class="modal-pbar"><div class="modal-pbar-fill" id="modal-fill" style="width:${pctP}%;background:${color}"></div></div>
+      <span class="pct-lbl" id="modal-pct" style="color:${color};min-width:36px">${pctP}%</span>
+      <span class="badge ${bcls}" id="modal-badge">${esc(estado)}</span>
+    </div>
+    <div class="stages-grid">${stagesHtml}</div>
+    <div class="extra-row" style="margin-top:.75rem">
+      <div class="extra-field">
+        <label class="extra-lbl">Acta firmada</label>
+        <select class="extra-sel" onchange="patchField(${id},'acta',this.value)">
+          <option ${r.acta==='Si'?'selected':''}>Si</option>
+          <option ${r.acta==='No'?'selected':''}>No</option>
+          <option ${r.acta==='en proceso'?'selected':''}>en proceso</option>
+        </select>
+      </div>
+      <div class="extra-field">
+        <label class="extra-lbl">Activo en PDI</label>
+        <select class="extra-sel" onchange="patchField(${id},'activo',this.value)">
+          <option ${r.activo==='Si'?'selected':''}>Si</option>
+          <option ${r.activo==='No'?'selected':''}>No</option>
+          <option ${r.activo==='en proceso'?'selected':''}>en proceso</option>
+        </select>
+      </div>
+      <div class="extra-field">
+        <label class="extra-lbl">Alojamiento</label>
+        <select class="extra-sel" onchange="patchField(${id},'aloj',this.value)">${alojOpts}</select>
+      </div>
+      <div class="extra-field">
+        <label class="extra-lbl">Func. en PDI</label>
+        <input class="extra-inp" value="${esc(r.pdi||'')}" placeholder="SI / NO / —" style="width:140px"
+          onchange="patchField(${id},'pdi',this.value)">
+      </div>
+      <div class="extra-field extra-obs">
+        <label class="extra-lbl">Observaciones internas</label>
+        <textarea onchange="patchField(${id},'obs',this.value)" placeholder="Notas adicionales sobre este trámite…">${esc(r.obs||'')}</textarea>
+      </div>
+    </div>
+    <div class="save-ind" id="saved-${id}">✓ Guardado</div>`;
+
+  window._modalId=id;
+  document.getElementById('tram-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  document.getElementById('tram-modal').classList.remove('open');
+  document.body.style.overflow='';
+  window._modalId=null;
+}
+
+// Cerrar con Escape
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+
+function toggleStage(id,idx){
+  const r=getRecord(id);
+  r.etapas[idx]=r.etapas[idx]?0:1;
+  patchRecord(id,{etapas:r.etapas});
+  const pct=calcPct(r.etapas);
+  const pctP=Math.round(pct*100);
+  const estado=estadoFromPct(pct);
+  const bcls=badgeCls(estado);
+  const color=pctColor(pct);
+
+  // Actualizar checkboxes en el modal
   ETAPAS.forEach((_,i)=>{
-    const si=document.getElementById(`si-${id}-${i}`);
+    const si=document.getElementById(`msi-${id}-${i}`);
     if(!si)return;
     si.className='stage-item '+(r.etapas[i]?'checked':'');
     si.querySelector('.stage-cb').textContent=r.etapas[i]?'✓':'';
   });
-  const card=document.getElementById('tc-'+id);
-  if(card){
-    const b=card.querySelector('.badge');
-    if(b){b.className='badge '+bcls;b.textContent=estado;}
-    const fill=card.querySelector('.pbar-fill');
-    if(fill){fill.style.width=pctP+'%';fill.style.background=color;}
-    const lbl=card.querySelector('.pct-lbl');
-    if(lbl){lbl.textContent=pctP+'%';lbl.style.color=color;}
-  }
+  // Actualizar barra del modal
+  const mf=document.getElementById('modal-fill');
+  if(mf){mf.style.width=pctP+'%';mf.style.background=color;}
+  const mp=document.getElementById('modal-pct');
+  if(mp){mp.textContent=pctP+'%';mp.style.color=color;}
+  const mb=document.getElementById('modal-badge');
+  if(mb){mb.className='badge '+bcls;mb.textContent=estado;}
+  // Actualizar mini-card en la lista
+  const fill=document.getElementById('fill-'+id);
+  if(fill){fill.style.width=pctP+'%';fill.style.background=color;}
+  const pctLbl=document.getElementById('pct-'+id);
+  if(pctLbl){pctLbl.textContent=pctP+'%';pctLbl.style.color=color;}
+  const badge=document.getElementById('badge-'+id);
+  if(badge){badge.className='badge '+bcls;badge.textContent=estado;}
+
   showSaved(id);
   refreshStats();
   renderInfoBar(activeInst);
-  buildDropdown(); // actualizar % en dropdown
+  buildDropdown();
   document.getElementById('instSelect').value=activeInst;
 }
 
