@@ -1161,7 +1161,8 @@ function comprimirParaPDF(dataUrl,maxPx,calidad){
       var cw=Math.round(w*scale),ch=Math.round(h*scale);
       var cv=document.createElement('canvas'); cv.width=cw; cv.height=ch;
       cv.getContext('2d').drawImage(img,0,0,cw,ch);
-      res(cv.toDataURL('image/jpeg',calidad||0.82));
+      var isPng=dataUrl.indexOf('data:image/png')===0;
+      res(cv.toDataURL(isPng?'image/png':'image/jpeg',calidad||0.82));
     };
     img.onerror=function(){ res(dataUrl); };
     img.src=dataUrl;
@@ -1314,6 +1315,7 @@ async function descargarPDF(){
   var datos={}; try{ datos=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
   var cap=datos.cap||{};
   var logo=await urlToBase64('logo_diger-14.png');
+  if(logo) logo=await comprimirParaPDF(logo,400,0.9);
   var foto1=_foto1_url||'', foto2=_foto2_url||'';
   if(foto1&&!foto1.startsWith('data:')) foto1=(await urlToBase64(foto1))||'';
   if(foto2&&!foto2.startsWith('data:')) foto2=(await urlToBase64(foto2))||'';
