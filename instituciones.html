@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instituciones — DIGER</title>
+<style>
+:root{
+  --azul:#0a2d6e;--azul-m:#1455a4;--azul-c:#e8f0ff;
+  --gris:#eef1f7;--borde:#dde4f0;--texto:#1c2333;--muted:#64748b;
+  --verde:#16a34a;--ambar:#d97706;--rojo:#dc2626;--blanco:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--texto);background:var(--gris);min-height:100vh}
+
+/* HEADER */
+.header{background:var(--blanco);padding:14px 2rem;display:flex;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.08);position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;right:0;top:0;bottom:0;width:200px;background:linear-gradient(135deg,transparent 30px,#1455a4 30px)}
+.header::after{content:'';position:absolute;right:0;top:0;bottom:0;width:130px;background:linear-gradient(135deg,transparent 30px,#0a2d6e 30px)}
+.header img{height:60px;width:auto;position:relative;z-index:1}
+.header-title{margin-left:1.4rem;position:relative;z-index:1}
+.header-title h1{font-size:15px;font-weight:800;color:var(--azul)}
+.header-title p{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* WRAP */
+.wrap{max-width:1200px;margin:0 auto;padding:1.5rem 1.25rem 4rem}
+
+/* GLOBAL STATS */
+.stats{display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.stat{background:var(--blanco);border-radius:12px;padding:.75rem 1.2rem;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(10,45,110,.07);flex:1;min-width:140px}
+.stat-num{font-size:1.9rem;font-weight:800;line-height:1}
+.stat.op .stat-num{color:var(--verde)}
+.stat.proc .stat-num{color:var(--ambar)}
+.stat.ni .stat-num{color:var(--rojo)}
+.stat.avg .stat-num{color:var(--azul-m);font-size:1.6rem}
+.stat-lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:1.3}
+.stat-bar{width:100%;height:6px;background:#e2e8f0;border-radius:3px;margin-top:4px;overflow:hidden}
+.stat-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--azul-m),var(--verde));transition:width .5s}
+
+/* SELECTOR PANEL */
+.sel-panel{background:var(--blanco);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(10,45,110,.07)}
+.sel-panel-top{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem}
+.sel-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.inst-select{flex:1;min-width:220px;max-width:400px;padding:10px 14px;border:1.5px solid var(--borde);border-radius:10px;font-size:14px;font-family:inherit;color:var(--texto);background:var(--blanco);outline:none;cursor:pointer;transition:border .2s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.inst-select:focus{border-color:var(--azul-m);box-shadow:0 0 0 3px rgba(20,85,164,.1)}
+.inst-info-bar{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
+.info-chip{font-size:11px;font-weight:700;padding:4px 11px;border-radius:12px;display:inline-flex;align-items:center;gap:4px}
+.info-chip.aloj-diger{background:#dbeafe;color:#1d4ed8}
+.info-chip.aloj-propia,.info-chip.aloj-propio{background:#fef3c7;color:#b45309}
+.info-chip.aloj-{background:#f1f5f9;color:#64748b}
+.info-chip.st-op{background:#dcfce7;color:#15803d}
+.info-chip.st-proc{background:#fef3c7;color:#b45309}
+.info-chip.st-ni{background:#fee2e2;color:#b91c1c}
+
+/* MAIN LAYOUT */
+.main-layout{display:grid;grid-template-columns:1fr 360px;gap:1.25rem;align-items:start}
+@media(max-width:900px){.main-layout{grid-template-columns:1fr}}
+
+/* TRAMITES SIDE */
+.tramites-col{}
+
+.section-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:2px solid var(--gris);display:flex;align-items:center;justify-content:space-between}
+.section-label span{font-size:10px;font-weight:600;color:var(--azul-m);background:var(--azul-c);padding:2px 9px;border-radius:10px}
+
+/* TRAMITE CARD */
+.tram-card{background:var(--blanco);border:1.5px solid var(--borde);border-radius:14px;margin-bottom:.9rem;overflow:hidden;box-shadow:0 2px 8px rgba(10,45,110,.06);transition:box-shadow .2s}
+.tram-card:hover{box-shadow:0 6px 20px rgba(10,45,110,.11)}
+.tram-head{display:flex;align-items:flex-start;gap:12px;padding:1rem 1.25rem;cursor:pointer;user-select:none}
+.tram-num{width:28px;height:28px;border-radius:8px;background:var(--azul-c);color:var(--azul-m);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.tram-info{flex:1;min-width:0}
+.tram-name{font-size:13.5px;font-weight:700;color:var(--azul);line-height:1.4;margin-bottom:5px}
+.tram-meta{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700}
+.badge.op{background:#dcfce7;color:#15803d}
+.badge.proc{background:#fef3c7;color:#b45309}
+.badge.ni{background:#fee2e2;color:#b91c1c}
+.meta-tag{font-size:10px;color:var(--muted);background:var(--gris);padding:2px 7px;border-radius:8px}
+.pbar{flex:1;height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden;min-width:60px}
+.pbar-fill{height:100%;border-radius:4px;transition:width .4s}
+.pct-lbl{font-size:11px;font-weight:700;white-space:nowrap;min-width:32px}
+.tram-pbar{display:flex;align-items:center;gap:8px;margin-top:8px}
+.tram-toggle{font-size:18px;color:var(--muted);transition:transform .3s;flex-shrink:0;margin-top:4px}
+.tram-toggle.open{transform:rotate(180deg)}
+.tram-body{display:none;padding:0 1.25rem 1.25rem;border-top:1px solid var(--gris)}
+.tram-body.open{display:block}
+
+/* STAGES */
+.stages-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.5rem;margin-bottom:1rem;padding-top:.75rem}
+.stage-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:9px;border:1.5px solid var(--borde);background:#fafbfd;cursor:pointer;transition:all .15s;user-select:none}
+.stage-item:hover{border-color:var(--azul-m);background:var(--azul-c)}
+.stage-item.checked{border-color:var(--verde);background:#f0fdf4}
+.stage-cb{width:20px;height:20px;border-radius:5px;border:1.5px solid #c8d5ee;background:var(--blanco);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--verde);flex-shrink:0;transition:all .15s}
+.stage-item.checked .stage-cb{background:var(--verde);border-color:var(--verde);color:#fff}
+.stage-text{flex:1;min-width:0}
+.stage-num{font-size:10px;color:var(--muted);font-weight:700;margin-bottom:1px}
+.stage-name{font-size:11.5px;font-weight:600;color:var(--texto);line-height:1.3}
+.extra-row{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.5rem}
+.extra-field{display:flex;flex-direction:column;gap:3px}
+.extra-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.extra-sel,.extra-inp{padding:5px 9px;border:1.5px solid var(--borde);border-radius:7px;font-size:12px;font-family:inherit;background:var(--blanco);outline:none;transition:border .2s}
+.extra-sel:focus,.extra-inp:focus{border-color:var(--azul-m)}
+.extra-obs{flex:1 0 100%}
+.extra-obs textarea{width:100%;min-height:56px;resize:vertical;padding:7px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:12.5px;font-family:inherit;background:var(--blanco);outline:none;transition:border .2s;line-height:1.5}
+.extra-obs textarea:focus{border-color:var(--azul-m)}
+.save-ind{font-size:11px;font-weight:700;color:var(--verde);margin-top:.5rem;opacity:0;transition:opacity .3s}
+.save-ind.show{opacity:1}
+
+/* NOTAS SIDE */
+.notas-col{position:sticky;top:1rem}
+.notas-panel{background:var(--blanco);border-radius:14px;box-shadow:0 2px 8px rgba(10,45,110,.07);overflow:hidden}
+.notas-header{background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between}
+.notas-header-title{font-size:13px;font-weight:800;display:flex;align-items:center;gap:6px}
+.notas-count{background:rgba(255,255,255,.2);font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px}
+.notas-body{padding:1rem 1.25rem;max-height:calc(100vh - 260px);overflow-y:auto}
+
+/* NOTA ITEM */
+.nota-item{border:1px solid var(--borde);border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem;background:#fafbfd;position:relative;transition:box-shadow .2s}
+.nota-item:hover{box-shadow:0 3px 12px rgba(10,45,110,.09)}
+.nota-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;gap:.5rem;flex-wrap:wrap}
+.nota-fecha{font-size:11px;font-weight:700;color:var(--azul-m);display:flex;align-items:center;gap:4px}
+.nota-autor{font-size:11px;font-weight:700;color:var(--verde);background:#f0fdf4;padding:2px 8px;border-radius:12px}
+.nota-texto{font-size:13px;color:var(--texto);line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.nota-del{position:absolute;top:.5rem;right:.5rem;background:none;border:none;color:#c4cfde;font-size:14px;cursor:pointer;padding:2px 5px;border-radius:5px;transition:color .2s}
+.nota-del:hover{color:var(--rojo)}
+.notas-empty{text-align:center;padding:2rem 1rem;color:#c4cfde;font-size:13px}
+.notas-empty .ico{font-size:32px;margin-bottom:.5rem}
+
+/* ADD NOTA FORM */
+.add-nota-form{border-top:1px solid var(--borde);padding:1rem 1.25rem;background:#f8fbff}
+.add-nota-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem}
+.add-nota-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem}
+.add-nota-inp{width:100%;padding:8px 10px;border:1.5px solid var(--borde);border-radius:8px;font-size:12.5px;font-family:inherit;background:var(--blanco);outline:none;transition:border .2s}
+.add-nota-inp:focus{border-color:var(--azul-m);box-shadow:0 0 0 3px rgba(20,85,164,.1)}
+.add-nota-txt{width:100%;min-height:70px;resize:vertical;padding:8px 10px;border:1.5px solid var(--borde);border-radius:8px;font-size:12.5px;font-family:inherit;background:var(--blanco);outline:none;transition:border .2s;line-height:1.5;margin-bottom:.5rem}
+.add-nota-txt:focus{border-color:var(--azul-m);box-shadow:0 0 0 3px rgba(20,85,164,.1)}
+.btn-add-nota{width:100%;padding:9px;background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.btn-add-nota:hover{opacity:.88}
+
+/* EMPTY / PLACEHOLDER */
+.placeholder{text-align:center;padding:4rem 1rem;color:var(--muted)}
+.placeholder .ico{font-size:48px;margin-bottom:1rem;opacity:.4}
+.placeholder p{font-size:14px}
+
+/* MOBILE */
+@media(max-width:600px){
+  .wrap{padding:1rem .75rem 3rem}
+  .stages-grid{grid-template-columns:1fr 1fr}
+  .notas-col{position:static}
+  .notas-body{max-height:400px}
+}
+@media print{
+  .notas-col,.add-nota-form,.tram-toggle,.inst-select{display:none!important}
+  .tram-body{display:block!important}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="https://www.diger.gob.hn/wp-content/uploads/2021/05/logo-diger.png" alt="DIGER" onerror="this.style.display='none'">
+  <div class="header-title">
+    <h1>Dirección de Gestión por Resultados (DIGER)</h1>
+    <p>Plataforma SOL — Instituciones y Digitalización de Trámites</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- Stats globales -->
+  <div class="stats">
+    <div class="stat op"><div><div class="stat-num" id="s-op">0</div><div class="stat-lbl">En operación</div></div></div>
+    <div class="stat proc"><div><div class="stat-num" id="s-proc">0</div><div class="stat-lbl">En proceso</div></div></div>
+    <div class="stat ni"><div><div class="stat-num" id="s-ni">0</div><div class="stat-lbl">No iniciado</div></div></div>
+    <div class="stat avg" style="flex:2;min-width:180px">
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
+          <div class="stat-lbl">Avance global</div>
+          <div class="stat-num" id="s-avg">—</div>
+        </div>
+        <div class="stat-bar"><div class="stat-bar-fill" id="s-avgbar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selector de institución -->
+  <div class="sel-panel">
+    <div class="sel-panel-top">
+      <div class="sel-label">🏛 Institución</div>
+      <select class="inst-select" id="instSelect" onchange="seleccionar(this.value)">
+        <option value="">— Seleccione una institución —</option>
+      </select>
+    </div>
+    <div class="inst-info-bar" id="instInfoBar"></div>
+  </div>
+
+  <!-- Layout principal -->
+  <div class="main-layout" id="mainLayout" style="display:none">
+
+    <!-- Columna trámites -->
+    <div class="tramites-col">
+      <div class="section-label">Trámites <span id="tram-count">0</span></div>
+      <div id="tramites-content"></div>
+    </div>
+
+    <!-- Columna notas -->
+    <div class="notas-col">
+      <div class="notas-panel">
+        <div class="notas-header">
+          <div class="notas-header-title">📝 Notas de seguimiento</div>
+          <div class="notas-count" id="notas-count">0</div>
+        </div>
+        <div class="notas-body" id="notas-lista"></div>
+        <div class="add-nota-form">
+          <div class="add-nota-label">+ Agregar nota</div>
+          <div class="add-nota-row">
+            <input class="add-nota-inp" type="date" id="nota-fecha" placeholder="Fecha">
+            <input class="add-nota-inp" type="text" id="nota-autor" placeholder="Nombre del responsable">
+          </div>
+          <textarea class="add-nota-txt" id="nota-texto" placeholder="Describa la nota de seguimiento…"></textarea>
+          <button class="btn-add-nota" onclick="agregarNota()">💾 Guardar nota</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Placeholder inicial -->
+  <div class="placeholder" id="placeholder">
+    <div class="ico">🏛</div>
+    <p>Seleccione una institución para ver sus trámites y notas de seguimiento.</p>
+  </div>
+
+</div>
+
+<script src="header.js"></script>
+<script>
+// ── ETAPAS ──────────────────────────────────────────────────────
+const ETAPAS = [
+  {num:"I",    label:"Relevamiento de Base",                        peso:0.10},
+  {num:"II",   label:"En modelación en SOL",                        peso:0.30},
+  {num:"III",  label:"Automatización e Interoperatividad",           peso:0.10},
+  {num:"IV",   label:"Pruebas en Ambiente Testing",                  peso:0.10},
+  {num:"V",    label:"Modelado en Producción",                       peso:0.05},
+  {num:"VI",   label:"Instructivo y Video Tutoriales",               peso:0.05},
+  {num:"VII",  label:"Talleres de Transferencia de Capacidades",     peso:0.05},
+  {num:"VIII", label:"Traslado a Hosting Institucional",             peso:0.05},
+  {num:"IX",   label:"Pruebas en Ambiente de Producción",            peso:0.05},
+  {num:"X",    label:"Elaborar y Publicar Acuerdos / Comunicación",  peso:0.05},
+  {num:"XI",   label:"Socialización (Redes y Sitios Oficiales)",     peso:0.05},
+  {num:"XII",  label:"Poner a Disposición del Ciudadano",            peso:0.05},
+];
+
+// ── TRAMITES DATA ────────────────────────────────────────────────
+const DEFAULT_DATA = [
+  {id:1,  inst:"CONVIVIENDA",     tramite:"Registro de actores",                                                                                                                          financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,1,1,1,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:2,  inst:"COPECO",          tramite:"Certificado de evaluación de riesgo",                                                                                                          financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,1,1,1,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:3,  inst:"SIT",             tramite:"Constancia de inafectabilidad",                                                                                                                financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,1,1,1,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:4,  inst:"IHADFA",          tramite:"Nuevo certificado para comercializar bebidas alcohólicas",                                                                                     financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:5,  inst:"IHADFA",          tramite:"Renovación para comercializar bebidas alcohólicas",                                                                                            financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:6,  inst:"IHADFA",          tramite:"Nuevo certificado para comercializar productos derivados del tabaco",                                                                          financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:7,  inst:"IHADFA",          tramite:"Renovación del certificado para comercializar productos derivados del tabaco",                                                                 financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:8,  inst:"IHADFA",          tramite:"Nuevo certificado para comercializar productos farmacéuticos",                                                                                 financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:9,  inst:"IHADFA",          tramite:"Renovación certificada para comercializar productos farmacéuticos",                                                                            financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:10, inst:"BANHPROVI",       tramite:"Precalificación de solicitud de vivienda (Banca de Primer Piso)",                                                                             financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,0,0,0,0], aloj:"PROPIA", pdi:"SI",                          obs:""},
+  {id:11, inst:"BANHPROVI",       tramite:"Solicitud de redescuento para vivienda Banca de Segundo Piso",                                                                                financia:"",      acta:"Si",        activo:"No",  etapas:[1,1,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIA", pdi:"NO",                          obs:""},
+  {id:12, inst:"BANHPROVI",       tramite:"Reserva para emisión de Certificado de Cobertura Fondo Garantía BCH-FG-MIPYME",                                                              financia:"",      acta:"Si",        activo:"No",  etapas:[1,1,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIA", pdi:"NO",                          obs:""},
+  {id:13, inst:"INPREUNAH",       tramite:"Solicitud de Historial de Cotizaciones",                                                                                                      financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:14, inst:"INPREUNAH",       tramite:"Solicitud de Váucher",                                                                                                                        financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:15, inst:"INPREUNAH",       tramite:"Solicitud de Constancia",                                                                                                                     financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:16, inst:"CNBS",            tramite:"Inscripción en el Registro de Auditores Externos (RAE)",                                                                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"PROPIO", pdi:"NO APLICA",                   obs:""},
+  {id:17, inst:"CNBS",            tramite:"Actualización del Registro de Auditores Externos (RAE)",                                                                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"PROPIO", pdi:"NO APLICA",                   obs:""},
+  {id:18, inst:"CNBS",            tramite:"Reclasificación en el Registro de Auditores Externos (RAE)",                                                                                  financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"PROPIO", pdi:"NO APLICA",                   obs:""},
+  {id:19, inst:"INPREMA",         tramite:"Actualización de Datos Docentes",                                                                                                             financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:20, inst:"INPREMA",         tramite:"Pre-análisis para otorgamiento de Préstamo Rapibono",                                                                                         financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:21, inst:"INPREMA",         tramite:"Pre-análisis para el otorgamiento de Préstamo Hipotecario",                                                                                   financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:22, inst:"INPREMA",         tramite:"Pre-análisis para el Otorgamiento de Préstamo Personal",                                                                                      financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:23, inst:"INPREMA",         tramite:"Pre-análisis para el otorgamiento de Préstamo Personal Consolidación de deudas",                                                              financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:24, inst:"INPREMA",         tramite:"Registro y atención de Denuncias (Protocolo de atención de casos externos)",                                                                  financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:25, inst:"IHTT",            tramite:"Certificación de expediente en trámite",                                                                                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:26, inst:"IHTT",            tramite:"Certificación de código aduanero",                                                                                                            financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:27, inst:"IHTT",            tramite:"Certificación de ser concesionario",                                                                                                          financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:28, inst:"SEN",             tramite:"Inscripción de empresas suplidoras de sistemas y equipos de energía solar fotovoltaica y solar térmica",                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:29, inst:"SEN",             tramite:"Autorización mediante registro de equipos de radiodiagnóstico dental de tipo intraoral",                                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:30, inst:"SEN",             tramite:"Inscripción de la sociedad mercantil o comerciante individual en la cadena de comercialización de hidrocarburos bajo la figura de estación de servicio", financia:"", acta:"Si", activo:"Si", etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER", pdi:"SI", obs:""},
+  {id:31, inst:"CONSUCOOP",       tramite:"Constancia de solvencia de cooperativas",                                                                                                     financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:32, inst:"CONSUCOOP",       tramite:"Emisión de constancia de inscripción de cooperativas",                                                                                        financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:33, inst:"CONSUCOOP",       tramite:"Petición de cálculo de aporte",                                                                                                               financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:34, inst:"CONSUCOOP",       tramite:"Certificación de inscripción de junta directiva y junta de vigilancia",                                                                       financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:35, inst:"CONATEL",         tramite:"Certificado de Homologación",                                                                                                                 financia:"",      acta:"No",        activo:"Si",  etapas:[1,1,1,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:36, inst:"CONATEL",         tramite:"Servicio Móvil Marítimo - Licencia",                                                                                                          financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"No activo aún",               obs:""},
+  {id:37, inst:"IHCINE",          tramite:"Inscripción en el Registro Nacional de Cinematografía Persona Natural",                                                                       financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:38, inst:"IHCINE",          tramite:"Inscripción en el Registro Nacional de Cinematografía Persona Jurídica",                                                                      financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:39, inst:"IHCINE",          tramite:"Solicitud de Fondos de Apoyo Financiero y Patrocinio",                                                                                        financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:40, inst:"SAG",             tramite:"Solicitud de carné para comercialización de productos pesqueros y acuícolas",                                                                 financia:"",      acta:"en proceso",activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:41, inst:"SAG",             tramite:"Solicitud de constancia de trazabilidad — exportación de pepino de mar",                                                                      financia:"",      acta:"en proceso",activo:"Si",  etapas:[1,1,1,1,1,1,1,1,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:42, inst:"SAG",             tramite:"Solicitud de constancia de trazabilidad — comercio local de Caracol rosado",                                                                  financia:"",      acta:"en proceso",activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:43, inst:"SECAPPH",         tramite:"Solicitud de agrupaciones artísticas",                                                                                                        financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:44, inst:"SECAPPH",         tramite:"Registro de Matrícula Anual Academia Nacional de Arte Dramático",                                                                             financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:45, inst:"SECAPPH",         tramite:"Registro de Matrícula Escolar de la Academia Nacional de Danza",                                                                              financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:46, inst:"SECAPPH",         tramite:"Solicitud de Teatros",                                                                                                                        financia:"DIGER", acta:"Si",        activo:"No",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"No activo aún",               obs:""},
+  {id:47, inst:"SECAPPH",         tramite:"Solicitud de Artes Plásticas y Audiovisuales",                                                                                                financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:48, inst:"SRECI",           tramite:"Auténticas y apostillas",                                                                                                                     financia:"",      acta:"No",        activo:"No",  etapas:[1,0,0,0,0,0,0,0,0,0,0,0], aloj:"Propia", pdi:"NO APLICA",                   obs:""},
+  {id:49, inst:"SRECI",           tramite:"Certificación de traducción",                                                                                                                 financia:"",      acta:"No",        activo:"No",  etapas:[1,0,0,0,0,0,0,0,0,0,0,0], aloj:"Propia", pdi:"NO APLICA",                   obs:""},
+  {id:50, inst:"SERNA",           tramite:"Constancia de no requerir licencia ambiental",                                                                                                financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:51, inst:"SERNA",           tramite:"Registro de prestadores de servicios ambientales",                                                                                            financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:52, inst:"SERNA",           tramite:"Registro de importadores de equipos",                                                                                                         financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:53, inst:"SERNA",           tramite:"Registro de importadores de sustancias",                                                                                                      financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:54, inst:"SERNA",           tramite:"Pre-autorización de importación de equipos",                                                                                                  financia:"",      acta:"No",        activo:"No",  etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
+  {id:55, inst:"SGJD",            tramite:"Registro de contratos de la Dirección de Inquilinatos",                                                                                       financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,1,1,1,1,1,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:56, inst:"SGJD",            tramite:"Auténticas de documentación",                                                                                                                 financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,1,1,1,1,1,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:57, inst:"SGJD",            tramite:"Reconocimiento de personas jurídicas",                                                                                                        financia:"",      acta:"No",        activo:"No",  etapas:[1,0,0,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI / Aún en proceso",         obs:""},
+  {id:58, inst:"SGJD",            tramite:"Autorización para promociones, sorteos y otros similares",                                                                                    financia:"",      acta:"No",        activo:"No",  etapas:[1,0,0,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI / Aún en proceso",         obs:""},
+  {id:59, inst:"SGJD",            tramite:"Autorización para eventos y espectáculos públicos",                                                                                           financia:"",      acta:"No",        activo:"No",  etapas:[1,0,0,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"NO APARECE ACTIVO",           obs:""},
+  {id:60, inst:"CANATURH / IHT",  tramite:"Inscripción RNT: Servicios de hospitalidad, recreación y espacios para eventos",                                                             financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:61, inst:"CANATURH / IHT",  tramite:"Inscripción RNT: Prestadores de servicios de transporte y arrendadoras de vehículos",                                                       financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:62, inst:"CANATURH / IHT",  tramite:"Inscripción RNT: Guías turísticos",                                                                                                          financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:63, inst:"CANATURH / IHT",  tramite:"Inscripción RNT: Operadoras de turismo receptivo y agencias de viaje",                                                                       financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:64, inst:"CANATURH / IHT",  tramite:"Renovación RNT: Servicios intermediación y facilitación turística",                                                                          financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"No aparece ese trámite sino otro",obs:""},
+  {id:65, inst:"CANATURH / IHT",  tramite:"Renovación RNT: Prestadores de servicios de transporte y arrendadoras de vehículos",                                                        financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:66, inst:"CANATURH / IHT",  tramite:"Renovación RNT: Guías turísticos",                                                                                                           financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:67, inst:"CANATURH / IHT",  tramite:"Renovación RNT: Servicios de hospitalidad, recreación y espacios para eventos",                                                              financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  // Instituciones adicionales sin trámites PDI
+  {id:68, inst:"IP",              tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIO", pdi:"",                            obs:""},
+  {id:69, inst:"SESAL",           tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
+  {id:70, inst:"ARSA",            tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIO", pdi:"",                            obs:""},
+  {id:71, inst:"SENASA",          tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"",                            obs:""},
+  {id:72, inst:"BCH",             tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIO", pdi:"",                            obs:""},
+  {id:73, inst:"CNI",             tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
+  {id:74, inst:"ICF",             tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
+  {id:75, inst:"SEGOB",           tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
+  {id:76, inst:"SDE",             tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIO", pdi:"",                            obs:""},
+  {id:77, inst:"PODER JUDICIAL",  tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIO", pdi:"",                            obs:""},
+  {id:78, inst:"HBCBH - BOMBEROS",tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"",                            obs:""},
+  {id:79, inst:"INFOP",           tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"",                            obs:""},
+  {id:80, inst:"ALCALDÍA COMAYAGUA",tramite:"(Trámites en identificación)",                                                                                                             financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
+];
+
+// Notas iniciales (migradas de resumen_instituciones)
+const NOTAS_INICIALES = {
+  "IHADFA":    [{fecha:"2026-06-05",nota:"Taller para revisión/capacitación presencial SOL\n* Solicita que se actualicen los videotutoriales para incluir los nuevos logos e identidad institucional actual",autor:"DIGER"},{fecha:"2026-06-12",nota:"Segundo taller de capacitación al equipo legal e inspectores",autor:"DIGER"}],
+  "CNBS":      [{fecha:"2026-06-01",nota:"El abogado Carlos Mairena menciona que los servicios están \"de baja\", pidió correo para brindar más información",autor:"DIGER"}],
+  "IHTT":      [{fecha:"2026-06-03",nota:"Reporte de incidentes en plataforma, cambio de trámites a nuevos usuarios",autor:"DIGER"}],
+  "CONSUCOOP": [{fecha:"2026-06-04",nota:"Reunión de coordinación para migración: verificar disponibilidad de recursos, organizar tareas y definir fechas para sesión de migración.\nReunión programada para 08/06/2026 para migración.",autor:"DIGER"}],
+  "IHCINE":    [{fecha:"2026-06-03",nota:"De momento el instituto está suprimido, en espera de directrices para traslado institucional a SECAPPH",autor:"DIGER"}],
+  "IP":        [{fecha:"2026-06-04",nota:"Taller de modelado SOL-IP\nSe coordinó una reunión para el 09/06/2026 para continuar con la identificación de potenciales trámites a digitalizar",autor:"DIGER"}],
+  "SESAL":     [{fecha:"2026-06-01",nota:"A la espera de retroalimentación para continuar con proceso de capacitación/lanzamiento de trámites.\nCoorge reunión con Fernando Valladares del área de proyectos para retomar proceso de digitalización",autor:"DIGER"}],
+};
+
+// ── STORAGE TRAMITES ─────────────────────────────────────────────
+const LS_TRAM = 'diger_inst_tram_v1';
+const LS_NOTAS = 'diger_inst_notas_v1';
+
+function loadTram(){ try{ return JSON.parse(localStorage.getItem(LS_TRAM))||{}; }catch{ return {}; } }
+function saveTram(s){ localStorage.setItem(LS_TRAM, JSON.stringify(s)); }
+function getRecord(id){ const s=loadTram(); const def=DEFAULT_DATA.find(d=>d.id===id); return Object.assign({},def,s[id]||{}); }
+function patchRecord(id,patch){ const s=loadTram(); s[id]=Object.assign({},s[id]||{},patch); saveTram(s); }
+
+function loadNotas(){
+  const stored = localStorage.getItem(LS_NOTAS);
+  if(stored) return JSON.parse(stored);
+  // Primera vez: cargar notas iniciales
+  localStorage.setItem(LS_NOTAS, JSON.stringify(NOTAS_INICIALES));
+  return NOTAS_INICIALES;
+}
+function saveNotas(n){ localStorage.setItem(LS_NOTAS, JSON.stringify(n)); }
+function getNotas(inst){ return (loadNotas()[inst]||[]); }
+
+// ── HELPERS ──────────────────────────────────────────────────────
+function calcPct(etapas){ return ETAPAS.reduce((s,e,i)=>s+(etapas[i]?e.peso:0),0); }
+function estadoFromPct(pct){ if(pct===0)return'No iniciado'; if(pct>=1)return'En operación'; return'En proceso'; }
+function badgeCls(estado){ if(estado==='En operación')return'op'; if(estado==='No iniciado')return'ni'; return'proc'; }
+function pctColor(pct){ if(pct>=1)return'var(--verde)'; if(pct>=0.6)return'var(--ambar)'; return'var(--rojo)'; }
+function uniqueInsts(){ return [...new Set(DEFAULT_DATA.map(d=>d.inst))]; }
+function fmtFecha(iso){ if(!iso)return''; try{ const [y,m,d]=iso.split('-'); return d+'/'+m+'/'+y; }catch{return iso;} }
+function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── STATS GLOBALES ────────────────────────────────────────────────
+function refreshStats(){
+  const all=DEFAULT_DATA.map(d=>getRecord(d.id));
+  const op=all.filter(r=>calcPct(r.etapas)>=1).length;
+  const ni=all.filter(r=>calcPct(r.etapas)===0).length;
+  const proc=all.length-op-ni;
+  const avg=all.reduce((s,r)=>s+calcPct(r.etapas),0)/all.length;
+  document.getElementById('s-op').textContent=op;
+  document.getElementById('s-proc').textContent=proc;
+  document.getElementById('s-ni').textContent=ni;
+  document.getElementById('s-avg').textContent=Math.round(avg*100)+'%';
+  document.getElementById('s-avgbar').style.width=Math.round(avg*100)+'%';
+}
+
+// ── DROPDOWN ─────────────────────────────────────────────────────
+function buildDropdown(){
+  const sel=document.getElementById('instSelect');
+  const insts=uniqueInsts();
+  sel.innerHTML='<option value="">— Seleccione una institución —</option>'+
+    insts.map(inst=>{
+      const rows=DEFAULT_DATA.filter(d=>d.inst===inst).map(d=>getRecord(d.id));
+      const avg=rows.reduce((s,r)=>s+calcPct(r.etapas),0)/rows.length;
+      const pct=Math.round(avg*100);
+      return `<option value="${esc(inst)}">${inst} — ${pct}% avance (${rows.length} trámites)</option>`;
+    }).join('');
+}
+
+let activeInst = null;
+
+function seleccionar(inst){
+  activeInst = inst || null;
+  if(!activeInst){
+    document.getElementById('mainLayout').style.display='none';
+    document.getElementById('placeholder').style.display='block';
+    document.getElementById('instInfoBar').innerHTML='';
+    return;
+  }
+  document.getElementById('mainLayout').style.display='grid';
+  document.getElementById('placeholder').style.display='none';
+  renderInfoBar(inst);
+  renderTramites(inst);
+  renderNotas(inst);
+  // Fecha hoy por defecto en el formulario de nota
+  const hoy=new Date().toISOString().split('T')[0];
+  document.getElementById('nota-fecha').value=hoy;
+}
+
+function renderInfoBar(inst){
+  const rows=DEFAULT_DATA.filter(d=>d.inst===inst).map(d=>getRecord(d.id));
+  const avg=rows.reduce((s,r)=>s+calcPct(r.etapas),0)/rows.length;
+  const pct=Math.round(avg*100);
+  const estado=estadoFromPct(avg);
+  const bcls=badgeCls(estado);
+  const aloj=(rows[0]&&rows[0].aloj)||'';
+  const alojKey='aloj-'+aloj.toLowerCase();
+  document.getElementById('instInfoBar').innerHTML=
+    `<span class="info-chip ${alojKey}">🗄 ${aloj||'Sin alojamiento definido'}</span>`+
+    `<span class="info-chip st-${bcls}">${estado}</span>`+
+    `<span class="info-chip" style="background:#e8f0ff;color:#1455a4">${rows.length} trámite${rows.length!==1?'s':''}</span>`+
+    `<span class="info-chip" style="background:#e8f0ff;color:#1455a4;font-size:12px">Avance: <strong>${pct}%</strong></span>`;
+}
+
+// ── TRAMITES ─────────────────────────────────────────────────────
+function renderTramites(inst){
+  const rows=DEFAULT_DATA.filter(d=>d.inst===inst).map(d=>getRecord(d.id));
+  document.getElementById('tram-count').textContent=rows.length;
+  document.getElementById('tramites-content').innerHTML=rows.map(r=>renderTramite(r)).join('');
+}
+
+function renderTramite(r){
+  const pct=calcPct(r.etapas);
+  const pctP=Math.round(pct*100);
+  const estado=estadoFromPct(pct);
+  const bcls=badgeCls(estado);
+  const color=pctColor(pct);
+
+  const stagesHtml=ETAPAS.map((e,i)=>{
+    return `<div class="stage-item ${r.etapas[i]?'checked':''}" id="si-${r.id}-${i}" onclick="toggleStage(${r.id},${i})">
+      <div class="stage-cb">${r.etapas[i]?'✓':''}</div>
+      <div class="stage-text">
+        <div class="stage-num">Etapa ${esc(e.num)} · ${Math.round(e.peso*100)}%</div>
+        <div class="stage-name">${esc(e.label)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const alojOpts=['DIGER','PROPIA','PROPIO','Propia','Propio',''].map(v=>
+    `<option value="${v}" ${r.aloj===v?'selected':''}>${v||'— No definido —'}</option>`).join('');
+
+  return `<div class="tram-card" id="tc-${r.id}">
+    <div class="tram-head" onclick="toggleCard(${r.id})">
+      <div class="tram-num">${r.id}</div>
+      <div class="tram-info">
+        <div class="tram-name">${esc(r.tramite)}</div>
+        <div class="tram-meta">
+          <span class="badge ${bcls}">${esc(estado)}</span>
+          ${r.financia?`<span class="meta-tag">Financia: ${esc(r.financia)}</span>`:''}
+          <span class="meta-tag">Acta: ${esc(r.acta)||'—'}</span>
+          <span class="meta-tag">PDI: ${esc(r.activo)||'—'}</span>
+        </div>
+        <div class="tram-pbar">
+          <div class="pbar"><div class="pbar-fill" style="width:${pctP}%;background:${color}"></div></div>
+          <span class="pct-lbl" style="color:${color}">${pctP}%</span>
+        </div>
+      </div>
+      <div class="tram-toggle" id="tog-${r.id}">▾</div>
+    </div>
+    <div class="tram-body" id="tb-${r.id}">
+      <div class="stages-grid">${stagesHtml}</div>
+      <div class="extra-row">
+        <div class="extra-field">
+          <label class="extra-lbl">Acta firmada</label>
+          <select class="extra-sel" onchange="patchField(${r.id},'acta',this.value)">
+            <option ${r.acta==='Si'?'selected':''}>Si</option>
+            <option ${r.acta==='No'?'selected':''}>No</option>
+            <option ${r.acta==='en proceso'?'selected':''}>en proceso</option>
+          </select>
+        </div>
+        <div class="extra-field">
+          <label class="extra-lbl">Activo en PDI</label>
+          <select class="extra-sel" onchange="patchField(${r.id},'activo',this.value)">
+            <option ${r.activo==='Si'?'selected':''}>Si</option>
+            <option ${r.activo==='No'?'selected':''}>No</option>
+            <option ${r.activo==='en proceso'?'selected':''}>en proceso</option>
+          </select>
+        </div>
+        <div class="extra-field">
+          <label class="extra-lbl">Alojamiento</label>
+          <select class="extra-sel" onchange="patchField(${r.id},'aloj',this.value)">${alojOpts}</select>
+        </div>
+        <div class="extra-field">
+          <label class="extra-lbl">Func. en PDI</label>
+          <input class="extra-inp" value="${esc(r.pdi||'')}" placeholder="SI / NO / —" style="width:140px"
+            onchange="patchField(${r.id},'pdi',this.value)">
+        </div>
+        <div class="extra-field extra-obs">
+          <label class="extra-lbl">Observaciones internas</label>
+          <textarea onchange="patchField(${r.id},'obs',this.value)" placeholder="Notas adicionales sobre este trámite…">${esc(r.obs||'')}</textarea>
+        </div>
+      </div>
+      <div class="save-ind" id="saved-${r.id}">✓ Guardado</div>
+    </div>
+  </div>`;
+}
+
+function toggleCard(id){
+  const body=document.getElementById('tb-'+id);
+  const tog=document.getElementById('tog-'+id);
+  const open=body.classList.toggle('open');
+  tog.classList.toggle('open',open);
+}
+
+function toggleStage(id,idx){
+  const r=getRecord(id);
+  r.etapas[idx]=r.etapas[idx]?0:1;
+  patchRecord(id,{etapas:r.etapas});
+  // Update UI
+  const pct=calcPct(r.etapas);
+  const pctP=Math.round(pct*100);
+  const estado=estadoFromPct(pct);
+  const bcls=badgeCls(estado);
+  const color=pctColor(pct);
+  ETAPAS.forEach((_,i)=>{
+    const si=document.getElementById(`si-${id}-${i}`);
+    if(!si)return;
+    si.className='stage-item '+(r.etapas[i]?'checked':'');
+    si.querySelector('.stage-cb').textContent=r.etapas[i]?'✓':'';
+  });
+  const card=document.getElementById('tc-'+id);
+  if(card){
+    const b=card.querySelector('.badge');
+    if(b){b.className='badge '+bcls;b.textContent=estado;}
+    const fill=card.querySelector('.pbar-fill');
+    if(fill){fill.style.width=pctP+'%';fill.style.background=color;}
+    const lbl=card.querySelector('.pct-lbl');
+    if(lbl){lbl.textContent=pctP+'%';lbl.style.color=color;}
+  }
+  showSaved(id);
+  refreshStats();
+  renderInfoBar(activeInst);
+  buildDropdown(); // actualizar % en dropdown
+  document.getElementById('instSelect').value=activeInst;
+}
+
+function patchField(id,field,value){ patchRecord(id,{[field]:value}); showSaved(id); }
+
+function showSaved(id){
+  const el=document.getElementById('saved-'+id);
+  if(!el)return;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+// ── NOTAS ─────────────────────────────────────────────────────────
+function renderNotas(inst){
+  const notas=getNotas(inst);
+  const lista=document.getElementById('notas-lista');
+  document.getElementById('notas-count').textContent=notas.length;
+
+  if(!notas.length){
+    lista.innerHTML=`<div class="notas-empty"><div class="ico">📭</div><p>Sin notas de seguimiento para esta institución.<br>Agrega la primera nota abajo.</p></div>`;
+    return;
+  }
+
+  // Ordenar: más reciente primero
+  const sorted=[...notas].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  lista.innerHTML=sorted.map((n,i)=>`
+    <div class="nota-item">
+      <button class="nota-del" onclick="eliminarNota('${esc(inst)}','${esc(n.fecha)}','${esc(n.timestamp||'')}',${i})" title="Eliminar nota">✕</button>
+      <div class="nota-meta">
+        <div class="nota-fecha">📅 ${esc(fmtFecha(n.fecha))}</div>
+        <div class="nota-autor">👤 ${esc(n.autor||'DIGER')}</div>
+      </div>
+      <div class="nota-texto">${esc(n.nota)}</div>
+    </div>
+  `).join('');
+}
+
+function agregarNota(){
+  if(!activeInst)return;
+  const fecha=document.getElementById('nota-fecha').value;
+  const autor=document.getElementById('nota-autor').value.trim();
+  const texto=document.getElementById('nota-texto').value.trim();
+  if(!texto){ alert('Por favor ingrese el texto de la nota.'); return; }
+  if(!fecha){ alert('Por favor seleccione una fecha.'); return; }
+
+  const allNotas=loadNotas();
+  if(!allNotas[activeInst]) allNotas[activeInst]=[];
+  allNotas[activeInst].push({
+    fecha,
+    autor: autor||'DIGER',
+    nota: texto,
+    timestamp: new Date().toISOString()
+  });
+  saveNotas(allNotas);
+
+  document.getElementById('nota-texto').value='';
+  document.getElementById('nota-autor').value='';
+  renderNotas(activeInst);
+}
+
+function eliminarNota(inst,fecha,timestamp,idx){
+  if(!confirm('¿Eliminar esta nota?'))return;
+  const allNotas=loadNotas();
+  const notas=allNotas[inst]||[];
+  // Encontrar por timestamp si existe, si no por índice en sorted
+  const sorted=[...notas].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const target=sorted[idx];
+  if(target){
+    const realIdx=notas.findIndex(n=>n.fecha===target.fecha&&n.nota===target.nota&&(n.timestamp||'')===(target.timestamp||''));
+    if(realIdx!==-1) notas.splice(realIdx,1);
+  }
+  allNotas[inst]=notas;
+  saveNotas(allNotas);
+  renderNotas(inst);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+buildDropdown();
+refreshStats();
+// Fecha de hoy por defecto
+document.getElementById('nota-fecha').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
