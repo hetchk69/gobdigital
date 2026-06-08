@@ -285,7 +285,7 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
 <div class="container">
 
   <!-- ══ VISTA: HISTORIAL ══ -->
-  <div class="hist-view active" id="hist-view">
+  <div id="hist-view" style="display:none">
     <div class="hist-header">
       <div>
         <h2>Trámites — Estado</h2>
@@ -297,7 +297,7 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
   </div>
 
   <!-- ══ VISTA: FORMULARIO ══ -->
-  <div class="form-view" id="form-view">
+  <div id="form-view" style="display:none">
 
   <!-- STEP BAR -->
   <div class="step-bar">
@@ -952,14 +952,14 @@ function renderHistorial(){
 }
 
 function mostrarFormulario(){
-  document.getElementById('hist-view').classList.remove('active');
-  document.getElementById('form-view').classList.add('active');
+  document.getElementById('hist-view').style.display = 'none';
+  document.getElementById('form-view').style.display = 'block';
   goStep(1);
 }
 
 function verHistorial(){
-  document.getElementById('form-view').classList.remove('active');
-  document.getElementById('hist-view').classList.add('active');
+  document.getElementById('form-view').style.display = 'none';
+  document.getElementById('hist-view').style.display = 'block';
   renderHistorial();
 }
 
@@ -968,8 +968,8 @@ function verDetalle(id){
   var h = hist.find(function(x){ return x.id===id; });
   if(!h) return;
   // Pre-popular el formulario con los datos guardados y abrirlo
-  document.getElementById('hist-view').classList.remove('active');
-  document.getElementById('form-view').classList.add('active');
+  document.getElementById('hist-view').style.display = 'none';
+  document.getElementById('form-view').style.display = 'block';
   // Poblar campos
   document.getElementById('inst').value = h.inst||'';
   document.getElementById('enc').value  = h.enc||'';
@@ -1092,7 +1092,7 @@ function eliminarDocEstado(idx) {
 document.addEventListener('DOMContentLoaded', function() {
   var df = document.getElementById('doc-fecha');
   if (df) df.value = new Date().toISOString().split('T')[0];
-  renderHistorial();
+  verHistorial(); // Arranca siempre en la vista de historial
 });
 
 </script>
