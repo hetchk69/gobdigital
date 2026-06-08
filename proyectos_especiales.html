@@ -663,6 +663,8 @@ var currentReunion= null;
 var realtimeCh    = null;
 var asisCache     = [];
 var contN = 4;
+var _foto1_url = '', _foto2_url = '';
+var _foto1_file = null, _foto2_file = null;
 
 // ─────────────────────────────────────────────────────────────
 // MODO PÚBLICO
@@ -941,6 +943,8 @@ async function guardarTodo(){
   var btns=[document.getElementById('btn-guardar-todo')];
   btns.forEach(function(b){ if(b){ b.textContent='Guardando...'; b.disabled=true; } });
 
+  await uploadPendingFotos();
+
   // Preservar cap existente
   var datosExistentes={}; try{ datosExistentes=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
   var datosTema=Object.assign({}, datosExistentes, {
@@ -1043,9 +1047,9 @@ function colectarDatosCap(){
     r_convocados:gv('r-convocados'),r_asistentes:gv('r-asistentes'),r_pct:gv('r-pct'),r_satisfaccion:gv('r-satisfaccion'),
     compromisos:[gv('com1'),gv('com2'),gv('com3'),gv('com4')],
     val_diger:gv('val-diger'),val_inst:gv('val-inst'),
-    foto1:(function(){ var el=document.getElementById('f1-img'); return (el&&el.style.display!=='none'&&el.src&&el.src.startsWith('data:'))?el.src:''; })(),
+    foto1:_foto1_url,
     foto1_desc:gv('f1-desc'),
-    foto2:(function(){ var el=document.getElementById('f2-img'); return (el&&el.style.display!=='none'&&el.src&&el.src.startsWith('data:'))?el.src:''; })(),
+    foto2:_foto2_url,
     foto2_desc:gv('f2-desc'),
     guardado_en:new Date().toLocaleString('es-HN')
   };
@@ -1071,21 +1075,17 @@ function cargarDatosCap(cap){
   sv('val-diger',cap.val_diger||''); sv('val-inst',cap.val_inst||'');
   var coms=cap.compromisos||[];
   ['com1','com2','com3','com4'].forEach(function(id,i){ sv(id,coms[i]||''); });
-  // Restaurar fotos (siempre limpiar primero para no heredar fotos de otro evento)
+  // Restaurar fotos — limpiar primero, luego cargar la URL/base64 guardada
+  _foto1_url=cap.foto1||''; _foto2_url=cap.foto2||'';
+  _foto1_file=null; _foto2_file=null;
   var i1=document.getElementById('f1-img'); i1.src=''; i1.style.display='none';
   document.getElementById('f1-ph').style.display='block'; sv('f1-desc','');
   var i2=document.getElementById('f2-img'); i2.src=''; i2.style.display='none';
   document.getElementById('f2-ph').style.display='block'; sv('f2-desc','');
-  if(cap.foto1 && cap.foto1.startsWith('data:')){
-    i1.src=cap.foto1; i1.style.display='block';
-    document.getElementById('f1-ph').style.display='none';
-  }
-  sv('f1-desc', cap.foto1_desc||'');
-  if(cap.foto2 && cap.foto2.startsWith('data:')){
-    i2.src=cap.foto2; i2.style.display='block';
-    document.getElementById('f2-ph').style.display='none';
-  }
-  sv('f2-desc', cap.foto2_desc||'');
+  if(_foto1_url){ i1.src=_foto1_url; i1.style.display='block'; document.getElementById('f1-ph').style.display='none'; }
+  sv('f1-desc',cap.foto1_desc||'');
+  if(_foto2_url){ i2.src=_foto2_url; i2.style.display='block'; document.getElementById('f2-ph').style.display='none'; }
+  sv('f2-desc',cap.foto2_desc||'');
   // Contenido
   var cont=cap.contenido||[];
   contN=Math.max(4,cont.length);
@@ -1130,12 +1130,32 @@ function descargarQR(){
 // ── FOTO ──────────────────────────────────────────────────────
 function previewFoto(inp,imgId,phId){
   var file=inp.files[0]; if(!file) return;
+  if(imgId==='f1-img'){ _foto1_file=file; _foto1_url=''; }
+  else { _foto2_file=file; _foto2_url=''; }
   var reader=new FileReader();
   reader.onload=function(e){
     var img=document.getElementById(imgId); img.src=e.target.result; img.style.display='block';
     document.getElementById(phId).style.display='none';
   };
   reader.readAsDataURL(file);
+}
+async function uploadFoto(file,slot){
+  if(!currentId||!file) return null;
+  var ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+  var path=currentId+'/foto'+slot+'.'+ext;
+  var {error}=await sb.storage.from('evidencias').upload(path,file,{upsert:true,contentType:file.type});
+  if(error){ console.warn('Foto upload:',error.message); return null; }
+  return sb.storage.from('evidencias').getPublicUrl(path).data.publicUrl;
+}
+async function uploadPendingFotos(){
+  if(_foto1_file){ var u=await uploadFoto(_foto1_file,'1'); if(u){ _foto1_url=u; _foto1_file=null; } }
+  if(_foto2_file){ var u2=await uploadFoto(_foto2_file,'2'); if(u2){ _foto2_url=u2; _foto2_file=null; } }
+}
+async function urlToBase64(url){
+  try{
+    var r=await fetch(url); var blob=await r.blob();
+    return new Promise(function(res){ var fr=new FileReader(); fr.onload=function(e){ res(e.target.result); }; fr.readAsDataURL(blob); });
+  }catch(e){ return ''; }
 }
 
 // ── ACUERDOS ──────────────────────────────────────────────────
@@ -1207,6 +1227,7 @@ async function enviarRegistro(){
   var btn=document.getElementById('btn-enviar'), btn2=document.getElementById('btn-enviar2');
   [btn,btn2].forEach(function(b){ if(b){b.textContent='Guardando...';b.disabled=true;} });
   // Guardar todo antes de enviar
+  await uploadPendingFotos();
   var datosExistentes={}; try{ datosExistentes=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
   var datosTema=Object.assign({},datosExistentes,{
     modalidad:gv('g-modalidad'),modalidad_otro:gv('g-modalidad')==='Otro'?gv('g-modalidad-otro'):'',
@@ -1271,13 +1292,12 @@ function buildTexto(){
 }
 
 // ── PDF ───────────────────────────────────────────────────────
-function descargarPDF(){
+async function descargarPDF(){
   var datos={}; try{ datos=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
   var txt=window._lastTxt||buildTexto();
-  var f1el=document.getElementById('f1-img');
-  var f2el=document.getElementById('f2-img');
-  var foto1=(f1el&&f1el.style.display!=='none'&&f1el.src&&f1el.src.startsWith('data:'))?f1el.src:'';
-  var foto2=(f2el&&f2el.style.display!=='none'&&f2el.src&&f2el.src.startsWith('data:'))?f2el.src:'';
+  var foto1=_foto1_url||'', foto2=_foto2_url||'';
+  if(foto1 && !foto1.startsWith('data:')) foto1=(await urlToBase64(foto1))||'';
+  if(foto2 && !foto2.startsWith('data:')) foto2=(await urlToBase64(foto2))||'';
   generarPDF(txt,gv('g-inst')||datos.institucion_beneficiaria||'',gv('g-fecha'),foto1,gv('f1-desc'),foto2,gv('f2-desc'));
 }
 
@@ -1329,6 +1349,7 @@ function reiniciarForm(){
   var noEl=document.getElementById('es-cap-no'); if(noEl) noEl.checked=true;
   document.getElementById('cap-section').style.display='none';
   document.getElementById('resultados-section').style.display='none';
+  _foto1_url=''; _foto2_url=''; _foto1_file=null; _foto2_file=null;
   setAcuerdos([]);
   document.getElementById('gen-err').style.display='none';
   contN=4;
