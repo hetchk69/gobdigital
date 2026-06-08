@@ -15,12 +15,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
 .view{display:none}
 .view.active{display:block;animation:fadeUp .3s ease}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.fstep{display:none;animation:slideIn .3s ease}
-.fstep.active{display:block}
-@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 
 /* ── LAYOUT ── */
-.container{max-width:860px;margin:0 auto;padding:2rem 1rem 3rem}
+.container{max-width:900px;margin:0 auto;padding:2rem 1rem 3rem}
 
 /* ── TOP BAR ── */
 .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px}
@@ -38,6 +35,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
 .field textarea{min-height:80px;resize:vertical;line-height:1.6}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
 
 /* ── BUTTONS ── */
 .btnp{background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;border:none;border-radius:11px;padding:11px 26px;font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .2s;box-shadow:0 4px 14px rgba(10,45,110,.25)}
@@ -50,28 +48,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
 .btn-danger:hover{background:#fff5f5}
 .btn-success{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:11px;padding:11px 26px;font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .2s;box-shadow:0 4px 14px rgba(22,163,74,.25)}
 .btn-success:hover{transform:translateY(-1px)}
-.nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem}
+.btn-save-inline{background:#fff;border:1.5px solid #16a34a;border-radius:9px;padding:9px 18px;font-size:12.5px;font-weight:700;color:#16a34a;cursor:pointer;transition:all .2s}
+.btn-save-inline:hover{background:#f0fdf4}
 
 /* ── DOC HEADER ── */
-.doc-header{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:1.6rem;margin-bottom:1.25rem;text-align:center;box-shadow:0 2px 8px rgba(10,45,110,.06)}
+.doc-header{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:1.4rem;margin-bottom:1.25rem;text-align:center;box-shadow:0 2px 8px rgba(10,45,110,.06)}
 .doc-header .gov{font-size:13px;font-weight:800;color:#0a2d6e;text-transform:uppercase;letter-spacing:.04em}
 .doc-header .sub{font-size:11.5px;font-weight:700;color:#1455a4;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
 .doc-header .prog{font-size:12px;font-weight:700;color:#0d8ca0;text-transform:uppercase;margin-top:2px}
 .doc-header .form-title{font-size:14px;font-weight:800;color:#1a1a1a;margin-top:10px;text-transform:uppercase;letter-spacing:.03em}
-
-/* ── STEP BAR ── */
-.step-bar{display:flex;align-items:center;justify-content:center;margin-bottom:2rem;gap:0}
-.step-item{display:flex;flex-direction:column;align-items:center;position:relative;flex:1;max-width:160px}
-.step-item:not(:last-child)::after{content:'';position:absolute;top:20px;left:calc(50% + 22px);right:calc(-50% + 22px);height:2px;background:#d0d8e8;transition:background .4s;z-index:0}
-.step-item.done:not(:last-child)::after{background:#0a2d6e}
-.step-circle{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:2px solid #d0d8e8;background:#fff;color:#9aadcc;transition:all .4s;z-index:1;position:relative}
-.step-item.active .step-circle{border-color:#1455a4;background:#1455a4;color:#fff;box-shadow:0 0 0 5px rgba(20,85,164,.15)}
-.step-item.done .step-circle{border-color:#0a2d6e;background:#0a2d6e;color:#fff}
-.step-item.done .step-circle::after{content:'✓';font-size:16px}
-.step-item.done .step-circle span{display:none}
-.step-label{font-size:11px;color:#9aadcc;margin-top:6px;text-align:center;font-weight:500;transition:color .4s}
-.step-item.active .step-label{color:#1455a4;font-weight:700}
-.step-item.done .step-label{color:#0a2d6e}
 
 /* ── QR CARD ── */
 .qr-card{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:14px;padding:1.4rem;margin-bottom:1.1rem}
@@ -109,12 +94,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
 .loader{text-align:center;padding:2rem;color:#64748b;font-size:14px}
 .spinner{display:inline-block;width:28px;height:28px;border:3px solid #dde4f0;border-top-color:#1455a4;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:.5rem}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── TABS ── */
-.tab-bar{display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:1.4rem}
-.tab{padding:10px 20px;font-size:13px;font-weight:700;color:#9aadcc;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
-.tab.active{color:#1455a4;border-bottom-color:#1455a4}
-.tab-panel{display:none}.tab-panel.active{display:block}
 
 /* ── ATTENDANCE TABLE ── */
 .live-badge{display:inline-flex;align-items:center;gap:5px;background:#dcfce7;color:#16a34a;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:8px}
@@ -169,12 +148,20 @@ table.atbl{width:100%;min-width:580px;border-collapse:collapse;font-size:13px}
 .val-name{width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;text-align:center}
 .val-name:focus{outline:none;border-color:#1455a4}
 
-/* ── RESUMEN ── */
-.res-section{margin-bottom:1rem}
-.res-section h4{font-size:11px;font-weight:800;color:#1455a4;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
-.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}
-.res-row{font-size:12.5px;color:#4a5568;padding:3px 0;border-bottom:1px solid #f0f4fa}
-.res-row span{color:#0a2d6e;font-weight:600}
+/* ── FOTO ── */
+.foto-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.foto-box{border:2px dashed #c8d5ee;border-radius:12px;background:#f5f8ff;overflow:hidden}
+.foto-header{background:linear-gradient(135deg,#1455a4,#0a4d8c);color:#fff;font-size:11.5px;font-weight:700;padding:7px 12px;text-align:center}
+.foto-body{padding:10px}
+.foto-preview{width:100%;height:140px;border:1.5px solid #c8d5ee;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:8px;cursor:pointer;transition:border .2s}
+.foto-preview:hover{border-color:#1455a4}
+.foto-preview img{width:100%;height:100%;object-fit:contain;display:none}
+.foto-placeholder{text-align:center;color:#9aadcc;pointer-events:none}
+.foto-placeholder .icon{font-size:28px;margin-bottom:4px}
+.foto-placeholder p{font-size:11px}
+.foto-inp-desc{width:100%;padding:6px 9px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-family:inherit;background:#fff;transition:border .2s}
+.foto-inp-desc:focus{outline:none;border-color:#1455a4}
+input[type=file].hidden{display:none}
 
 /* ── SUCCESS ── */
 .okbox{text-align:center;padding:2.5rem 1rem}
@@ -182,8 +169,24 @@ table.atbl{width:100%;min-width:580px;border-collapse:collapse;font-size:13px}
 .check-wrap svg{width:42px;height:42px;stroke:#fff;stroke-width:3;fill:none;stroke-dasharray:60;stroke-dashoffset:60;animation:drawCheck .5s .3s ease forwards}
 @keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes drawCheck{to{stroke-dashoffset:0}}
-.okbox h2{font-size:22px;font-weight:700;color:#0a2d6e;margin-bottom:.5rem}
-.okbox p{color:#6b7fa3;font-size:13.5px;margin-bottom:1.5rem;line-height:1.6}
+
+/* ── SECTION DIVIDER ── */
+.sec-divider{display:flex;align-items:center;gap:10px;margin:1.5rem 0 .8rem}
+.sec-divider-line{flex:1;height:2px;background:linear-gradient(to right,#e2e8f0,transparent)}
+.sec-divider-label{font-size:11px;font-weight:800;color:#1455a4;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
+
+/* ── ACTION BAR ── */
+.action-bar{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:1rem 1.4rem;margin-bottom:1.1rem;box-shadow:0 2px 8px rgba(10,45,110,.06);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:10px;z-index:100}
+.action-bar-left{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.action-bar-right{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ── STATUS BADGE ── */
+.status-badge-active{background:#dcfce7;color:#16a34a;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;display:inline-flex;align-items:center;gap:5px}
+.status-badge-closed{background:#f1f5f9;color:#64748b;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;display:inline-flex;align-items:center;gap:5px}
+
+/* ── ERR MSG ── */
+.err-msg{background:#fff5f5;border:1px solid #fecaca;color:#dc2626;border-radius:8px;padding:8px 12px;font-size:12.5px;margin-top:8px;display:none}
+.ok-msg{background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;border-radius:8px;padding:8px 12px;font-size:12.5px;margin-top:8px;display:none}
 
 /* ── PUBLIC REGISTRATION ── */
 .pub-wrap{min-height:100vh;background:#eef1f7;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem}
@@ -200,36 +203,18 @@ table.atbl{width:100%;min-width:580px;border-collapse:collapse;font-size:13px}
 .pub-field input:focus{outline:none;border-color:#1455a4;background:#fff;box-shadow:0 0 0 3px rgba(20,85,164,.1)}
 .pub-closed{background:#fff5f5;border:1.5px solid #fecaca;border-radius:12px;padding:1.5rem;text-align:center;color:#dc2626;font-weight:700}
 .pub-ok{text-align:center;padding:2rem 1rem}
-.err-msg{background:#fff5f5;border:1px solid #fecaca;color:#dc2626;border-radius:8px;padding:8px 12px;font-size:12.5px;margin-top:8px;display:none}
-
-/* ── FOTO ── */
-.foto-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.foto-box{border:2px dashed #c8d5ee;border-radius:12px;background:#f5f8ff;overflow:hidden}
-.foto-header{background:linear-gradient(135deg,#1455a4,#0a4d8c);color:#fff;font-size:11.5px;font-weight:700;padding:7px 12px;text-align:center}
-.foto-body{padding:10px}
-.foto-preview{width:100%;height:140px;border:1.5px solid #c8d5ee;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:8px;cursor:pointer;transition:border .2s}
-.foto-preview:hover{border-color:#1455a4}
-.foto-preview img{width:100%;height:100%;object-fit:contain;display:none}
-.foto-placeholder{text-align:center;color:#9aadcc;pointer-events:none}
-.foto-placeholder .icon{font-size:28px;margin-bottom:4px}
-.foto-placeholder p{font-size:11px}
-.foto-inp-desc{width:100%;padding:6px 9px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-family:inherit;background:#fff;transition:border .2s}
-.foto-inp-desc:focus{outline:none;border-color:#1455a4}
-input[type=file].hidden{display:none}
 
 /* ── MOBILE ── */
 @media(max-width:600px){
   .container{padding:1rem .75rem 2rem}
   .card{padding:1.1rem}
-  .row2,.row3,.foto-grid,.val-grid,.res-grid,.qr-section{grid-template-columns:1fr}
-  .step-label{display:none}
+  .row2,.row3,.row4,.foto-grid,.val-grid,.qr-section{grid-template-columns:1fr}
   .ptable{font-size:11px}
-  .tab{padding:8px 12px;font-size:12px}
+  .action-bar{position:static}
 }
 @media print{
-  .step-bar,.nav,.btnp,.btns,.btn-danger,.btn-success,.top-bar,.tab-bar,.qr-card{display:none!important}
-  .view{display:block!important}.fstep{display:block!important}
-  .tab-panel{display:block!important}
+  .action-bar,.btnp,.btns,.btn-danger,.btn-success,.btn-save-inline,.top-bar,.qr-card,.sec-divider{display:none!important}
+  .view{display:block!important}
   body{background:#fff}.container{max-width:100%;padding:0}
   .card{box-shadow:none;border-color:#ddd;page-break-inside:avoid}
 }
@@ -239,71 +224,49 @@ input[type=file].hidden{display:none}
 
 <!-- ─────────────────────────────────────────────────────────────
      MODO PÚBLICO: acceso por QR (?reg=ID)
-     Se muestra solo si hay param ?reg en la URL
 ───────────────────────────────────────────────────────────────── -->
 <div id="pub-wrap" class="pub-wrap" style="display:none">
-
-  <!-- Vista: Formulario de registro -->
   <div class="pub-card" id="pub-form-card">
     <div class="pub-gov">
       <div class="gov">Gobierno de la República de Honduras</div>
       <div class="sub">Dirección de Gestión por Resultados (DIGER)</div>
     </div>
-
     <div id="pub-loading" style="text-align:center;padding:2rem">
       <div class="spinner" style="margin:0 auto .75rem"></div>
       <p style="color:#6b7fa3;font-size:13px">Cargando información del evento...</p>
     </div>
-
     <div id="pub-closed" class="pub-closed" style="display:none">
       <div style="font-size:36px;margin-bottom:.75rem">🔒</div>
       <p style="margin-bottom:.5rem">El registro para este evento está cerrado.</p>
       <p style="font-size:12px;color:#b91c1c;font-weight:400">Comuníquese con el organizador del evento.</p>
     </div>
-
     <div id="pub-form-inner" style="display:none">
       <div class="pub-event" id="pub-event-info"></div>
       <div style="font-size:13.5px;font-weight:700;color:#0a2d6e;margin-bottom:1rem;border-bottom:2px solid #e2e8f0;padding-bottom:.5rem">
         📝 Registro de asistencia
       </div>
-      <div class="pub-field">
-        <label>Nombre completo *</label>
-        <input type="text" id="pub-nombre" placeholder="Ingrese su nombre completo" autocomplete="name">
-      </div>
-      <div class="pub-field">
-        <label>Correo electrónico *</label>
-        <input type="email" id="pub-correo" placeholder="correo@institución.gob.hn" autocomplete="email">
-      </div>
-      <div class="pub-field">
-        <label>Institución</label>
-        <input type="text" id="pub-inst" placeholder="Nombre de su institución">
-      </div>
-      <div class="pub-field">
-        <label>Teléfono</label>
-        <input type="tel" id="pub-tel" placeholder="+504 ????-????">
-      </div>
+      <div class="pub-field"><label>Nombre completo *</label><input type="text" id="pub-nombre" placeholder="Ingrese su nombre completo" autocomplete="name"></div>
+      <div class="pub-field"><label>Correo electrónico *</label><input type="email" id="pub-correo" placeholder="correo@institución.gob.hn" autocomplete="email"></div>
+      <div class="pub-field"><label>Institución</label><input type="text" id="pub-inst" placeholder="Nombre de su institución"></div>
+      <div class="pub-field"><label>Teléfono</label><input type="tel" id="pub-tel" placeholder="+504 ????-????"></div>
       <div class="err-msg" id="pub-err"></div>
-      <button class="btnp" id="pub-btn" onclick="registrarAsistencia()" style="width:100%;margin-top:.5rem;justify-content:center">
-        ✔ Registrar mi asistencia
-      </button>
+      <button class="btnp" id="pub-btn" onclick="registrarAsistencia()" style="width:100%;margin-top:.5rem;justify-content:center">✔ Registrar mi asistencia</button>
     </div>
-
-    <!-- Vista: Éxito -->
     <div id="pub-ok" class="pub-ok" style="display:none">
       <div class="check-wrap"><svg viewBox="0 0 52 52"><polyline points="14,27 22,35 38,17"/></svg></div>
       <h2 style="font-size:20px;font-weight:700;color:#0a2d6e;margin-bottom:.5rem">¡Registro exitoso!</h2>
       <p style="color:#6b7fa3;font-size:13px;line-height:1.6" id="pub-ok-msg">Su asistencia ha sido registrada correctamente.</p>
     </div>
   </div>
-
 </div>
 
 
 <!-- ─────────────────────────────────────────────────────────────
-     MODO ADMINISTRADOR (requiere sesión admin)
+     MODO ADMINISTRADOR
 ───────────────────────────────────────────────────────────────── -->
 <div id="adm-wrap" style="display:none">
 <div class="container">
+
 
 <!-- ══════════ VISTA: LISTA DE EVENTOS ══════════ -->
 <div class="view active" id="view-list">
@@ -317,10 +280,11 @@ input[type=file].hidden{display:none}
 </div>
 
 
-<!-- ══════════ VISTA: CREAR EVENTO (PASOS) ══════════ -->
-<div class="view" id="view-form">
+<!-- ══════════ VISTA: EVENTO (Crear / Editar — Todo en una página) ══════════ -->
+<div class="view" id="view-evento">
+
   <div class="top-bar">
-    <h2 class="page-title" id="form-titulo">Nuevo evento</h2>
+    <h2 class="page-title" id="ev-titulo-bar">Nuevo evento</h2>
     <button class="btns btn-sm" onclick="volverLista()">← Volver a lista</button>
   </div>
 
@@ -332,390 +296,292 @@ input[type=file].hidden{display:none}
     <div class="form-title">Formato Institucional de Registro de Capacitaciones</div>
   </div>
 
-  <!-- STEP BAR -->
-  <div class="step-bar">
-    <div class="step-item active" id="si1"><div class="step-circle"><span>1</span></div><div class="step-label">Generales</div></div>
-    <div class="step-item" id="si2"><div class="step-circle"><span>2</span></div><div class="step-label">Capacitación</div></div>
-    <div class="step-item" id="si3"><div class="step-circle"><span>3</span></div><div class="step-label">Participantes</div></div>
-    <div class="step-item" id="si4"><div class="step-circle"><span>4</span></div><div class="step-label">Resultados</div></div>
-    <div class="step-item" id="si5"><div class="step-circle"><span>5</span></div><div class="step-label">Envío</div></div>
+  <!-- BARRA DE ACCIONES STICKY -->
+  <div class="action-bar">
+    <div class="action-bar-left">
+      <span id="ev-status-badge" class="status-badge-active">● Activo</span>
+      <button class="btns btn-sm" id="btn-toggle-estado" onclick="toggleEstado()" style="display:none">Cerrar formulario</button>
+      <button class="btn-danger btn-sm" id="btn-eliminar" onclick="eliminarEvento()" style="display:none">🗑 Eliminar</button>
+    </div>
+    <div class="action-bar-right">
+      <button class="btn-save-inline" id="btn-guardar-todo" onclick="guardarTodo()">💾 Guardar cambios</button>
+      <button class="btnp" id="btn-enviar" onclick="enviarRegistro()">📤 Enviar registro</button>
+    </div>
   </div>
 
-  <!-- ── PASO 1: VISTA GENERAL ── -->
-  <div class="fstep active" id="step1">
-    <div class="card">
-      <div class="stitle">1. 📋 Vista General del Evento</div>
+  <!-- ═══ SECCIÓN 1: DATOS GENERALES ═══ -->
+  <div class="card">
+    <div class="stitle">📋 1. Datos Generales del Evento</div>
+    <div class="field">
+      <label>Título del evento *</label>
+      <input type="text" id="g-titulo" placeholder="Ej: Taller de digitalización de trámites">
+    </div>
+    <div class="row4">
       <div class="field">
-        <label>Título del evento *</label>
-        <input type="text" id="g-titulo" placeholder="Ej: Taller de digitalización de trámites">
+        <label>Fecha *</label>
+        <input type="date" id="g-fecha">
       </div>
-      <div class="row3">
-        <div class="field">
-          <label>Fecha *</label>
-          <input type="date" id="g-fecha">
-        </div>
-        <div class="field">
-          <label>Hora</label>
-          <input type="time" id="g-hora">
-        </div>
-        <div class="field">
-          <label>Duración</label>
-          <input type="text" id="g-duracion" placeholder="Ej: 3 horas">
-        </div>
+      <div class="field">
+        <label>Hora</label>
+        <input type="time" id="g-hora">
       </div>
+      <div class="field">
+        <label>Duración</label>
+        <input type="text" id="g-duracion" placeholder="Ej: 3 horas">
+      </div>
+      <div class="field">
+        <label>Modalidad *</label>
+        <select id="g-modalidad" onchange="toggleModalidadOtro()">
+          <option value="">— Seleccione —</option>
+          <option>Presencial</option>
+          <option>Virtual</option>
+          <option>Híbrida</option>
+          <option>Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="row2">
       <div class="field">
         <label>Lugar / Plataforma</label>
         <input type="text" id="g-lugar" placeholder="Nombre del lugar o plataforma virtual">
       </div>
-
-      <!-- MODALIDAD -->
-      <div class="row2">
-        <div class="field">
-          <label>Modalidad *</label>
-          <select id="g-modalidad" onchange="toggleModalidadOtro()">
-            <option value="">— Seleccione —</option>
-            <option>Presencial</option>
-            <option>Virtual</option>
-            <option>Híbrida</option>
-            <option>Otro</option>
-          </select>
-        </div>
-        <div class="field" id="field-modalidad-otro" style="display:none">
-          <label>Especifique la modalidad</label>
-          <input type="text" id="g-modalidad-otro" placeholder="Describa la modalidad...">
-        </div>
+      <div class="field" id="field-modalidad-otro" style="display:none">
+        <label>Especifique la modalidad</label>
+        <input type="text" id="g-modalidad-otro" placeholder="Describa la modalidad...">
       </div>
-
-      <!-- INSTITUCIÓN BENEFICIARIA -->
+    </div>
+    <div class="row2">
       <div class="field">
         <label>Institución Beneficiaria *</label>
-        <input type="text" id="g-inst" placeholder="Nombre completo de la institución beneficiaria">
+        <input type="text" id="g-inst" placeholder="Nombre completo de la institución">
       </div>
-
-      <!-- TIPO DE CAPACITACIÓN -->
-      <div class="row2">
-        <div class="field">
-          <label>Tipo de Capacitación / Evento *</label>
-          <select id="g-tipo" onchange="toggleTipoOtro()">
-            <option value="">— Seleccione —</option>
-            <option>Taller</option>
-            <option>Seminario</option>
-            <option>Charla informativa</option>
-            <option>Curso</option>
-            <option>Reunión técnica</option>
-            <option>Capacitación en el lugar de trabajo</option>
-            <option>Inducción</option>
-            <option>Conferencia</option>
-            <option>Otro</option>
-          </select>
-        </div>
-        <div class="field" id="field-tipo-otro" style="display:none">
-          <label>Describa el tipo de evento</label>
-          <input type="text" id="g-tipo-otro" placeholder="De qué se trata este evento...">
-        </div>
-      </div>
-
-      <div class="err-msg" id="step1-err" style="display:block;margin-top:.5rem"></div>
-    </div>
-
-    <!-- QR panel (aparece después de guardar) -->
-    <div class="qr-card" id="qr-panel" style="display:none">
-      <div class="qr-label">🔗 Enlace y QR para participantes</div>
-      <div class="qr-link-row">
-        <input class="qr-link-inp" id="qr-link-inp" type="text" readonly>
-        <button class="btn-copy" onclick="copiarLink()">Copiar</button>
-        <span class="copy-ok" id="copy-ok"></span>
-      </div>
-      <div class="qr-section">
-        <div class="qr-box">
-          <img id="qr-img" src="" alt="QR" width="180" height="180">
-          <div class="qr-box-label">Escanear para registrarse</div>
-        </div>
-        <div class="qr-actions">
-          <button class="btn-qr btn-qr-print" onclick="imprimirQR()">🖨 Imprimir QR</button>
-          <button class="btn-qr btn-qr-dl" onclick="descargarQR()">⬇ Descargar QR</button>
-          <p style="font-size:11.5px;color:#166534;margin-top:8px;max-width:200px">Proyecte o imprima el QR para que los participantes se registren desde su celular.</p>
-        </div>
+      <div class="field">
+        <label>Tipo de Capacitación / Evento *</label>
+        <select id="g-tipo" onchange="toggleTipoOtro()">
+          <option value="">— Seleccione —</option>
+          <option>Taller</option>
+          <option>Seminario</option>
+          <option>Charla informativa</option>
+          <option>Curso</option>
+          <option>Reunión técnica</option>
+          <option>Capacitación en el lugar de trabajo</option>
+          <option>Inducción</option>
+          <option>Conferencia</option>
+          <option>Otro</option>
+        </select>
       </div>
     </div>
-
-    <div class="nav">
-      <span style="font-size:12px;color:#9aadcc">* Campos obligatorios</span>
-      <div style="display:flex;gap:10px">
-        <button class="btn-success" id="btn-guardar-gen" onclick="guardarGeneral()">💾 Guardar y obtener QR</button>
-        <button class="btnp" id="btn-sig1" onclick="goStep(2)" style="display:none">Continuar →</button>
-      </div>
+    <div class="field" id="field-tipo-otro" style="display:none">
+      <label>Describa el tipo de evento</label>
+      <input type="text" id="g-tipo-otro" placeholder="De qué se trata este evento...">
+    </div>
+    <div class="err-msg" id="gen-err" style="display:block"></div>
+    <!-- Botón guardar generales (nuevo evento) -->
+    <div id="btn-guardar-gen-wrap" style="margin-top:.8rem">
+      <button class="btn-success" id="btn-guardar-gen" onclick="guardarGeneral()">💾 Guardar y generar QR</button>
     </div>
   </div>
 
-  <!-- ── PASO 2: CAPACITACIÓN ── -->
-  <div class="fstep" id="step2">
-    <div class="card">
-      <div class="stitle">2. 🎓 Capacitación</div>
-      <table class="dtable">
-        <tr>
-          <td class="lbl">Tema de capacitación *:</td>
-          <td><input type="text" id="cap-tema" placeholder="Descripción del tema principal"></td>
-        </tr>
-        <tr>
-          <td class="lbl" style="vertical-align:top;padding-top:10px">Objetivo general:</td>
-          <td><textarea id="cap-objetivo" placeholder="Describa el objetivo general..."></textarea></td>
-        </tr>
-        <tr>
-          <td class="lbl" style="vertical-align:top;padding-top:10px">Contenido desarrollado:</td>
-          <td style="padding:10px">
-            <ul class="numlist" id="contenido-list">
-              <li><span>1.</span><input type="text" id="cont1" placeholder="Punto de contenido"></li>
-              <li><span>2.</span><input type="text" id="cont2" placeholder="Punto de contenido"></li>
-              <li><span>3.</span><input type="text" id="cont3" placeholder="Punto de contenido"></li>
-              <li><span>4.</span><input type="text" id="cont4" placeholder="Punto de contenido"></li>
-            </ul>
-            <button onclick="addContenido()" style="margin-top:6px;padding:5px 12px;background:#fff;border:1.5px solid #c8d5ee;border-radius:7px;color:#6b7fa3;font-size:11.5px;cursor:pointer;font-weight:600" onmouseover="this.style.borderColor='#1455a4';this.style.color='#1455a4'" onmouseout="this.style.borderColor='#c8d5ee';this.style.color='#6b7fa3'">+ Agregar punto</button>
-          </td>
-        </tr>
-        <tr><td class="lbl" colspan="4" style="background:linear-gradient(135deg,#0d8ca0,#0a6070)">Enlace principal (Institución Beneficiaria):</td></tr>
-        <tr>
-          <td class="lbl2">- Nombre:</td><td><input type="text" id="ep-nombre" placeholder="Nombre completo"></td>
-        </tr>
-        <tr>
-          <td class="lbl2">- Cargo:</td><td><input type="text" id="ep-cargo" placeholder="Cargo / función"></td>
-        </tr>
-        <tr>
-          <td class="lbl2">- Correo:</td><td><input type="email" id="ep-correo" placeholder="correo@inst.gob.hn"></td>
-        </tr>
-        <tr>
-          <td class="lbl2">- Teléfono:</td><td><input type="text" id="ep-tel" placeholder="+504 9999-9999"></td>
-        </tr>
-        <tr><td class="lbl" colspan="4" style="background:linear-gradient(135deg,#0d8ca0,#0a6070)">Facilitador (Impartido por DIGER):</td></tr>
-        <tr>
-          <td class="lbl2">- Nombre:</td><td><input type="text" id="fac-nombre" placeholder="Nombre completo"></td>
-        </tr>
-        <tr>
-          <td class="lbl2">- Cargo:</td><td><input type="text" id="fac-cargo" placeholder="Cargo / función"></td>
-        </tr>
-        <tr>
-          <td class="lbl2">- Correo:</td><td><input type="email" id="fac-correo" placeholder="correo@diger.gob.hn"></td>
-        </tr>
-      </table>
-    </div>
-    <div class="nav">
-      <button class="btns" onclick="goStep(1)">← Anterior</button>
-      <button class="btns" onclick="guardarBorrador(2)" style="border-color:#16a34a;color:#16a34a" id="btn-save2">💾 Guardar</button>
-      <button class="btnp" onclick="goStep(3)">Continuar →</button>
-    </div>
-  </div>
-
-  <!-- ── PASO 3: PARTICIPANTES + EVIDENCIA + DOCS ── -->
-  <div class="fstep" id="step3">
-    <div class="card">
-      <div class="stitle">3. 👥 Participantes (registro manual)</div>
-      <p style="font-size:12px;color:#9aadcc;margin-bottom:10px">Los participantes que se registraron vía QR ya se capturaron automáticamente. Aquí puede agregar a quienes no usaron el QR.</p>
-      <div style="overflow-x:auto">
-        <table class="ptable">
-          <thead><tr><th>N.</th><th>Nombre</th><th>Cargo</th><th>Correo Electrónico</th><th>Teléfono</th><th>Firma</th></tr></thead>
-          <tbody id="ptbody"></tbody>
-        </table>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap">
-        <button onclick="addParticipante()" style="padding:7px 16px;background:#fff;border:1.5px solid #c8d5ee;border-radius:8px;color:#6b7fa3;font-size:12px;cursor:pointer;font-weight:700" onmouseover="this.style.borderColor='#1455a4';this.style.color='#1455a4'" onmouseout="this.style.borderColor='#c8d5ee';this.style.color='#6b7fa3'">+ Agregar fila</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="stitle">4. 📷 Evidencia fotográfica</div>
-      <div class="foto-grid">
-        <div class="foto-box">
-          <div class="foto-header">Fotografía 1</div>
-          <div class="foto-body">
-            <div class="foto-preview" onclick="document.getElementById('f1-inp').click()">
-              <img id="f1-img" src="" alt="">
-              <div class="foto-placeholder" id="f1-ph"><div class="icon">🖼</div><p>Clic para subir imagen</p></div>
-            </div>
-            <input type="file" class="hidden" id="f1-inp" accept="image/*" onchange="previewFoto(this,'f1-img','f1-ph')">
-            <input class="foto-inp-desc" type="text" id="f1-desc" placeholder="Descripción de la fotografía...">
-          </div>
-        </div>
-        <div class="foto-box">
-          <div class="foto-header">Fotografía 2</div>
-          <div class="foto-body">
-            <div class="foto-preview" onclick="document.getElementById('f2-inp').click()">
-              <img id="f2-img" src="" alt="">
-              <div class="foto-placeholder" id="f2-ph"><div class="icon">🖼</div><p>Clic para subir imagen</p></div>
-            </div>
-            <input type="file" class="hidden" id="f2-inp" accept="image/*" onchange="previewFoto(this,'f2-img','f2-ph')">
-            <input class="foto-inp-desc" type="text" id="f2-desc" placeholder="Descripción de la fotografía...">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="stitle">5. 📎 Documentos, URL's y recursos</div>
-      <div class="field" style="margin:0">
-        <textarea id="docs-recursos" placeholder="Liste los documentos, URLs y recursos utilizados..."></textarea>
-      </div>
-    </div>
-    <div class="nav">
-      <button class="btns" onclick="goStep(2)">← Anterior</button>
-      <button class="btns" onclick="guardarBorrador(3)" style="border-color:#16a34a;color:#16a34a" id="btn-save3">💾 Guardar</button>
-      <button class="btnp" onclick="goStep(4)">Continuar →</button>
-    </div>
-  </div>
-
-  <!-- ── PASO 4: RESULTADOS + VALIDACIÓN ── -->
-  <div class="fstep" id="step4">
-    <div class="card">
-      <div class="stitle">6. 📊 Resultados de la capacitación</div>
-      <table class="rtable">
-        <tr><td class="rlbl">Número de participantes convocados:</td><td><input type="number" id="r-convocados" placeholder="0" min="0" oninput="calcPct()"></td></tr>
-        <tr><td class="rlbl">Número de participantes asistentes:</td><td><input type="number" id="r-asistentes" placeholder="0" min="0" oninput="calcPct()"></td></tr>
-        <tr><td class="rlbl">Porcentaje de asistencia:</td><td><input type="text" id="r-pct" placeholder="Automático" readonly style="color:#6b7fa3"></td></tr>
-        <tr><td class="rlbl">Nivel de satisfacción (%):<span class="note">*Calificado por el enlace institucional</span></td><td><input type="number" id="r-satisfaccion" placeholder="0 – 100" min="0" max="100"></td></tr>
-        <tr>
-          <td class="rlbl" style="vertical-align:top;padding-top:12px">Compromisos / Próximos pasos:</td>
-          <td>
-            <div style="display:flex;flex-direction:column;gap:7px;padding:4px 0">
-              <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">1.</span><input type="text" id="com1" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
-              <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">2.</span><input type="text" id="com2" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
-              <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">3.</span><input type="text" id="com3" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
-              <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">4.</span><input type="text" id="com4" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
-            </div>
-          </td>
-        </tr>
-      </table>
-    </div>
-
-    <div class="card">
-      <div class="stitle">7. ✅ Validación y aprobación</div>
-      <div class="val-grid">
-        <div class="val-box">
-          <div class="val-role">Responsable DIGER</div>
-          <div class="val-sign"></div>
-          <p class="val-hint">(Firma y sello)</p>
-          <input class="val-name" type="text" id="val-diger" placeholder="Nombre y cargo">
-        </div>
-        <div class="val-box">
-          <div class="val-role">Representante Institución Beneficiaria</div>
-          <div class="val-sign"></div>
-          <p class="val-hint">(Firma y sello)</p>
-          <input class="val-name" type="text" id="val-inst" placeholder="Nombre y cargo">
-        </div>
-      </div>
-    </div>
-    <div class="nav">
-      <button class="btns" onclick="goStep(3)">← Anterior</button>
-      <button class="btns" onclick="guardarBorrador(4)" style="border-color:#16a34a;color:#16a34a" id="btn-save4">💾 Guardar</button>
-      <button class="btnp" onclick="goStep(5)">Revisar y enviar →</button>
-    </div>
-  </div>
-
-  <!-- ── PASO 5: RESUMEN + ENVÍO ── -->
-  <div class="fstep" id="step5">
-    <div class="card">
-      <div class="stitle">👁 Resumen del registro</div>
-      <div id="resumen"></div>
-    </div>
-    <div class="card">
-      <div class="stitle">📧 Envío del registro</div>
-      <p style="font-size:13.5px;color:#4a5568;line-height:1.7">Al hacer clic en <strong>Enviar</strong>, el resumen completo será enviado al equipo de coordinación de DIGER y el registro quedará guardado.</p>
-    </div>
-    <div class="nav">
-      <button class="btns" onclick="goStep(4)">← Anterior</button>
-      <button class="btnp" id="btn-enviar" onclick="enviarRegistro()">📤 Enviar y guardar</button>
-    </div>
-  </div>
-
-  <!-- ── PASO 6: ÉXITO ── -->
-  <div class="fstep" id="step6">
-    <div class="card">
-      <div class="okbox">
-        <div class="check-wrap"><svg viewBox="0 0 52 52"><polyline points="14,27 22,35 38,17"/></svg></div>
-        <h2>¡Registro guardado!</h2>
-        <p>El formato fue enviado al equipo de coordinación y quedó guardado en la lista de eventos.</p>
-        <button class="btnp" onclick="descargarPDF()" style="margin-bottom:12px">⬇ Descargar PDF</button><br>
-        <button class="btns" onclick="volverLista()" style="margin-top:10px;font-size:13px">← Ver todos los eventos</button>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /view-form -->
-
-
-<!-- ══════════ VISTA: DETALLE DEL EVENTO ══════════ -->
-<div class="view" id="view-detalle">
-  <div class="top-bar">
-    <h2 class="page-title" id="det-titulo">Evento</h2>
-    <button class="btns btn-sm" onclick="volverLista()">← Volver a lista</button>
-  </div>
-
-  <!-- QR + Link card -->
-  <div class="qr-card" id="det-qr-card">
+  <!-- ═══ QR CARD ═══ -->
+  <div class="qr-card" id="qr-panel" style="display:none">
     <div class="qr-label">🔗 Enlace y QR para participantes</div>
     <div class="qr-link-row">
-      <input class="qr-link-inp" id="det-link-inp" type="text" readonly>
-      <button class="btn-copy" onclick="copiarLinkDet()">Copiar</button>
-      <span class="copy-ok" id="det-copy-ok"></span>
+      <input class="qr-link-inp" id="qr-link-inp" type="text" readonly>
+      <button class="btn-copy" onclick="copiarLink()">Copiar</button>
+      <span class="copy-ok" id="copy-ok"></span>
     </div>
     <div class="qr-section">
       <div class="qr-box">
-        <img id="det-qr-img" src="" alt="QR" width="180" height="180">
+        <img id="qr-img" src="" alt="QR" width="180" height="180">
         <div class="qr-box-label">Escanear para registrarse</div>
       </div>
       <div class="qr-actions">
-        <button class="btn-qr btn-qr-print" onclick="imprimirQRDet()">🖨 Imprimir QR</button>
-        <button class="btn-qr btn-qr-dl" onclick="descargarQRDet()">⬇ Descargar QR</button>
+        <button class="btn-qr btn-qr-print" onclick="window.print()">🖨 Imprimir QR</button>
+        <button class="btn-qr btn-qr-dl" onclick="descargarQR()">⬇ Descargar QR</button>
+        <p style="font-size:11.5px;color:#166534;margin-top:8px;max-width:200px">Proyecte o imprima el QR para que los participantes se registren desde su celular.</p>
       </div>
     </div>
   </div>
 
-  <!-- Datos del evento -->
+  <!-- ═══ SECCIÓN 2: LISTA DE ASISTENCIA ═══ -->
+  <div class="sec-divider"><div class="sec-divider-line"></div><div class="sec-divider-label">✅ Lista de Asistencia</div><div class="sec-divider-line"></div></div>
+
+  <div class="card" id="asis-card">
+    <div class="stitle" id="det-reg-title">
+      Registros (0)
+      <span class="live-badge"><span class="live-dot"></span>En vivo</span>
+    </div>
+    <div class="stats-row" id="det-stats"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btns btn-sm" onclick="descargarExcelAsis()">⬇ Descargar Excel</button>
+      <button class="btn-danger btn-sm" onclick="borrarRegistros()">Borrar registros</button>
+    </div>
+    <div class="tbl-wrap">
+      <table class="atbl">
+        <thead><tr><th>N.</th><th>Nombre</th><th>Correo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th><th></th></tr></thead>
+        <tbody id="det-tbody"></tbody>
+      </table>
+      <div class="empty-row" id="det-empty">Sin registros capturados aún. Comparta el QR con los participantes.</div>
+    </div>
+  </div>
+
+  <!-- ═══ SECCIÓN 3: CAPACITACIÓN ═══ -->
+  <div class="sec-divider"><div class="sec-divider-line"></div><div class="sec-divider-label">🎓 Capacitación</div><div class="sec-divider-line"></div></div>
+
   <div class="card">
-    <div class="stitle">📅 Datos del evento</div>
-    <div id="det-info" style="font-size:13.5px;line-height:2.1"></div>
-    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btns btn-sm" id="btn-toggle-estado" onclick="toggleEstado()">Cerrar formulario</button>
-      <button class="btn-danger btn-sm" onclick="eliminarEvento()">🗑 Eliminar evento</button>
+    <div class="stitle">2. 🎓 Datos de la Capacitación</div>
+    <table class="dtable">
+      <tr>
+        <td class="lbl">Tema de capacitación *:</td>
+        <td><input type="text" id="cap-tema" placeholder="Descripción del tema principal"></td>
+      </tr>
+      <tr>
+        <td class="lbl" style="vertical-align:top;padding-top:10px">Objetivo general:</td>
+        <td><textarea id="cap-objetivo" placeholder="Describa el objetivo general..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="lbl" style="vertical-align:top;padding-top:10px">Contenido desarrollado:</td>
+        <td style="padding:10px">
+          <ul class="numlist" id="contenido-list">
+            <li><span>1.</span><input type="text" id="cont1" placeholder="Punto de contenido"></li>
+            <li><span>2.</span><input type="text" id="cont2" placeholder="Punto de contenido"></li>
+            <li><span>3.</span><input type="text" id="cont3" placeholder="Punto de contenido"></li>
+            <li><span>4.</span><input type="text" id="cont4" placeholder="Punto de contenido"></li>
+          </ul>
+          <button onclick="addContenido()" style="margin-top:6px;padding:5px 12px;background:#fff;border:1.5px solid #c8d5ee;border-radius:7px;color:#6b7fa3;font-size:11.5px;cursor:pointer;font-weight:600" onmouseover="this.style.borderColor='#1455a4';this.style.color='#1455a4'" onmouseout="this.style.borderColor='#c8d5ee';this.style.color='#6b7fa3'">+ Agregar punto</button>
+        </td>
+      </tr>
+      <tr><td class="lbl" colspan="4" style="background:linear-gradient(135deg,#0d8ca0,#0a6070)">Enlace principal (Institución Beneficiaria):</td></tr>
+      <tr><td class="lbl2">- Nombre:</td><td><input type="text" id="ep-nombre" placeholder="Nombre completo"></td></tr>
+      <tr><td class="lbl2">- Cargo:</td><td><input type="text" id="ep-cargo" placeholder="Cargo / función"></td></tr>
+      <tr><td class="lbl2">- Correo:</td><td><input type="email" id="ep-correo" placeholder="correo@inst.gob.hn"></td></tr>
+      <tr><td class="lbl2">- Teléfono:</td><td><input type="text" id="ep-tel" placeholder="+504 9999-9999"></td></tr>
+      <tr><td class="lbl" colspan="4" style="background:linear-gradient(135deg,#0d8ca0,#0a6070)">Facilitador (Impartido por DIGER):</td></tr>
+      <tr><td class="lbl2">- Nombre:</td><td><input type="text" id="fac-nombre" placeholder="Nombre completo"></td></tr>
+      <tr><td class="lbl2">- Cargo:</td><td><input type="text" id="fac-cargo" placeholder="Cargo / función"></td></tr>
+      <tr><td class="lbl2">- Correo:</td><td><input type="email" id="fac-correo" placeholder="correo@diger.gob.hn"></td></tr>
+    </table>
+  </div>
+
+  <!-- ═══ SECCIÓN 4: PARTICIPANTES MANUALES ═══ -->
+  <div class="card">
+    <div class="stitle">3. 👥 Lista de Participantes (registro manual)</div>
+    <p style="font-size:12px;color:#9aadcc;margin-bottom:10px">Los participantes registrados vía QR aparecen en la lista de asistencia de arriba. Aquí agregue a quienes no usaron el QR.</p>
+    <div style="overflow-x:auto">
+      <table class="ptable">
+        <thead><tr><th>N.</th><th>Nombre</th><th>Cargo</th><th>Correo Electrónico</th><th>Teléfono</th><th>Firma</th></tr></thead>
+        <tbody id="ptbody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px">
+      <button onclick="addParticipante()" style="padding:7px 16px;background:#fff;border:1.5px solid #c8d5ee;border-radius:8px;color:#6b7fa3;font-size:12px;cursor:pointer;font-weight:700" onmouseover="this.style.borderColor='#1455a4';this.style.color='#1455a4'" onmouseout="this.style.borderColor='#c8d5ee';this.style.color='#6b7fa3'">+ Agregar fila</button>
     </div>
   </div>
 
-  <!-- Tabs: Asistencia | Capacitación -->
-  <div class="card" style="padding-bottom:1.4rem">
-    <div class="tab-bar">
-      <div class="tab active" onclick="cambiarTab(0)" id="tab0">✅ Lista de asistencia</div>
-      <div class="tab" onclick="cambiarTab(1)" id="tab1">🎓 Capacitación</div>
-    </div>
-
-    <!-- Tab 0: Asistencia -->
-    <div class="tab-panel active" id="tp0">
-      <div class="stitle" id="det-reg-title" style="margin-bottom:1rem">
-        Registros (0)
-        <span class="live-badge"><span class="live-dot"></span>En vivo</span>
+  <!-- ═══ SECCIÓN 5: EVIDENCIA FOTOGRÁFICA ═══ -->
+  <div class="card">
+    <div class="stitle">4. 📷 Evidencia fotográfica</div>
+    <div class="foto-grid">
+      <div class="foto-box">
+        <div class="foto-header">Fotografía 1</div>
+        <div class="foto-body">
+          <div class="foto-preview" onclick="document.getElementById('f1-inp').click()">
+            <img id="f1-img" src="" alt=""><div class="foto-placeholder" id="f1-ph"><div class="icon">🖼</div><p>Clic para subir imagen</p></div>
+          </div>
+          <input type="file" class="hidden" id="f1-inp" accept="image/*" onchange="previewFoto(this,'f1-img','f1-ph')">
+          <input class="foto-inp-desc" type="text" id="f1-desc" placeholder="Descripción de la fotografía...">
+        </div>
       </div>
-      <div class="stats-row" id="det-stats"></div>
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-        <button class="btns btn-sm" onclick="descargarExcelAsis()">⬇ Descargar Excel</button>
-        <button class="btn-danger btn-sm" onclick="borrarRegistros()">Borrar registros</button>
-      </div>
-      <div class="tbl-wrap">
-        <table class="atbl">
-          <thead><tr><th>N.</th><th>Nombre</th><th>Correo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th><th></th></tr></thead>
-          <tbody id="det-tbody"></tbody>
-        </table>
-        <div class="empty-row" id="det-empty">Sin registros capturados aún.</div>
-      </div>
-    </div>
-
-    <!-- Tab 1: Capacitación -->
-    <div class="tab-panel" id="tp1">
-      <div id="cap-data-view">
-        <p style="font-size:13px;color:#9aadcc;margin-bottom:1rem">Los datos de capacitación se completan al llenar el formulario completo (pasos 2–5).</p>
-        <button class="btnp btn-sm" onclick="irAFormulatioCompleto()">📝 Completar registro de capacitación</button>
-        <div id="cap-data-content" style="margin-top:1rem"></div>
+      <div class="foto-box">
+        <div class="foto-header">Fotografía 2</div>
+        <div class="foto-body">
+          <div class="foto-preview" onclick="document.getElementById('f2-inp').click()">
+            <img id="f2-img" src="" alt=""><div class="foto-placeholder" id="f2-ph"><div class="icon">🖼</div><p>Clic para subir imagen</p></div>
+          </div>
+          <input type="file" class="hidden" id="f2-inp" accept="image/*" onchange="previewFoto(this,'f2-img','f2-ph')">
+          <input class="foto-inp-desc" type="text" id="f2-desc" placeholder="Descripción de la fotografía...">
+        </div>
       </div>
     </div>
   </div>
 
-</div><!-- /view-detalle -->
+  <!-- ═══ SECCIÓN 6: DOCUMENTOS / RECURSOS ═══ -->
+  <div class="card">
+    <div class="stitle">5. 📎 Documentos, URL's y recursos</div>
+    <div class="field" style="margin:0">
+      <textarea id="docs-recursos" placeholder="Liste los documentos, URLs y recursos utilizados..."></textarea>
+    </div>
+  </div>
+
+  <!-- ═══ SECCIÓN 7: RESULTADOS ═══ -->
+  <div class="card">
+    <div class="stitle">6. 📊 Resultados de la capacitación</div>
+    <table class="rtable">
+      <tr><td class="rlbl">Número de participantes convocados:</td><td><input type="number" id="r-convocados" placeholder="0" min="0" oninput="calcPct()"></td></tr>
+      <tr><td class="rlbl">Número de participantes asistentes:</td><td><input type="number" id="r-asistentes" placeholder="0" min="0" oninput="calcPct()"></td></tr>
+      <tr><td class="rlbl">Porcentaje de asistencia:</td><td><input type="text" id="r-pct" placeholder="Automático" readonly style="color:#6b7fa3"></td></tr>
+      <tr><td class="rlbl">Nivel de satisfacción (%):<span class="note">*Calificado por el enlace institucional</span></td><td><input type="number" id="r-satisfaccion" placeholder="0 – 100" min="0" max="100"></td></tr>
+      <tr>
+        <td class="rlbl" style="vertical-align:top;padding-top:12px">Compromisos / Próximos pasos:</td>
+        <td>
+          <div style="display:flex;flex-direction:column;gap:7px;padding:4px 0">
+            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">1.</span><input type="text" id="com1" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">2.</span><input type="text" id="com2" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">3.</span><input type="text" id="com3" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">4.</span><input type="text" id="com4" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ═══ SECCIÓN 8: VALIDACIÓN ═══ -->
+  <div class="card">
+    <div class="stitle">7. ✅ Validación y aprobación</div>
+    <div class="val-grid">
+      <div class="val-box">
+        <div class="val-role">Responsable DIGER</div>
+        <div class="val-sign"></div>
+        <p class="val-hint">(Firma y sello)</p>
+        <input class="val-name" type="text" id="val-diger" placeholder="Nombre y cargo">
+      </div>
+      <div class="val-box">
+        <div class="val-role">Representante Institución Beneficiaria</div>
+        <div class="val-sign"></div>
+        <p class="val-hint">(Firma y sello)</p>
+        <input class="val-name" type="text" id="val-inst" placeholder="Nombre y cargo">
+      </div>
+    </div>
+  </div>
+
+  <!-- MENSAJES DE ESTADO -->
+  <div class="ok-msg" id="global-ok"></div>
+  <div class="err-msg" id="global-err" style="display:block"></div>
+
+  <!-- BARRA FINAL DE ACCIONES -->
+  <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:.5rem;padding-bottom:2rem">
+    <button class="btns" onclick="volverLista()">← Volver a lista</button>
+    <button class="btn-save-inline" onclick="guardarTodo()">💾 Guardar cambios</button>
+    <button class="btnp" onclick="descargarPDF()">⬇ PDF</button>
+    <button class="btn-success" id="btn-enviar2" onclick="enviarRegistro()">📤 Enviar registro</button>
+  </div>
+
+</div><!-- /view-evento -->
+
+
+<!-- ══════════ VISTA: ÉXITO ══════════ -->
+<div class="view" id="view-ok">
+  <div class="card">
+    <div class="okbox">
+      <div class="check-wrap"><svg viewBox="0 0 52 52"><polyline points="14,27 22,35 38,17"/></svg></div>
+      <h2 style="font-size:22px;font-weight:700;color:#0a2d6e;margin-bottom:.5rem">¡Registro enviado!</h2>
+      <p style="color:#6b7fa3;font-size:13.5px;margin-bottom:1.5rem;line-height:1.6">El formato fue enviado al equipo de coordinación y quedó guardado.</p>
+      <button class="btnp" onclick="descargarPDF()" style="margin-bottom:12px">⬇ Descargar PDF</button><br>
+      <button class="btns" onclick="volverLista()" style="margin-top:10px;font-size:13px">← Ver todos los eventos</button>
+    </div>
+  </div>
+</div>
+
 
 </div><!-- /container -->
 </div><!-- /adm-wrap -->
@@ -723,18 +589,16 @@ input[type=file].hidden{display:none}
 
 <!-- ─────────────── SCRIPTS ─────────────── -->
 <script>
-// ── DETECCIÓN DE MODO (público vs admin) ──────────────────────
+// ── DETECCIÓN DE MODO ──────────────────────────────────────────
 (function(){
   var params = new URLSearchParams(window.location.search);
   var regId = params.get('reg');
   if(regId){
-    // Modo público: mostrar formulario de registro
     window._PUBLIC_MODE = true;
     window._REG_ID = regId;
     document.getElementById('pub-wrap').style.display = 'flex';
     document.getElementById('adm-wrap').style.display = 'none';
   } else {
-    // Modo admin: inyectar header.js para autenticación
     window._PUBLIC_MODE = false;
     document.getElementById('pub-wrap').style.display = 'none';
     document.getElementById('adm-wrap').style.display = 'block';
@@ -750,11 +614,11 @@ var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 emailjs.init('xl4HDu62cetiPyDCJ');
 
-var adminEmail = '';
-var currentId  = null;
-var realtimeCh = null;
-var asisCache  = [];
-var currentReunion = null;
+var adminEmail    = '';
+var currentId     = null;
+var currentReunion= null;
+var realtimeCh    = null;
+var asisCache     = [];
 var pN = 0, contN = 4;
 
 // ─────────────────────────────────────────────────────────────
@@ -775,16 +639,10 @@ var pN = 0, contN = 4;
         '<p style="font-size:12px;font-weight:400;color:#b91c1c">El enlace puede ser incorrecto o el evento fue eliminado.</p>';
       return;
     }
-    if(!r.activa){
-      document.getElementById('pub-closed').style.display = 'block';
-      return;
-    }
-    // Mostrar info del evento
-    var datos = {};
-    try { datos = JSON.parse(r.tema || '{}'); } catch{}
+    if(!r.activa){ document.getElementById('pub-closed').style.display = 'block'; return; }
+    var datos = {}; try { datos = JSON.parse(r.tema || '{}'); } catch{}
     var tipoDisplay = datos.tipo_cap || '';
     if(tipoDisplay === 'Otro' && datos.tipo_cap_otro) tipoDisplay = datos.tipo_cap_otro;
-
     document.getElementById('pub-event-info').innerHTML =
       '<div class="pub-event-titulo">' + esc(r.titulo) + '</div>' +
       '<div class="pub-event-meta">' +
@@ -793,7 +651,6 @@ var pN = 0, contN = 4;
         (tipoDisplay ? '<span>🎓 ' + esc(tipoDisplay) + '</span>' : '') +
         (datos.modalidad ? '<span>🔷 ' + esc(datos.modalidad === 'Otro' ? (datos.modalidad_otro||'Otro') : datos.modalidad) + '</span>' : '') +
       '</div>';
-
     document.getElementById('pub-form-inner').style.display = 'block';
   } catch(e) {
     document.getElementById('pub-loading').innerHTML = '<p style="color:#dc2626">Error al cargar el evento. Verifique su conexión.</p>';
@@ -808,40 +665,25 @@ async function registrarAsistencia(){
   var err    = document.getElementById('pub-err');
   var btn    = document.getElementById('pub-btn');
   err.style.display = 'none';
-
   if(!nombre){ err.textContent='Por favor ingrese su nombre completo.'; err.style.display='block'; return; }
   if(!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){ err.textContent='Por favor ingrese un correo electrónico válido.'; err.style.display='block'; return; }
-
-  btn.disabled = true; btn.textContent = 'Registrando...';
+  btn.disabled=true; btn.textContent='Registrando...';
   var {error} = await sb.from('asistencias').insert({
-    reunion_id: window._REG_ID,
-    nombre: nombre,
-    correo: correo,
-    institucion: inst || '—',
-    telefono: tel || '—'
+    reunion_id: window._REG_ID, nombre, correo,
+    institucion: inst||'—', telefono: tel||'—'
   });
-
-  btn.disabled = false; btn.textContent = '✔ Registrar mi asistencia';
-
-  if(error){
-    err.textContent = 'Error al registrar: ' + error.message;
-    err.style.display = 'block';
-    return;
-  }
-
-  document.getElementById('pub-form-inner').style.display = 'none';
-  document.getElementById('pub-ok').style.display = 'block';
-  document.getElementById('pub-ok-msg').textContent = 'Gracias, ' + nombre + '. Su asistencia ha sido registrada correctamente.';
+  btn.disabled=false; btn.textContent='✔ Registrar mi asistencia';
+  if(error){ err.textContent='Error al registrar: '+error.message; err.style.display='block'; return; }
+  document.getElementById('pub-form-inner').style.display='none';
+  document.getElementById('pub-ok').style.display='block';
+  document.getElementById('pub-ok-msg').textContent='Gracias, '+nombre+'. Su asistencia ha sido registrada correctamente.';
 }
-
 
 // ─────────────────────────────────────────────────────────────
 // MODO ADMIN
 // ─────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function(){
   if(window._PUBLIC_MODE) return;
-
-  // Esperar a que header.js exponga DIGER_SESSION
   var check = setInterval(function(){
     if(window.DIGER_SESSION !== undefined){
       clearInterval(check);
@@ -873,26 +715,19 @@ async function renderLista(){
   var cont = document.getElementById('adm-list');
   cont.innerHTML = '<div class="loader"><div class="spinner"></div><br>Cargando eventos...</div>';
   var {data, error} = await sb.from('reuniones').select('*').order('created_at',{ascending:false});
-  if(error){
-    cont.innerHTML = '<div class="empty-state"><p style="color:#dc2626">Error al cargar. Verifique su conexión.</p></div>';
-    return;
-  }
-  if(!data || data.length === 0){
-    cont.innerHTML = '<div class="empty-state"><div class="es-icon">🎓</div>' +
+  if(error){ cont.innerHTML='<div class="empty-state"><p style="color:#dc2626">Error al cargar. Verifique su conexión.</p></div>'; return; }
+  if(!data || data.length===0){
+    cont.innerHTML='<div class="empty-state"><div class="es-icon">🎓</div>' +
       '<p>No hay eventos creados aún.<br>Haga clic en <strong>+ Nuevo evento</strong> para comenzar.</p></div>';
     return;
   }
   var {data:counts} = await sb.from('asistencias').select('reunion_id');
-  var cmap = {};
+  var cmap={};
   (counts||[]).forEach(function(r){ cmap[r.reunion_id]=(cmap[r.reunion_id]||0)+1; });
-
-  cont.innerHTML = '<div class="reg-list">' + data.map(function(r){
-    var datos = {}; try{ datos = JSON.parse(r.tema||'{}'); }catch{}
-    var tipoDisplay = datos.tipo_cap||'';
-    if(tipoDisplay==='Otro' && datos.tipo_cap_otro) tipoDisplay = datos.tipo_cap_otro;
-    var modalDisplay = datos.modalidad||'';
-    if(modalDisplay==='Otro' && datos.modalidad_otro) modalDisplay = datos.modalidad_otro;
-
+  cont.innerHTML='<div class="reg-list">'+data.map(function(r){
+    var datos={}; try{ datos=JSON.parse(r.tema||'{}'); }catch{}
+    var tipoDisplay=datos.tipo_cap||''; if(tipoDisplay==='Otro'&&datos.tipo_cap_otro) tipoDisplay=datos.tipo_cap_otro;
+    var modalDisplay=datos.modalidad||''; if(modalDisplay==='Otro'&&datos.modalidad_otro) modalDisplay=datos.modalidad_otro;
     return '<div class="reg-item'+(r.activa?' activa':'')+'">'+
       '<div>'+
         '<span class="reg-badge '+(r.activa?'badge-activa':'badge-cerrada')+'">'+(r.activa?'● Activo':'○ Cerrado')+'</span>'+
@@ -907,187 +742,207 @@ async function renderLista(){
         '</div>'+
       '</div>'+
       '<div class="reg-actions">'+
-        '<button class="btnp btn-sm" onclick="abrirDetalle(\''+r.id+'\')">Ver detalles</button>'+
+        '<button class="btnp btn-sm" onclick="abrirEvento(\''+r.id+'\')">Abrir</button>'+
       '</div>'+
     '</div>';
-  }).join('') + '</div>';
+  }).join('')+'</div>';
 }
 
-// ── CREAR ─────────────────────────────────────────────────────
+// ── NUEVO EVENTO ──────────────────────────────────────────────
 function mostrarCrear(){
+  currentId=null; currentReunion=null;
   reiniciarForm();
-  currentId = null;
-  document.getElementById('form-titulo').textContent = 'Nuevo evento';
-  document.getElementById('qr-panel').style.display = 'none';
-  document.getElementById('btn-guardar-gen').style.display = 'inline-flex';
-  document.getElementById('btn-sig1').style.display = 'none';
-  cambiarVista('view-form');
-  goStepUI(1);
+  document.getElementById('ev-titulo-bar').textContent='Nuevo evento';
+  document.getElementById('qr-panel').style.display='none';
+  document.getElementById('btn-guardar-gen-wrap').style.display='block';
+  document.getElementById('btn-toggle-estado').style.display='none';
+  document.getElementById('btn-eliminar').style.display='none';
+  document.getElementById('ev-status-badge').style.display='none';
+  document.getElementById('asis-card').style.display='none';
+  ocultarMensajes();
+  cambiarVista('view-evento');
+  window.scrollTo(0,0);
 }
 
-// ── GUARDAR GENERAL + QR ──────────────────────────────────────
-async function guardarGeneral(){
-  var titulo    = gv('g-titulo');
-  var fecha     = gv('g-fecha');
-  var modalidad = gv('g-modalidad');
-  var inst      = gv('g-inst');
-  var tipo      = gv('g-tipo');
-  var errEl     = document.getElementById('step1-err');
+// ── ABRIR EVENTO EXISTENTE ────────────────────────────────────
+async function abrirEvento(id){
+  currentId=id;
+  cambiarVista('view-evento');
+  document.getElementById('ev-titulo-bar').textContent='Cargando...';
+  if(realtimeCh){ sb.removeChannel(realtimeCh); realtimeCh=null; }
 
-  errEl.style.display = 'none'; errEl.textContent = '';
+  var {data:r, error}=await sb.from('reuniones').select('*').eq('id',id).single();
+  if(error||!r){ volverLista(); return; }
+  currentReunion=r;
 
-  if(!titulo){ errEl.textContent='El título del evento es obligatorio.'; errEl.style.display='block'; return; }
-  if(!fecha) { errEl.textContent='La fecha es obligatoria.'; errEl.style.display='block'; return; }
-  if(!modalidad){ errEl.textContent='Seleccione la modalidad.'; errEl.style.display='block'; return; }
-  if(!inst)  { errEl.textContent='La institución beneficiaria es obligatoria.'; errEl.style.display='block'; return; }
-  if(!tipo)  { errEl.textContent='Seleccione el tipo de capacitación / evento.'; errEl.style.display='block'; return; }
+  // Cargar campos
+  var datos={}; try{ datos=JSON.parse(r.tema||'{}'); }catch{}
+  cargarCamposGenerales(r, datos);
+  cargarDatosCap(datos.cap||{});
 
-  var btn = document.getElementById('btn-guardar-gen');
-  btn.disabled = true; btn.textContent = 'Guardando...';
+  // UI
+  document.getElementById('ev-titulo-bar').textContent=r.titulo;
+  document.getElementById('btn-guardar-gen-wrap').style.display='none';
+  document.getElementById('btn-toggle-estado').style.display='inline-flex';
+  document.getElementById('btn-eliminar').style.display='inline-flex';
+  document.getElementById('ev-status-badge').style.display='inline-flex';
+  actualizarBadgeEstado(r.activa);
 
-  // Preservar datos cap existentes al actualizar paso 1
-  var datosExistentes = {};
-  if(currentId && currentReunion) { try{ datosExistentes = JSON.parse(currentReunion.tema||'{}'); }catch{} }
+  // QR
+  mostrarQR(id);
 
-  var datos = Object.assign({}, datosExistentes, {
-    modalidad: modalidad,
-    modalidad_otro: modalidad === 'Otro' ? gv('g-modalidad-otro') : '',
-    institucion_beneficiaria: inst,
-    tipo_cap: tipo,
-    tipo_cap_otro: tipo === 'Otro' ? gv('g-tipo-otro') : ''
-  });
+  // Asistencias
+  document.getElementById('asis-card').style.display='block';
+  await cargarAsistencias(id);
+  suscribirRealtime(id);
+  ocultarMensajes();
+  window.scrollTo(0,0);
+}
 
-  var id = currentId || genId();
+function cargarCamposGenerales(r, datos){
+  sv('g-titulo', r.titulo||'');
+  sv('g-fecha',  r.fecha||'');
+  sv('g-hora',   r.hora||'');
+  sv('g-lugar',  r.lugar||'');
+  sv('g-modalidad', datos.modalidad||'');
+  sv('g-modalidad-otro', datos.modalidad_otro||'');
+  sv('g-inst',   datos.institucion_beneficiaria||'');
+  sv('g-tipo',   datos.tipo_cap||'');
+  sv('g-tipo-otro', datos.tipo_cap_otro||'');
+  toggleModalidadOtro();
+  toggleTipoOtro();
+}
 
-  if(!currentId){
-    var {error} = await sb.from('reuniones').insert({
-      id        : id,
-      titulo    : titulo,
-      tema      : JSON.stringify(datos),
-      fecha     : fecha,
-      hora      : gv('g-hora'),
-      lugar     : gv('g-lugar'),
-      activa    : true,
-      creada_por: adminEmail
-    });
-    if(error){
-      btn.disabled=false; btn.textContent='💾 Guardar y obtener QR';
-      errEl.textContent='Error al guardar: '+error.message;
-      errEl.style.display='block'; return;
-    }
-    currentId = id;
-  } else {
-    var {data:updated} = await sb.from('reuniones').update({
-      titulo: titulo,
-      tema  : JSON.stringify(datos),
-      fecha : fecha,
-      hora  : gv('g-hora'),
-      lugar : gv('g-lugar')
-    }).eq('id', currentId).select().single();
-    if(updated) currentReunion = updated;
-  }
-
-  btn.disabled=false; btn.textContent='✔ Guardado';
-  btn.style.background='linear-gradient(135deg,#16a34a,#15803d)';
-
-  // Mostrar QR
-  var base = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
-  var linkUrl = base + 'proyectos_especiales.html?reg=' + currentId;
+function mostrarQR(id){
+  var base = window.location.origin + window.location.pathname.replace(/[^\/]*$/,'');
+  var linkUrl = base + 'proyectos_especiales.html?reg=' + id;
   document.getElementById('qr-link-inp').value = linkUrl;
-  document.getElementById('qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(linkUrl);
-  document.getElementById('qr-panel').style.display = 'block';
-  document.getElementById('btn-sig1').style.display = 'inline-flex';
+  document.getElementById('qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(linkUrl);
+  document.getElementById('qr-panel').style.display='block';
+}
+
+function actualizarBadgeEstado(activa){
+  var badge=document.getElementById('ev-status-badge');
+  var btnToggle=document.getElementById('btn-toggle-estado');
+  if(activa){
+    badge.className='status-badge-active'; badge.textContent='● Activo';
+    btnToggle.textContent='Cerrar formulario';
+  } else {
+    badge.className='status-badge-closed'; badge.textContent='○ Cerrado';
+    btnToggle.textContent='Reabrir formulario';
+  }
+}
+
+// ── GUARDAR GENERAL (primer guardado — nuevo evento) ──────────
+async function guardarGeneral(){
+  var titulo=gv('g-titulo'), fecha=gv('g-fecha'), modalidad=gv('g-modalidad'), inst=gv('g-inst'), tipo=gv('g-tipo');
+  var errEl=document.getElementById('gen-err');
+  errEl.style.display='none'; errEl.textContent='';
+  if(!titulo){ errEl.textContent='El título del evento es obligatorio.'; errEl.style.display='block'; return; }
+  if(!fecha){  errEl.textContent='La fecha es obligatoria.'; errEl.style.display='block'; return; }
+  if(!modalidad){ errEl.textContent='Seleccione la modalidad.'; errEl.style.display='block'; return; }
+  if(!inst){ errEl.textContent='La institución beneficiaria es obligatoria.'; errEl.style.display='block'; return; }
+  if(!tipo){ errEl.textContent='Seleccione el tipo de capacitación / evento.'; errEl.style.display='block'; return; }
+
+  var btn=document.getElementById('btn-guardar-gen');
+  btn.disabled=true; btn.textContent='Guardando...';
+
+  var datos={
+    modalidad, modalidad_otro: modalidad==='Otro'?gv('g-modalidad-otro'):'',
+    institucion_beneficiaria: inst,
+    tipo_cap: tipo, tipo_cap_otro: tipo==='Otro'?gv('g-tipo-otro'):''
+  };
+  var id=genId();
+  var {error}=await sb.from('reuniones').insert({
+    id, titulo, tema: JSON.stringify(datos),
+    fecha, hora: gv('g-hora'), lugar: gv('g-lugar'),
+    activa: true, creada_por: adminEmail
+  });
+  if(error){
+    btn.disabled=false; btn.textContent='💾 Guardar y generar QR';
+    errEl.textContent='Error al guardar: '+error.message; errEl.style.display='block'; return;
+  }
+  currentId=id;
+  var {data:r}=await sb.from('reuniones').select('*').eq('id',id).single();
+  if(r) currentReunion=r;
+
+  btn.disabled=false; btn.textContent='✔ Guardado'; btn.style.background='linear-gradient(135deg,#16a34a,#15803d)';
+
+  document.getElementById('ev-titulo-bar').textContent=titulo;
+  document.getElementById('btn-guardar-gen-wrap').style.display='none';
+  document.getElementById('btn-toggle-estado').style.display='inline-flex';
+  document.getElementById('btn-eliminar').style.display='inline-flex';
+  document.getElementById('ev-status-badge').style.display='inline-flex';
+  actualizarBadgeEstado(true);
+  mostrarQR(id);
+  document.getElementById('asis-card').style.display='block';
+  await cargarAsistencias(id);
+  suscribirRealtime(id);
   document.getElementById('qr-panel').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-// ── DETALLE ───────────────────────────────────────────────────
-async function abrirDetalle(id){
-  currentId = id;
-  cambiarVista('view-detalle');
-  document.getElementById('det-titulo').textContent = 'Cargando...';
-  if(realtimeCh){ sb.removeChannel(realtimeCh); realtimeCh = null; }
+// ── GUARDAR TODO (generales + cap) ────────────────────────────
+async function guardarTodo(){
+  if(!currentId){ guardarGeneral(); return; }
 
-  var {data:r, error} = await sb.from('reuniones').select('*').eq('id',id).single();
-  if(error||!r){ volverLista(); return; }
-  currentReunion = r;
-
-  var datos = {}; try{ datos = JSON.parse(r.tema||'{}'); }catch{}
-  var tipoDisplay = datos.tipo_cap||'—';
-  if(tipoDisplay==='Otro') tipoDisplay = datos.tipo_cap_otro||'Otro';
-  var modalDisplay = datos.modalidad||'—';
-  if(modalDisplay==='Otro') modalDisplay = datos.modalidad_otro||'Otro';
-
-  document.getElementById('det-titulo').textContent = r.titulo;
-  document.getElementById('det-info').innerHTML =
-    '<strong>Título:</strong> '+esc(r.titulo)+'<br>'+
-    '<strong>Fecha:</strong> '+esc(r.fecha||'—')+(r.hora?' &nbsp;·&nbsp; '+esc(r.hora):'')+'<br>'+
-    (r.lugar?'<strong>Lugar:</strong> '+esc(r.lugar)+'<br>':'')+
-    '<strong>Modalidad:</strong> '+esc(modalDisplay)+'<br>'+
-    '<strong>Institución Beneficiaria:</strong> '+esc(datos.institucion_beneficiaria||'—')+'<br>'+
-    '<strong>Tipo:</strong> '+esc(tipoDisplay)+'<br>'+
-    '<strong>Estado:</strong> '+(r.activa?'<span style="color:#16a34a;font-weight:700">● Activo</span>':'<span style="color:#64748b">○ Cerrado</span>')+'<br>'+
-    '<strong>Creado por:</strong> '+esc(r.creada_por||'—')+'<br>'+
-    '<strong>ID:</strong> <code style="background:#eef1f7;padding:2px 7px;border-radius:4px;font-size:12px">'+id+'</code>';
-
-  // QR
-  var base = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
-  var linkUrl = base + 'proyectos_especiales.html?reg=' + id;
-  document.getElementById('det-link-inp').value = linkUrl;
-  document.getElementById('det-qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(linkUrl);
-  document.getElementById('btn-toggle-estado').textContent = r.activa ? 'Cerrar formulario' : 'Reabrir formulario';
-
-  // Datos de capacitación desde Supabase
-  var cap = datos.cap || null;
-  var capEl = document.getElementById('cap-data-content');
-  if(cap && cap.tema){
-    var pct_completado = [cap.tema,cap.ep_nombre||cap.fac_nombre,cap.r_convocados,cap.r_asistentes,cap.val_diger].filter(Boolean).length;
-    capEl.innerHTML =
-      '<div class="res-section"><h4>Capacitación</h4><div class="res-grid">' +
-        '<div class="res-row">Tema: <span>'+esc(cap.tema||'—')+'</span></div>' +
-        '<div class="res-row">Facilitador: <span>'+esc(cap.fac_nombre||'—')+'</span></div>' +
-        '<div class="res-row">Convocados: <span>'+esc(cap.r_convocados||'—')+'</span></div>' +
-        '<div class="res-row">Asistentes: <span>'+esc(cap.r_asistentes||'—')+'</span></div>' +
-        '<div class="res-row">% Asistencia: <span>'+esc(cap.r_pct||'—')+'</span></div>' +
-        '<div class="res-row">Satisfacción: <span>'+(cap.r_satisfaccion?cap.r_satisfaccion+'%':'—')+'</span></div>' +
-        (cap.compromisos&&cap.compromisos.filter(Boolean).length?'<div class="res-row" style="grid-column:1/-1">Compromisos: <span>'+cap.compromisos.filter(Boolean).join(' / ')+'</span></div>':'')+
-      '</div></div>' +
-      '<div style="margin-top:.5rem"><span style="font-size:11px;color:#16a34a;font-weight:700">✓ Borrador guardado</span></div>';
-  } else {
-    capEl.innerHTML = '<p style="font-size:13px;color:#9aadcc">Sin datos de capacitación guardados aún.</p>';
+  var titulo=gv('g-titulo'), fecha=gv('g-fecha'), modalidad=gv('g-modalidad'), inst=gv('g-inst'), tipo=gv('g-tipo');
+  var errEl=document.getElementById('global-err'), okEl=document.getElementById('global-ok');
+  errEl.style.display='none'; okEl.style.display='none';
+  if(!titulo||!fecha||!modalidad||!inst||!tipo){
+    errEl.textContent='Complete los campos obligatorios: Título, Fecha, Modalidad, Institución y Tipo.';
+    errEl.style.display='block'; return;
   }
 
-  // Cargar asistencias
-  await cargarAsistencias(id);
-  suscribirRealtime(id);
-  cambiarTab(0);
+  var btns=[document.getElementById('btn-guardar-todo')];
+  btns.forEach(function(b){ if(b){ b.textContent='Guardando...'; b.disabled=true; } });
+
+  // Preservar cap existente
+  var datosExistentes={}; try{ datosExistentes=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
+  var datosTema=Object.assign({}, datosExistentes, {
+    modalidad, modalidad_otro: modalidad==='Otro'?gv('g-modalidad-otro'):'',
+    institucion_beneficiaria: inst,
+    tipo_cap: tipo, tipo_cap_otro: tipo==='Otro'?gv('g-tipo-otro'):'',
+    cap: colectarDatosCap()
+  });
+
+  var {data:updated, error}=await sb.from('reuniones').update({
+    titulo, tema: JSON.stringify(datosTema),
+    fecha, hora: gv('g-hora'), lugar: gv('g-lugar')
+  }).eq('id',currentId).select().single();
+
+  btns.forEach(function(b){ if(b){ b.disabled=false; b.textContent='💾 Guardar cambios'; } });
+
+  if(error){
+    errEl.textContent='Error al guardar: '+error.message; errEl.style.display='block';
+  } else {
+    if(updated) currentReunion=updated;
+    document.getElementById('ev-titulo-bar').textContent=titulo;
+    okEl.textContent='✓ Cambios guardados correctamente';
+    okEl.style.display='block';
+    setTimeout(function(){ okEl.style.display='none'; }, 3000);
+  }
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
 }
 
+// ── ASISTENCIAS ───────────────────────────────────────────────
 async function cargarAsistencias(id){
-  var {data, error} = await sb.from('asistencias').select('*').eq('reunion_id',id).order('created_at',{ascending:true});
-  asisCache = error ? [] : (data||[]);
+  var {data,error}=await sb.from('asistencias').select('*').eq('reunion_id',id).order('created_at',{ascending:true});
+  asisCache=error?[]:(data||[]);
   renderTabla();
 }
 
 function renderTabla(){
-  var tbody = document.getElementById('det-tbody');
-  var empty = document.getElementById('det-empty');
-  var stats = document.getElementById('det-stats');
-
-  document.getElementById('det-reg-title').innerHTML =
-    'Registros (' + asisCache.length + ') <span class="live-badge"><span class="live-dot"></span>En vivo</span>';
-
-  stats.innerHTML = '<span class="stat-chip">Total: '+asisCache.length+'</span>';
-
-  empty.style.display = asisCache.length ? 'none' : 'block';
-  tbody.innerHTML = asisCache.map(function(r,i){
-    var dt = r.created_at ? new Date(r.created_at).toLocaleString('es-HN') : '—';
+  var tbody=document.getElementById('det-tbody');
+  var empty=document.getElementById('det-empty');
+  document.getElementById('det-reg-title').innerHTML=
+    'Registros ('+asisCache.length+') <span class="live-badge"><span class="live-dot"></span>En vivo</span>';
+  document.getElementById('det-stats').innerHTML='<span class="stat-chip">Total: '+asisCache.length+'</span>';
+  empty.style.display=asisCache.length?'none':'block';
+  tbody.innerHTML=asisCache.map(function(r,i){
+    var dt=r.created_at?new Date(r.created_at).toLocaleString('es-HN'):'—';
     return '<tr>'+
-      '<td>'+(i+1)+'</td>'+
-      '<td>'+esc(r.nombre)+'</td>'+
-      '<td>'+esc(r.correo)+'</td>'+
-      '<td>'+esc(r.institucion)+'</td>'+
-      '<td>'+esc(r.telefono)+'</td>'+
-      '<td>'+dt+'</td>'+
+      '<td>'+(i+1)+'</td><td>'+esc(r.nombre)+'</td><td>'+esc(r.correo)+'</td>'+
+      '<td>'+esc(r.institucion)+'</td><td>'+esc(r.telefono)+'</td><td>'+dt+'</td>'+
       '<td><button class="btn-danger" style="padding:3px 8px;font-size:11px" onclick="eliminarRec('+r.id+')">×</button></td>'+
     '</tr>';
   }).join('');
@@ -1095,7 +950,7 @@ function renderTabla(){
 
 function suscribirRealtime(id){
   if(realtimeCh){ sb.removeChannel(realtimeCh); }
-  realtimeCh = sb.channel('asis-'+id)
+  realtimeCh=sb.channel('asis-'+id)
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'asistencias',filter:'reunion_id=eq.'+id},
       function(p){ asisCache.push(p.new); renderTabla(); })
     .on('postgres_changes',{event:'DELETE',schema:'public',table:'asistencias',filter:'reunion_id=eq.'+id},
@@ -1103,24 +958,21 @@ function suscribirRealtime(id){
     .subscribe();
 }
 
-async function eliminarRec(recId){
-  await sb.from('asistencias').delete().eq('id',recId);
-}
+async function eliminarRec(recId){ await sb.from('asistencias').delete().eq('id',recId); }
 
 async function borrarRegistros(){
   if(!confirm('¿Borrar todos los registros de este evento?')) return;
   await sb.from('asistencias').delete().eq('reunion_id',currentId);
-  asisCache = []; renderTabla();
+  asisCache=[]; renderTabla();
 }
 
+// ── ESTADO ────────────────────────────────────────────────────
 async function toggleEstado(){
-  var btn = document.getElementById('btn-toggle-estado');
-  var activa = btn.textContent.includes('Cerrar');
+  var btn=document.getElementById('btn-toggle-estado');
+  var activa=btn.textContent.includes('Cerrar');
   await sb.from('reuniones').update({activa:!activa}).eq('id',currentId);
-  btn.textContent = activa ? 'Reabrir formulario' : 'Cerrar formulario';
-  // Actualizar info visual
-  var estadoEl = document.getElementById('det-info').querySelector('.estado-txt');
-  if(estadoEl) estadoEl.textContent = activa ? '○ Cerrado' : '● Activo';
+  if(currentReunion) currentReunion.activa=!activa;
+  actualizarBadgeEstado(!activa);
 }
 
 async function eliminarEvento(){
@@ -1132,240 +984,93 @@ async function eliminarEvento(){
   volverLista();
 }
 
-function irAFormulatioCompleto(){
-  if(!currentReunion) return;
-  var r = currentReunion;
-  var datos = {}; try{ datos = JSON.parse(r.tema||'{}'); }catch{}
-
-  // ── Paso 1: campos básicos ──
-  document.getElementById('g-titulo').value = r.titulo || '';
-  document.getElementById('g-fecha').value = r.fecha || '';
-  document.getElementById('g-hora').value = r.hora || '';
-  document.getElementById('g-lugar').value = r.lugar || '';
-  document.getElementById('g-modalidad').value = datos.modalidad || '';
-  document.getElementById('g-inst').value = datos.institucion_beneficiaria || '';
-  document.getElementById('g-tipo').value = datos.tipo_cap || '';
-  if(datos.tipo_cap === 'Otro') { document.getElementById('g-tipo-otro').value = datos.tipo_cap_otro||''; toggleTipoOtro(); }
-  if(datos.modalidad === 'Otro') { document.getElementById('g-modalidad-otro').value = datos.modalidad_otro||''; toggleModalidadOtro(); }
-
-  // ── Pasos 2-4: datos de capacitación guardados ──
-  var cap = datos.cap || {};
-  cargarDatosCap(cap);
-
-  // ── QR existente ──
-  var base = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
-  var linkUrl = base + 'proyectos_especiales.html?reg=' + currentId;
-  document.getElementById('qr-link-inp').value = linkUrl;
-  document.getElementById('qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(linkUrl);
-  document.getElementById('qr-panel').style.display = 'block';
-  document.getElementById('btn-guardar-gen').style.display = 'none';
-  document.getElementById('btn-sig1').style.display = 'inline-flex';
-
-  document.getElementById('form-titulo').textContent = 'Editar registro';
-  cambiarVista('view-form');
-  goStep(2);
+// ── DATOS CAP ─────────────────────────────────────────────────
+function colectarDatosCap(){
+  var cont=[], parts=[];
+  for(var i=1;i<=contN;i++){ var v=gv('cont'+i); if(v) cont.push(v); }
+  for(var j=1;j<=pN;j++){ var n=gv('pn'+j); if(n) parts.push({nombre:n,cargo:gv('pc'+j),correo:gv('pe'+j),tel:gv('pt'+j),firma:gv('pf'+j)}); }
+  return {
+    tema:gv('cap-tema'),objetivo:gv('cap-objetivo'),contenido:cont,
+    ep_nombre:gv('ep-nombre'),ep_cargo:gv('ep-cargo'),ep_correo:gv('ep-correo'),ep_tel:gv('ep-tel'),
+    fac_nombre:gv('fac-nombre'),fac_cargo:gv('fac-cargo'),fac_correo:gv('fac-correo'),
+    participantes:parts,docs_recursos:gv('docs-recursos'),
+    r_convocados:gv('r-convocados'),r_asistentes:gv('r-asistentes'),r_pct:gv('r-pct'),r_satisfaccion:gv('r-satisfaccion'),
+    compromisos:[gv('com1'),gv('com2'),gv('com3'),gv('com4')],
+    val_diger:gv('val-diger'),val_inst:gv('val-inst'),
+    guardado_en:new Date().toLocaleString('es-HN')
+  };
 }
 
-// ── Carga todos los campos de pasos 2-4 desde objeto cap ──
 function cargarDatosCap(cap){
   if(!cap) return;
-  sv('cap-tema',     cap.tema||'');
-  sv('cap-objetivo', cap.objetivo||'');
-  sv('ep-nombre',    cap.ep_nombre||'');
-  sv('ep-cargo',     cap.ep_cargo||'');
-  sv('ep-correo',    cap.ep_correo||'');
-  sv('ep-tel',       cap.ep_tel||'');
-  sv('fac-nombre',   cap.fac_nombre||'');
-  sv('fac-cargo',    cap.fac_cargo||'');
-  sv('fac-correo',   cap.fac_correo||'');
+  sv('cap-tema',cap.tema||''); sv('cap-objetivo',cap.objetivo||'');
+  sv('ep-nombre',cap.ep_nombre||''); sv('ep-cargo',cap.ep_cargo||'');
+  sv('ep-correo',cap.ep_correo||''); sv('ep-tel',cap.ep_tel||'');
+  sv('fac-nombre',cap.fac_nombre||''); sv('fac-cargo',cap.fac_cargo||''); sv('fac-correo',cap.fac_correo||'');
   sv('docs-recursos',cap.docs_recursos||'');
-  sv('r-convocados', cap.r_convocados||'');
-  sv('r-asistentes', cap.r_asistentes||'');
+  sv('r-convocados',cap.r_convocados||''); sv('r-asistentes',cap.r_asistentes||'');
   sv('r-satisfaccion',cap.r_satisfaccion||'');
-  sv('val-diger',    cap.val_diger||'');
-  sv('val-inst',     cap.val_inst||'');
-  // Compromisos
-  var coms = cap.compromisos || [];
-  ['com1','com2','com3','com4'].forEach(function(id,i){ sv(id, coms[i]||''); });
+  sv('val-diger',cap.val_diger||''); sv('val-inst',cap.val_inst||'');
+  var coms=cap.compromisos||[];
+  ['com1','com2','com3','com4'].forEach(function(id,i){ sv(id,coms[i]||''); });
   // Contenido
-  var cont = cap.contenido || [];
-  contN = Math.max(4, cont.length);
-  var ul = document.getElementById('contenido-list');
-  ul.innerHTML = '';
+  var cont=cap.contenido||[];
+  contN=Math.max(4,cont.length);
+  var ul=document.getElementById('contenido-list'); ul.innerHTML='';
   for(var i=0;i<contN;i++){
     var li=document.createElement('li');
     li.innerHTML='<span>'+(i+1)+'.</span><input type="text" id="cont'+(i+1)+'" placeholder="Punto de contenido" value="'+esc(cont[i]||'')+'">';
     ul.appendChild(li);
   }
-  // Participantes manuales
-  pN=0;
-  document.getElementById('ptbody').innerHTML='';
-  var parts = cap.participantes || [];
-  if(parts.length) {
+  // Participantes
+  pN=0; document.getElementById('ptbody').innerHTML='';
+  var parts=cap.participantes||[];
+  if(parts.length){
     parts.forEach(function(p,i){
       addParticipanteRow(i+1);
-      sv('pn'+(i+1), p.nombre||'');
-      sv('pc'+(i+1), p.cargo||'');
-      sv('pe'+(i+1), p.correo||'');
-      sv('pt'+(i+1), p.tel||'');
-      sv('pf'+(i+1), p.firma||'');
+      sv('pn'+(i+1),p.nombre||''); sv('pc'+(i+1),p.cargo||'');
+      sv('pe'+(i+1),p.correo||''); sv('pt'+(i+1),p.tel||''); sv('pf'+(i+1),p.firma||'');
     });
   } else {
     buildPtable(8);
   }
-  // Recalcular % asistencia
   calcPct();
 }
 
-// ── Colecta todos los campos en un objeto cap ──
-function colectarDatosCap(){
-  var cont=[], parts=[];
-  for(var i=1;i<=contN;i++){ var v=gv('cont'+i); if(v) cont.push(v); }
-  for(var j=1;j<=pN;j++){
-    var n=gv('pn'+j);
-    if(n) parts.push({nombre:n,cargo:gv('pc'+j),correo:gv('pe'+j),tel:gv('pt'+j),firma:gv('pf'+j)});
-  }
-  return {
-    tema:        gv('cap-tema'),
-    objetivo:    gv('cap-objetivo'),
-    contenido:   cont,
-    ep_nombre:   gv('ep-nombre'),
-    ep_cargo:    gv('ep-cargo'),
-    ep_correo:   gv('ep-correo'),
-    ep_tel:      gv('ep-tel'),
-    fac_nombre:  gv('fac-nombre'),
-    fac_cargo:   gv('fac-cargo'),
-    fac_correo:  gv('fac-correo'),
-    participantes: parts,
-    docs_recursos: gv('docs-recursos'),
-    r_convocados:  gv('r-convocados'),
-    r_asistentes:  gv('r-asistentes'),
-    r_pct:         gv('r-pct'),
-    r_satisfaccion:gv('r-satisfaccion'),
-    compromisos:   [gv('com1'),gv('com2'),gv('com3'),gv('com4')],
-    val_diger:     gv('val-diger'),
-    val_inst:      gv('val-inst'),
-    guardado_en:   new Date().toLocaleString('es-HN')
-  };
-}
-
-// ── Guarda datos cap en Supabase ──
-async function guardarDatosCap(){
-  if(!currentId || !currentReunion) return false;
-  var datosActuales = {}; try{ datosActuales = JSON.parse(currentReunion.tema||'{}'); }catch{}
-  datosActuales.cap = colectarDatosCap();
-  var {data:updated, error} = await sb.from('reuniones')
-    .update({tema: JSON.stringify(datosActuales)})
-    .eq('id', currentId).select().single();
-  if(!error && updated) currentReunion = updated;
-  return !error;
-}
-
-// ── Botón guardar borrador por paso ──
-async function guardarBorrador(paso){
-  var btnId = 'btn-save'+paso;
-  var btn = document.getElementById(btnId);
-  if(btn){ btn.textContent='Guardando...'; btn.disabled=true; }
-  var ok = await guardarDatosCap();
-  if(btn){
-    btn.disabled=false;
-    btn.textContent = ok ? '✓ Guardado' : '✗ Error';
-    btn.style.color = ok ? '#16a34a' : '#dc2626';
-    setTimeout(function(){ btn.textContent='💾 Guardar'; btn.style.color='#16a34a'; }, 2500);
-  }
-}
-
-// util para setear value
-function sv(id,val){ var el=document.getElementById(id); if(el) el.value=val; }
-
 // ── EXCEL ASISTENCIAS ─────────────────────────────────────────
 function descargarExcelAsis(){
-  var r = currentReunion || {titulo:'',tema:'{}'};
-  var rows = asisCache.map(function(rec,i){
-    var dt = rec.created_at ? new Date(rec.created_at).toLocaleString('es-HN') : '—';
+  var r=currentReunion||{titulo:'',tema:'{}'};
+  var rows=asisCache.map(function(rec,i){
+    var dt=rec.created_at?new Date(rec.created_at).toLocaleString('es-HN'):'—';
     return '<tr><td>'+(i+1)+'</td><td>'+esc(rec.nombre)+'</td><td>'+esc(rec.correo)+'</td><td>'+esc(rec.institucion)+'</td><td>'+esc(rec.telefono)+'</td><td>'+dt+'</td></tr>';
   }).join('');
-  var html = '<html><head><meta charset="utf-8"><style>table{border-collapse:collapse;font-family:Segoe UI}th,td{border:1px solid #d0d8e8;padding:8px}th{background:#1455a4;color:#fff}</style></head>' +
-    '<body><h2>Lista de asistencia — '+esc(r.titulo)+'</h2>' +
+  var html='<html><head><meta charset="utf-8"><style>table{border-collapse:collapse;font-family:Segoe UI}th,td{border:1px solid #d0d8e8;padding:8px}th{background:#1455a4;color:#fff}</style></head>'+
+    '<body><h2>Lista de asistencia — '+esc(r.titulo)+'</h2>'+
     '<table><thead><tr><th>No.</th><th>Nombre</th><th>Correo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>';
-  var blob = new Blob([html],{type:'application/vnd.ms-excel'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'Asistencia_'+((r.titulo||'evento').replace(/[\s\/]/g,'_').substring(0,28))+'_'+(r.fecha||'')+'.xls';
+  var blob=new Blob([html],{type:'application/vnd.ms-excel'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Asistencia_'+((r.titulo||'evento').replace(/[\s\/]/g,'_').substring(0,28))+'_'+(r.fecha||'')+'.xls';
   a.click();
 }
 
-// ── QR HELPERS ────────────────────────────────────────────────
+// ── QR ────────────────────────────────────────────────────────
 function copiarLink(){
-  var inp = document.getElementById('qr-link-inp');
-  inp.select(); document.execCommand('copy');
-  var ok = document.getElementById('copy-ok');
-  ok.textContent = '✓ Copiado'; setTimeout(function(){ ok.textContent=''; },2000);
+  var inp=document.getElementById('qr-link-inp'); inp.select(); document.execCommand('copy');
+  var ok=document.getElementById('copy-ok'); ok.textContent='✓ Copiado'; setTimeout(function(){ ok.textContent=''; },2000);
 }
-function copiarLinkDet(){
-  var inp = document.getElementById('det-link-inp');
-  inp.select(); document.execCommand('copy');
-  var ok = document.getElementById('det-copy-ok');
-  ok.textContent = '✓ Copiado'; setTimeout(function(){ ok.textContent=''; },2000);
-}
-function imprimirQR(){ window.print(); }
-function imprimirQRDet(){ window.print(); }
-function descargarQR(){ _descargarQRImg(document.getElementById('qr-img')); }
-function descargarQRDet(){ _descargarQRImg(document.getElementById('det-qr-img')); }
-function _descargarQRImg(img){
-  var a = document.createElement('a');
-  a.href = img.src; a.download = 'QR_DIGER_'+Date.now()+'.png'; a.click();
-}
-
-// ── TABS ──────────────────────────────────────────────────────
-function cambiarTab(n){
-  ['tab0','tab1'].forEach(function(id,i){ document.getElementById(id).classList.toggle('active',i===n); });
-  ['tp0','tp1'].forEach(function(id,i){ document.getElementById(id).classList.toggle('active',i===n); });
-}
-
-// ── STEPS ─────────────────────────────────────────────────────
-function goStep(n){
-  if(n >= 2 && !currentId){
-    alert('Primero guarde la Vista General para obtener el QR.');
-    return;
-  }
-  if(n >= 3 && !gv('cap-tema')){ alert('Por favor ingrese el tema de capacitación.'); return; }
-  if(n === 5) buildResumen();
-  goStepUI(n);
-}
-
-function goStepUI(n){
-  document.querySelectorAll('.fstep').forEach(function(s){ s.classList.remove('active'); });
-  document.getElementById('step'+n).classList.add('active');
-  var ids = ['si1','si2','si3','si4','si5'];
-  ids.forEach(function(sid,j){
-    var el = document.getElementById(sid);
-    el.className = j < n-1 ? 'step-item done' : (j === n-1 ? 'step-item active' : 'step-item');
-  });
-  window.scrollTo(0,0);
-}
-
-// ── TOGGLE OTROS ──────────────────────────────────────────────
-function toggleModalidadOtro(){
-  var show = gv('g-modalidad') === 'Otro';
-  document.getElementById('field-modalidad-otro').style.display = show ? 'block' : 'none';
-}
-function toggleTipoOtro(){
-  var show = gv('g-tipo') === 'Otro';
-  document.getElementById('field-tipo-otro').style.display = show ? 'block' : 'none';
+function descargarQR(){
+  var a=document.createElement('a');
+  a.href=document.getElementById('qr-img').src; a.download='QR_DIGER_'+Date.now()+'.png'; a.click();
 }
 
 // ── PARTICIPANTES ─────────────────────────────────────────────
-function buildPtable(n){
-  document.getElementById('ptbody').innerHTML = '';
-  pN = 0;
-  for(var i=1;i<=n;i++) addParticipanteRow(i);
-}
+function buildPtable(n){ document.getElementById('ptbody').innerHTML=''; pN=0; for(var i=1;i<=n;i++) addParticipanteRow(i); }
 function addParticipante(){ addParticipanteRow(pN+1); }
 function addParticipanteRow(n){
-  pN = Math.max(pN,n);
-  var tr = document.createElement('tr');
-  tr.innerHTML = '<td>'+n+'</td>'+
+  pN=Math.max(pN,n);
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td>'+n+'</td>'+
     '<td><input type="text" id="pn'+n+'" placeholder="Nombre completo"></td>'+
     '<td><input type="text" id="pc'+n+'" placeholder="Cargo"></td>'+
     '<td><input type="email" id="pe'+n+'" placeholder="correo@inst.gob.hn"></td>'+
@@ -1376,12 +1081,10 @@ function addParticipanteRow(n){
 
 // ── FOTO ──────────────────────────────────────────────────────
 function previewFoto(inp,imgId,phId){
-  var file = inp.files[0];
-  if(!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e){
-    var img = document.getElementById(imgId);
-    img.src = e.target.result; img.style.display='block';
+  var file=inp.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=document.getElementById(imgId); img.src=e.target.result; img.style.display='block';
     document.getElementById(phId).style.display='none';
   };
   reader.readAsDataURL(file);
@@ -1390,130 +1093,93 @@ function previewFoto(inp,imgId,phId){
 // ── CONTENIDO ─────────────────────────────────────────────────
 function addContenido(){
   contN++;
-  var li = document.createElement('li');
-  li.innerHTML = '<span>'+contN+'.</span><input type="text" id="cont'+contN+'" placeholder="Punto de contenido">';
+  var li=document.createElement('li');
+  li.innerHTML='<span>'+contN+'.</span><input type="text" id="cont'+contN+'" placeholder="Punto de contenido">';
   document.getElementById('contenido-list').appendChild(li);
 }
 
 // ── CÁLCULO % ─────────────────────────────────────────────────
 function calcPct(){
-  var conv = parseFloat(gv('r-convocados'))||0;
-  var asis = parseFloat(gv('r-asistentes'))||0;
-  document.getElementById('r-pct').value = conv>0 ? ((asis/conv)*100).toFixed(1)+'%' : '';
+  var conv=parseFloat(gv('r-convocados'))||0, asis=parseFloat(gv('r-asistentes'))||0;
+  document.getElementById('r-pct').value=conv>0?((asis/conv)*100).toFixed(1)+'%':'';
 }
 
-// ── RESUMEN ───────────────────────────────────────────────────
-function buildResumen(){
-  var datos = {}; try{ datos = JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
-  var tipoDisplay = (gv('g-tipo')||datos.tipo_cap||'—');
-  if(tipoDisplay==='Otro') tipoDisplay = gv('g-tipo-otro')||datos.tipo_cap_otro||'Otro';
-  var modalDisplay = gv('g-modalidad')||datos.modalidad||'—';
-  if(modalDisplay==='Otro') modalDisplay = gv('g-modalidad-otro')||datos.modalidad_otro||'Otro';
-
-  var partsHtml = '';
-  for(var i=1;i<=pN;i++){ var n=gv('pn'+i); if(n) partsHtml+='<div class="res-row">'+i+'. <span>'+esc(n)+'</span> — '+esc(gv('pc'+i))+'</div>'; }
-  var contHtml = '';
-  for(var j=1;j<=contN;j++){ var pt=gv('cont'+j); if(pt) contHtml+='<div class="res-row">'+j+'. <span>'+esc(pt)+'</span></div>'; }
-
-  document.getElementById('resumen').innerHTML =
-    '<div class="res-section"><h4>1. Generales</h4><div class="res-grid">'+
-      '<div class="res-row">Título: <span>'+esc(gv('g-titulo'))+'</span></div>'+
-      '<div class="res-row">Fecha: <span>'+esc(gv('g-fecha'))+'</span></div>'+
-      '<div class="res-row">Hora: <span>'+(gv('g-hora')||'—')+'</span></div>'+
-      '<div class="res-row">Modalidad: <span>'+esc(modalDisplay)+'</span></div>'+
-      '<div class="res-row" style="grid-column:1/-1">Institución: <span>'+esc(gv('g-inst')||datos.institucion_beneficiaria||'—')+'</span></div>'+
-      '<div class="res-row" style="grid-column:1/-1">Tipo: <span>'+esc(tipoDisplay)+'</span></div>'+
-    '</div></div>'+
-    '<div class="res-section"><h4>2. Capacitación</h4><div class="res-grid">'+
-      '<div class="res-row" style="grid-column:1/-1">Tema: <span>'+esc(gv('cap-tema'))+'</span></div>'+
-      '<div class="res-row">Enlace: <span>'+esc(gv('ep-nombre'))+'</span></div>'+
-      '<div class="res-row">Facilitador: <span>'+esc(gv('fac-nombre'))+'</span></div>'+
-    '</div>'+(contHtml?'<p style="font-size:11px;color:#9aadcc;margin:.4rem 0 .2rem;font-weight:700">CONTENIDO</p>'+contHtml:'')+'</div>'+
-    '<div class="res-section"><h4>3. Participantes (manual)</h4>'+(partsHtml||'<div class="res-row" style="color:#9aadcc">Sin participantes manuales (verificar lista QR)</div>')+'</div>'+
-    '<div class="res-section"><h4>6. Resultados</h4><div class="res-grid">'+
-      '<div class="res-row">Convocados: <span>'+(gv('r-convocados')||'—')+'</span></div>'+
-      '<div class="res-row">Asistentes: <span>'+(gv('r-asistentes')||'—')+'</span></div>'+
-      '<div class="res-row">% Asistencia: <span>'+(gv('r-pct')||'—')+'</span></div>'+
-      '<div class="res-row">Satisfacción: <span>'+(gv('r-satisfaccion')?gv('r-satisfaccion')+'%':'—')+'</span></div>'+
-    '</div></div>';
-}
-
-// ── TEXTO COMPLETO ────────────────────────────────────────────
-function buildTexto(){
-  var datos = {}; try{ datos = JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
-  var tipoDisplay = (gv('g-tipo')||datos.tipo_cap||'—');
-  if(tipoDisplay==='Otro') tipoDisplay = gv('g-tipo-otro')||datos.tipo_cap_otro||'Otro';
-  var modalDisplay = gv('g-modalidad')||datos.modalidad||'—';
-  if(modalDisplay==='Otro') modalDisplay = gv('g-modalidad-otro')||datos.modalidad_otro||'Otro';
-
-  var fecha = new Date().toLocaleDateString('es-HN') + ' ' + new Date().toLocaleTimeString('es-HN');
-  var partsLn=''; for(var i=1;i<=pN;i++){ var n=gv('pn'+i); if(n) partsLn+='  '+i+'. '+n+' | '+gv('pc'+i)+' | '+gv('pe'+i)+'\n'; }
-  var contLn=''; for(var j=1;j<=contN;j++){ var pt=gv('cont'+j); if(pt) contLn+='  '+j+'. '+pt+'\n'; }
-
-  return 'FORMATO INSTITUCIONAL DE REGISTRO DE CAPACITACIONES - DIGER\n' +
-    '=============================================================\n\n' +
-    '1. GENERALES\n-------------------------------------------------------------\n' +
-    'Título: '+gv('g-titulo')+'\n' +
-    'Fecha: '+gv('g-fecha')+'  |  Hora: '+(gv('g-hora')||'—')+'\n' +
-    'Modalidad: '+modalDisplay+'  |  Duración: '+(gv('g-duracion')||'—')+'\n' +
-    'Lugar: '+(gv('g-lugar')||'—')+'\n' +
-    'Institución beneficiaria: '+(gv('g-inst')||datos.institucion_beneficiaria||'—')+'\n' +
-    'Tipo de capacitación: '+tipoDisplay+'\n\n' +
-    '2. CAPACITACIÓN\n-------------------------------------------------------------\n' +
-    'Tema: '+gv('cap-tema')+'\nObjetivo: '+gv('cap-objetivo')+'\n\nContenido:\n'+(contLn||'  —\n')+'\n' +
-    'Enlace principal: '+gv('ep-nombre')+' | '+gv('ep-cargo')+' | '+gv('ep-correo')+'\n' +
-    'Facilitador: '+gv('fac-nombre')+' | '+gv('fac-cargo')+' | '+gv('fac-correo')+'\n\n' +
-    '3. PARTICIPANTES (registro manual)\n-------------------------------------------------------------\n'+(partsLn||'  (Ver lista de asistencia QR)\n')+'\n' +
-    '5. DOCUMENTOS Y RECURSOS\n-------------------------------------------------------------\n'+(gv('docs-recursos')||'—')+'\n\n' +
-    '6. RESULTADOS\n-------------------------------------------------------------\n' +
-    'Convocados: '+(gv('r-convocados')||'—')+'\nAsistentes: '+(gv('r-asistentes')||'—')+'\n% Asistencia: '+(gv('r-pct')||'—')+'\nSatisfacción: '+(gv('r-satisfaccion')?gv('r-satisfaccion')+'%':'—')+'\n\n' +
-    'Compromisos:\n  1. '+(gv('com1')||'—')+'\n  2. '+(gv('com2')||'—')+'\n  3. '+(gv('com3')||'—')+'\n  4. '+(gv('com4')||'—')+'\n\n' +
-    '7. VALIDACIÓN\n-------------------------------------------------------------\n' +
-    'Responsable DIGER: '+(gv('val-diger')||'—')+'\nRepresentante Institución: '+(gv('val-inst')||'—')+'\n\n' +
-    '=============================================================\nGuardado el '+fecha;
-}
+// ── TOGGLES ───────────────────────────────────────────────────
+function toggleModalidadOtro(){ document.getElementById('field-modalidad-otro').style.display=gv('g-modalidad')==='Otro'?'block':'none'; }
+function toggleTipoOtro(){ document.getElementById('field-tipo-otro').style.display=gv('g-tipo')==='Otro'?'block':'none'; }
 
 // ── ENVIAR ────────────────────────────────────────────────────
 async function enviarRegistro(){
-  var btn = document.getElementById('btn-enviar');
-  btn.textContent='Guardando...'; btn.disabled=true;
+  if(!currentId){ alert('Primero guarde el evento para poder enviarlo.'); return; }
+  var btn=document.getElementById('btn-enviar'), btn2=document.getElementById('btn-enviar2');
+  [btn,btn2].forEach(function(b){ if(b){b.textContent='Guardando...';b.disabled=true;} });
+  // Guardar todo antes de enviar
+  var datosExistentes={}; try{ datosExistentes=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
+  var datosTema=Object.assign({},datosExistentes,{
+    modalidad:gv('g-modalidad'),modalidad_otro:gv('g-modalidad')==='Otro'?gv('g-modalidad-otro'):'',
+    institucion_beneficiaria:gv('g-inst'),tipo_cap:gv('g-tipo'),tipo_cap_otro:gv('g-tipo')==='Otro'?gv('g-tipo-otro'):'',
+    cap:colectarDatosCap()
+  });
+  var {data:upd}=await sb.from('reuniones').update({
+    titulo:gv('g-titulo'),tema:JSON.stringify(datosTema),
+    fecha:gv('g-fecha'),hora:gv('g-hora'),lugar:gv('g-lugar')
+  }).eq('id',currentId).select().single();
+  if(upd) currentReunion=upd;
 
-  // Guardar en Supabase primero
-  await guardarDatosCap();
-
-  var txt = buildTexto();
-  window._lastTxt = txt;
-
-  var datos = {}; try{ datos = JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
-  btn.textContent='Enviando...';
+  var txt=buildTexto();
+  window._lastTxt=txt;
+  var datos={}; try{ datos=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
+  [btn,btn2].forEach(function(b){ if(b) b.textContent='Enviando...'; });
   emailjs.send('service_ddpjb4o','template_56ilb2e',{
-    institucion: gv('g-inst')||datos.institucion_beneficiaria||'',
-    resumen: txt
-  }).then(finalizar).catch(finalizar);
+    institucion:gv('g-inst')||datos.institucion_beneficiaria||'',
+    resumen:txt
+  }).then(function(){ [btn,btn2].forEach(function(b){ if(b){b.textContent=b.id==='btn-enviar'?'📤 Enviar registro':'📤 Enviar registro';b.disabled=false;} }); cambiarVista('view-ok'); window.scrollTo(0,0); })
+    .catch(function(){ [btn,btn2].forEach(function(b){ if(b){b.textContent=b.id==='btn-enviar'?'📤 Enviar registro':'📤 Enviar registro';b.disabled=false;} }); cambiarVista('view-ok'); window.scrollTo(0,0); });
 }
 
-function finalizar(){
-  var btn = document.getElementById('btn-enviar');
-  btn.textContent='📤 Enviar y guardar'; btn.disabled=false;
-  goStepUI(6);
-  window.scrollTo(0,0);
+// ── BUILD TEXTO PDF ───────────────────────────────────────────
+function buildTexto(){
+  var datos={}; try{ datos=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
+  var tipoDisplay=gv('g-tipo')||datos.tipo_cap||'—'; if(tipoDisplay==='Otro') tipoDisplay=gv('g-tipo-otro')||datos.tipo_cap_otro||'Otro';
+  var modalDisplay=gv('g-modalidad')||datos.modalidad||'—'; if(modalDisplay==='Otro') modalDisplay=gv('g-modalidad-otro')||datos.modalidad_otro||'Otro';
+  var fecha=new Date().toLocaleDateString('es-HN')+' '+new Date().toLocaleTimeString('es-HN');
+  var partsLn=''; for(var i=1;i<=pN;i++){ var n=gv('pn'+i); if(n) partsLn+='  '+i+'. '+n+' | '+gv('pc'+i)+' | '+gv('pe'+i)+'\n'; }
+  var contLn=''; for(var j=1;j<=contN;j++){ var pt=gv('cont'+j); if(pt) contLn+='  '+j+'. '+pt+'\n'; }
+  return 'FORMATO INSTITUCIONAL DE REGISTRO DE CAPACITACIONES - DIGER\n=============================================================\n\n'+
+    '1. GENERALES\n-------------------------------------------------------------\n'+
+    'Título: '+gv('g-titulo')+'\nFecha: '+gv('g-fecha')+'  |  Hora: '+(gv('g-hora')||'—')+'\n'+
+    'Modalidad: '+modalDisplay+'  |  Duración: '+(gv('g-duracion')||'—')+'\nLugar: '+(gv('g-lugar')||'—')+'\n'+
+    'Institución beneficiaria: '+(gv('g-inst')||datos.institucion_beneficiaria||'—')+'\nTipo de capacitación: '+tipoDisplay+'\n\n'+
+    '2. CAPACITACIÓN\n-------------------------------------------------------------\n'+
+    'Tema: '+gv('cap-tema')+'\nObjetivo: '+gv('cap-objetivo')+'\n\nContenido:\n'+(contLn||'  —\n')+'\n'+
+    'Enlace principal: '+gv('ep-nombre')+' | '+gv('ep-cargo')+' | '+gv('ep-correo')+'\n'+
+    'Facilitador: '+gv('fac-nombre')+' | '+gv('fac-cargo')+' | '+gv('fac-correo')+'\n\n'+
+    '3. PARTICIPANTES (registro manual)\n-------------------------------------------------------------\n'+(partsLn||'  (Ver lista de asistencia QR)\n')+'\n'+
+    '5. DOCUMENTOS Y RECURSOS\n-------------------------------------------------------------\n'+(gv('docs-recursos')||'—')+'\n\n'+
+    '6. RESULTADOS\n-------------------------------------------------------------\n'+
+    'Convocados: '+(gv('r-convocados')||'—')+'\nAsistentes: '+(gv('r-asistentes')||'—')+'\n'+
+    '% Asistencia: '+(gv('r-pct')||'—')+'\nSatisfacción: '+(gv('r-satisfaccion')?gv('r-satisfaccion')+'%':'—')+'\n\n'+
+    'Compromisos:\n  1. '+(gv('com1')||'—')+'\n  2. '+(gv('com2')||'—')+'\n  3. '+(gv('com3')||'—')+'\n  4. '+(gv('com4')||'—')+'\n\n'+
+    '7. VALIDACIÓN\n-------------------------------------------------------------\n'+
+    'Responsable DIGER: '+(gv('val-diger')||'—')+'\nRepresentante Institución: '+(gv('val-inst')||'—')+'\n\n'+
+    '=============================================================\nGuardado el '+fecha;
 }
 
-// ── DESCARGAR PDF ─────────────────────────────────────────────
+// ── PDF ───────────────────────────────────────────────────────
 function descargarPDF(){
-  if(!window._lastTxt) return;
-  var datos = {}; try{ datos = JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
-  generarPDF(window._lastTxt, gv('g-inst')||datos.institucion_beneficiaria||'', gv('g-fecha'));
+  var datos={}; try{ datos=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
+  var txt=window._lastTxt||buildTexto();
+  generarPDF(txt,gv('g-inst')||datos.institucion_beneficiaria||'',gv('g-fecha'));
 }
 
 function normP(str){ return String(str||'').replace(/[ÁÀÄÂÃ]/g,'A').replace(/[áàäâã]/g,'a').replace(/[ÉÈËÊ]/g,'E').replace(/[éèëê]/g,'e').replace(/[ÍÌÏÎ]/g,'I').replace(/[íìïî]/g,'i').replace(/[ÓÒÖÔÕ]/g,'O').replace(/[óòöôõ]/g,'o').replace(/[ÚÙÜÛ]/g,'U').replace(/[úùüû]/g,'u').replace(/[Ñ]/g,'N').replace(/[ñ]/g,'n').replace(/[—–]/g,'-'); }
 
 function generarPDF(texto,inst,fecha){
-  var jsPDFLib = (window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
+  var jsPDFLib=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
   if(!jsPDFLib){ descTxt(texto,inst,fecha); return; }
   try{
-    var doc = new jsPDFLib({orientation:'portrait',unit:'mm',format:'letter'});
-    var pw=doc.internal.pageSize.getWidth(), ph=doc.internal.pageSize.getHeight(), mg=18, cw=pw-mg*2, y=0, pg=1;
+    var doc=new jsPDFLib({orientation:'portrait',unit:'mm',format:'letter'});
+    var pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight(),mg=18,cw=pw-mg*2,y=0,pg=1;
     function hdr(){ doc.setFillColor(10,45,110);doc.rect(0,0,pw,22,'F');doc.setFillColor(13,140,160);doc.rect(0,22,pw,3,'F');doc.setTextColor(255,255,255);doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text('GOBIERNO DE LA REPUBLICA DE HONDURAS',pw/2,8,{align:'center'});doc.setFontSize(7);doc.setFont('helvetica','normal');doc.text('Direccion de Gestion por Resultados (DIGER)',pw/2,14,{align:'center'});doc.setFontSize(6.5);doc.setTextColor(180,200,230);doc.text('Pag '+pg,pw-mg,ph-8,{align:'right'});doc.setTextColor(150,160,180);doc.text('DIGER - Registro de Capacitaciones',mg,ph-8);y=30; }
     function ckPg(n){ if(y+n>ph-14){doc.addPage();pg++;hdr();} }
     function secBar(t,rgb){ ckPg(10);doc.setFillColor(rgb[0],rgb[1],rgb[2]);doc.rect(mg,y,cw,7,'F');doc.setFillColor(13,140,160);doc.rect(mg,y,3,7,'F');doc.setTextColor(255,255,255);doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.text(normP(t),mg+5,y+5);y+=9;doc.setTextColor(30,30,30); }
@@ -1527,21 +1193,16 @@ function generarPDF(texto,inst,fecha){
   }catch(e){ descTxt(texto,inst,fecha); }
 }
 
-function descTxt(txt,inst,fecha){
-  var a=document.createElement('a');
-  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt);
-  a.download='Capacitacion_'+((inst||'cap').replace(/[\s\/]/g,'_').substring(0,28))+'_'+(fecha||'')+'.txt';
-  a.click();
-}
+function descTxt(txt,inst,fecha){ var a=document.createElement('a'); a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt); a.download='Capacitacion_'+((inst||'cap').replace(/[\s\/]/g,'_').substring(0,28))+'_'+(fecha||'')+'.txt'; a.click(); }
 
-// ── REINICIAR FORM ────────────────────────────────────────────
+// ── REINICIAR ─────────────────────────────────────────────────
 function reiniciarForm(){
-  document.querySelectorAll('#view-form input:not([type=file]),#view-form textarea,#view-form select').forEach(function(el){ el.value=''; });
+  document.querySelectorAll('#view-evento input:not([type=file]),#view-evento textarea,#view-evento select').forEach(function(el){ el.value=''; });
   document.querySelectorAll('.foto-preview img').forEach(function(img){ img.src='';img.style.display='none'; });
   document.querySelectorAll('.foto-placeholder').forEach(function(ph){ ph.style.display='block'; });
   document.getElementById('field-modalidad-otro').style.display='none';
   document.getElementById('field-tipo-otro').style.display='none';
-  document.getElementById('step1-err').style.display='none';
+  document.getElementById('gen-err').style.display='none';
   contN=4;
   document.getElementById('contenido-list').innerHTML=
     '<li><span>1.</span><input type="text" id="cont1" placeholder="Punto de contenido"></li>'+
@@ -1549,14 +1210,15 @@ function reiniciarForm(){
     '<li><span>3.</span><input type="text" id="cont3" placeholder="Punto de contenido"></li>'+
     '<li><span>4.</span><input type="text" id="cont4" placeholder="Punto de contenido"></li>';
   pN=0; buildPtable(8);
-  var fd=document.getElementById('g-fecha');
-  if(fd) fd.valueAsDate=new Date();
-  var btn=document.getElementById('btn-enviar');
-  if(btn){btn.textContent='📤 Enviar y guardar';btn.disabled=false;}
-  var btnG=document.getElementById('btn-guardar-gen');
-  if(btnG){btnG.textContent='💾 Guardar y obtener QR';btnG.disabled=false;btnG.style.background='';}
+  var fd=document.getElementById('g-fecha'); if(fd) fd.valueAsDate=new Date();
+  var btn=document.getElementById('btn-guardar-gen');
+  if(btn){btn.textContent='💾 Guardar y generar QR';btn.disabled=false;btn.style.background='';}
   window._lastTxt=null;
+  asisCache=[];
+  if(realtimeCh){sb.removeChannel(realtimeCh);realtimeCh=null;}
 }
+
+function ocultarMensajes(){ document.getElementById('global-ok').style.display='none'; document.getElementById('global-err').style.display='none'; document.getElementById('gen-err').style.display='none'; }
 
 // ── NAVEGACIÓN ────────────────────────────────────────────────
 function cambiarVista(id){
@@ -1566,13 +1228,14 @@ function cambiarVista(id){
 }
 
 function volverLista(){
-  if(realtimeCh){ sb.removeChannel(realtimeCh); realtimeCh=null; }
+  if(realtimeCh){sb.removeChannel(realtimeCh);realtimeCh=null;}
   renderLista();
   cambiarVista('view-list');
 }
 
 // ── UTILS ─────────────────────────────────────────────────────
 function gv(id){ var el=document.getElementById(id); return el?(el.value||'').trim():''; }
+function sv(id,val){ var el=document.getElementById(id); if(el) el.value=val; }
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function genId(){ return 'PE-'+(+new Date).toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,6).toUpperCase(); }
 </script>
