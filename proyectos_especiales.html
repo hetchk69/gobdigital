@@ -1298,6 +1298,7 @@ async function descargarPDF(){
   if(!currentId){ alert('Abra un evento primero.'); return; }
   var datos={}; try{ datos=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
   var cap=datos.cap||{};
+  var logo=await urlToBase64('logo_diger-14.png');
   var foto1=_foto1_url||'', foto2=_foto2_url||'';
   if(foto1&&!foto1.startsWith('data:')) foto1=(await urlToBase64(foto1))||'';
   if(foto2&&!foto2.startsWith('data:')) foto2=(await urlToBase64(foto2))||'';
@@ -1320,7 +1321,8 @@ async function descargarPDF(){
     valDiger:gv('val-diger')||cap.val_diger||'',
     valInst:gv('val-inst')||cap.val_inst||'',
     foto1:foto1, foto1desc:gv('f1-desc')||cap.foto1_desc||'',
-    foto2:foto2, foto2desc:gv('f2-desc')||cap.foto2_desc||''
+    foto2:foto2, foto2desc:gv('f2-desc')||cap.foto2_desc||'',
+    logo:logo
   });
 }
 
@@ -1338,11 +1340,7 @@ function generarPDFProfesional(d){
     function pageBands(){
       doc.setFillColor(CA[0],CA[1],CA[2]); doc.rect(0,0,PW,18,'F');
       doc.setFillColor(CT[0],CT[1],CT[2]); doc.rect(0,18,PW,2.5,'F');
-      doc.setTextColor(255,255,255);
-      doc.setFontSize(8.5); doc.setFont('helvetica','bold');
-      doc.text('GOBIERNO DE LA REPUBLICA DE HONDURAS',PW/2,7.5,{align:'center'});
-      doc.setFontSize(7); doc.setFont('helvetica','normal');
-      doc.text('Direccion de Gestion por Resultados (DIGER)',PW/2,13.5,{align:'center'});
+      if(d.logo){ try{ var lw=62,lh=14; doc.addImage(d.logo,'PNG',(PW-lw)/2,2,lw,lh); }catch(e){} }
       doc.setFontSize(6.5); doc.setFont('helvetica','italic'); doc.setTextColor(160,170,190);
       doc.text('DIGER - Registro de Reunion',ML,PH-7);
       doc.text('Pag '+pg,PW-MR,PH-7,{align:'right'});
@@ -1358,9 +1356,9 @@ function generarPDFProfesional(d){
     doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(CA[0],CA[1],CA[2]);
     var tlines=doc.splitTextToSize(normP(d.titulo||'Registro de Reunion'),CW);
     doc.text(tlines,PW/2,y,{align:'center'}); y+=tlines.length*6+2;
-    doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(CG[0],CG[1],CG[2]);
+    doc.setFontSize(11); doc.setFont('helvetica','normal'); doc.setTextColor(CG[0],CG[1],CG[2]);
     var sub=normP(d.inst||'')+(d.fecha?'   ·   '+d.fecha:'')+(d.hora&&d.hora!=='—'?'   '+d.hora:'');
-    doc.text(sub,PW/2,y,{align:'center'}); y+=4;
+    doc.text(sub,PW/2,y,{align:'center'}); y+=6;
     doc.setDrawColor(CT[0],CT[1],CT[2]); doc.setLineWidth(0.7); doc.line(ML,y,PW-MR,y); y+=8;
 
     // Section numbering
