@@ -1378,9 +1378,12 @@ function generarPDFProfesional(d){
       var x=ML+(xOff||0),w=CW-(xOff||0);
       normP(txt).split(/\n+/).forEach(function(p){
         p=p.trim(); if(!p) return;
-        doc.splitTextToSize(p,w).forEach(function(l){
-          ckPg(5.5); doc.setFontSize(9.5); doc.setFont('helvetica','normal');
-          doc.setTextColor(CN[0],CN[1],CN[2]); doc.text(l,x,y); y+=4.8;
+        doc.setFontSize(9.5); doc.setFont('helvetica','normal');
+        var lines=doc.splitTextToSize(p,w);
+        lines.forEach(function(l,li){
+          ckPg(5.5); doc.setTextColor(CN[0],CN[1],CN[2]);
+          doc.text(l,x,y,li<lines.length-1?{maxWidth:w,align:'justify'}:{});
+          y+=4.8;
         });
         y+=1.5;
       });
@@ -1417,11 +1420,11 @@ function generarPDFProfesional(d){
       ckPg(10);
       doc.setFillColor(CA[0],CA[1],CA[2]); doc.rect(ML,y,CW,7,'F');
       doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
-      doc.text('N°',ML+pNoW/2,y+4.8,{align:'center'});
-      doc.text('Nombre',ML+pNoW+2,y+4.8);
-      doc.text('Cargo',ML+pNoW+pNomW+2,y+4.8);
-      doc.text('Institucion',ML+pNoW+pNomW+pCrgW+2,y+4.8);
-      doc.text('Correo',ML+pNoW+pNomW+pCrgW+pInstW+2,y+4.8);
+      doc.text('N°',   ML+pNoW/2,                               y+4.8,{align:'center'});
+      doc.text('Nombre',ML+pNoW+pNomW/2,                        y+4.8,{align:'center'});
+      doc.text('Cargo', ML+pNoW+pNomW+pCrgW/2,                  y+4.8,{align:'center'});
+      doc.text('Institucion',ML+pNoW+pNomW+pCrgW+pInstW/2,      y+4.8,{align:'center'});
+      doc.text('Correo',ML+pNoW+pNomW+pCrgW+pInstW+pCorW/2,     y+4.8,{align:'center'});
       y+=7;
       d.participantes.forEach(function(p,i){
         var nL=doc.splitTextToSize(normP(p.nombre||'—'),pNomW-3);
@@ -1441,10 +1444,10 @@ function generarPDFProfesional(d){
         doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(CA[0],CA[1],CA[2]);
         doc.text(String(i+1),ML+pNoW/2,y+rH/2+1.5,{align:'center'});
         doc.setFont('helvetica','normal'); doc.setTextColor(CN[0],CN[1],CN[2]);
-        nL.forEach(function(l,li){ doc.text(l,ML+pNoW+2,y+4+li*4.3); });
-        cL.forEach(function(l,li){ doc.text(l,ML+pNoW+pNomW+2,y+4+li*4.3); });
-        iL.forEach(function(l,li){ doc.text(l,ML+pNoW+pNomW+pCrgW+2,y+4+li*4.3); });
-        eL.forEach(function(l,li){ doc.setFontSize(7.5); doc.text(l,ML+pNoW+pNomW+pCrgW+pInstW+2,y+4+li*4.3); doc.setFontSize(8.5); });
+        nL.forEach(function(l,li){ doc.text(l,ML+pNoW+pNomW/2,y+4+li*4.3,{align:'center'}); });
+        cL.forEach(function(l,li){ doc.text(l,ML+pNoW+pNomW+pCrgW/2,y+4+li*4.3,{align:'center'}); });
+        iL.forEach(function(l,li){ doc.text(l,ML+pNoW+pNomW+pCrgW+pInstW/2,y+4+li*4.3,{align:'center'}); });
+        eL.forEach(function(l,li){ doc.setFontSize(7.5); doc.text(l,ML+pNoW+pNomW+pCrgW+pInstW+pCorW/2,y+4+li*4.3,{align:'center'}); doc.setFontSize(8.5); });
         y+=rH;
       });
     } else {
@@ -1466,10 +1469,10 @@ function generarPDFProfesional(d){
       ckPg(10);
       doc.setFillColor(CA[0],CA[1],CA[2]); doc.rect(ML,y,CW,8,'F');
       doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
-      doc.text('No.',ML+noW/2,y+5.5,{align:'center'});
-      doc.text('Acuerdo / Compromiso',ML+noW+3,y+5.5);
-      doc.text('Responsable',ML+noW+compW+3,y+5.5);
-      doc.text('Plazo',ML+noW+compW+respW+3,y+5.5);
+      doc.text('No.',              ML+noW/2,                    y+5.5,{align:'center'});
+      doc.text('Acuerdo / Compromiso',ML+noW+compW/2,           y+5.5,{align:'center'});
+      doc.text('Responsable',     ML+noW+compW+respW/2,         y+5.5,{align:'center'});
+      doc.text('Plazo',           ML+noW+compW+respW+plazoW/2,  y+5.5,{align:'center'});
       y+=8;
       d.acuerdos.forEach(function(a,ai){
         var cL=doc.splitTextToSize(normP(a.compromiso||'—'),compW-5);
@@ -1487,9 +1490,9 @@ function generarPDFProfesional(d){
         doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(CA[0],CA[1],CA[2]);
         doc.text(String(ai+1),ML+noW/2,y+rH/2+1.5,{align:'center'});
         doc.setFont('helvetica','normal'); doc.setTextColor(CN[0],CN[1],CN[2]); doc.setFontSize(8.5);
-        cL.forEach(function(l,li){ doc.text(l,ML+noW+3,y+4.5+li*4.5); });
-        rL.forEach(function(l,li){ doc.text(l,ML+noW+compW+3,y+4.5+li*4.5); });
-        pL.forEach(function(l,li){ doc.text(l,ML+noW+compW+respW+3,y+4.5+li*4.5); });
+        cL.forEach(function(l,li){ doc.text(l,ML+noW+compW/2,      y+4.5+li*4.5,{align:'center'}); });
+        rL.forEach(function(l,li){ doc.text(l,ML+noW+compW+respW/2,y+4.5+li*4.5,{align:'center'}); });
+        pL.forEach(function(l,li){ doc.text(l,ML+noW+compW+respW+plazoW/2,y+4.5+li*4.5,{align:'center'}); });
         y+=rH;
       });
       y+=6;
@@ -1533,7 +1536,7 @@ function generarPDFProfesional(d){
     }
 
     // ── 9. Validacion ──────────────────────────────────────────
-    if(d.valDiger||d.valInst){
+    if(d.esCap&&(d.valDiger||d.valInst)){
       sec('Validacion y Aprobacion');
       ckPg(38);
       var bW=(CW-8)/2,bH=32,y0=y;
