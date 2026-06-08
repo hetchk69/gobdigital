@@ -476,16 +476,7 @@ function seleccionar(inst){
 
 function renderInfoBar(inst){
   if(inst==='__ALL__'){
-    const rows=DEFAULT_DATA.filter(d=>!d.tramite.startsWith('(')).map(d=>getRecord(d.id));
-    const op=rows.filter(r=>calcPct(r.etapas)>=1).length;
-    const ni=rows.filter(r=>calcPct(r.etapas)===0).length;
-    const proc=rows.length-op-ni;
-    const avg=rows.reduce((s,r)=>s+calcPct(r.etapas),0)/rows.length;
-    document.getElementById('instInfoBar').innerHTML=
-      `<span class="info-chip st-op">${op} En operación</span>`+
-      `<span class="info-chip st-proc">${proc} En proceso</span>`+
-      `<span class="info-chip st-ni">${ni} No iniciado</span>`+
-      `<span class="info-chip" style="background:#e8f0ff;color:#1455a4;font-size:12px">Avance global: <strong>${Math.round(avg*100)}%</strong></span>`;
+    document.getElementById('instInfoBar').innerHTML='';
     return;
   }
   const rows=DEFAULT_DATA.filter(d=>d.inst===inst).map(d=>getRecord(d.id));
