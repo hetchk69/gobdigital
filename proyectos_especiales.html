@@ -1400,8 +1400,9 @@ function generarPDFProfesional(d){
         doc.setFontSize(9.5); doc.setFont('helvetica','normal');
         var lines=doc.splitTextToSize(p,w);
         lines.forEach(function(l,li){
-          ckPg(5.5); doc.setTextColor(CN[0],CN[1],CN[2]);
-          doc.text(l,x,y);
+          ckPg(5.5);
+          doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(CN[0],CN[1],CN[2]);
+          doc.text(l,x,y,li<lines.length-1?{maxWidth:w,align:'justify'}:{});
           y+=4.8;
         });
         y+=1.5;
