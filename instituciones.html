@@ -198,7 +198,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
     </div>
 
     <!-- Columna notas -->
-    <div class="notas-col">
+    <div class="notas-col" id="notasCol">
       <div class="notas-panel">
         <div class="notas-header">
           <div class="notas-header-title">📝 Notas de seguimiento</div>
@@ -246,87 +246,77 @@ const ETAPAS = [
 
 // ── TRAMITES DATA ────────────────────────────────────────────────
 const DEFAULT_DATA = [
-  {id:1,  inst:"CONVIVIENDA",     tramite:"Registro de actores",                                                                                                                          financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,1,1,1,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:2,  inst:"COPECO",          tramite:"Certificado de evaluación de riesgo",                                                                                                          financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,1,1,1,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:3,  inst:"SIT",             tramite:"Constancia de inafectabilidad",                                                                                                                financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,1,1,1,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:4,  inst:"IHADFA",          tramite:"Nuevo certificado para comercializar bebidas alcohólicas",                                                                                     financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:5,  inst:"IHADFA",          tramite:"Renovación para comercializar bebidas alcohólicas",                                                                                            financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:6,  inst:"IHADFA",          tramite:"Nuevo certificado para comercializar productos derivados del tabaco",                                                                          financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:7,  inst:"IHADFA",          tramite:"Renovación del certificado para comercializar productos derivados del tabaco",                                                                 financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:8,  inst:"IHADFA",          tramite:"Nuevo certificado para comercializar productos farmacéuticos",                                                                                 financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:9,  inst:"IHADFA",          tramite:"Renovación certificada para comercializar productos farmacéuticos",                                                                            financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:10, inst:"BANHPROVI",       tramite:"Precalificación de solicitud de vivienda (Banca de Primer Piso)",                                                                             financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,0,0,0,0], aloj:"PROPIA", pdi:"SI",                          obs:""},
-  {id:11, inst:"BANHPROVI",       tramite:"Solicitud de redescuento para vivienda Banca de Segundo Piso",                                                                                financia:"",      acta:"Si",        activo:"No",  etapas:[1,1,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIA", pdi:"NO",                          obs:""},
-  {id:12, inst:"BANHPROVI",       tramite:"Reserva para emisión de Certificado de Cobertura Fondo Garantía BCH-FG-MIPYME",                                                              financia:"",      acta:"Si",        activo:"No",  etapas:[1,1,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIA", pdi:"NO",                          obs:""},
-  {id:13, inst:"INPREUNAH",       tramite:"Solicitud de Historial de Cotizaciones",                                                                                                      financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:14, inst:"INPREUNAH",       tramite:"Solicitud de Váucher",                                                                                                                        financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:15, inst:"INPREUNAH",       tramite:"Solicitud de Constancia",                                                                                                                     financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:16, inst:"CNBS",            tramite:"Inscripción en el Registro de Auditores Externos (RAE)",                                                                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"PROPIO", pdi:"NO APLICA",                   obs:""},
-  {id:17, inst:"CNBS",            tramite:"Actualización del Registro de Auditores Externos (RAE)",                                                                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"PROPIO", pdi:"NO APLICA",                   obs:""},
-  {id:18, inst:"CNBS",            tramite:"Reclasificación en el Registro de Auditores Externos (RAE)",                                                                                  financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"PROPIO", pdi:"NO APLICA",                   obs:""},
-  {id:19, inst:"INPREMA",         tramite:"Actualización de Datos Docentes",                                                                                                             financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:20, inst:"INPREMA",         tramite:"Pre-análisis para otorgamiento de Préstamo Rapibono",                                                                                         financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:21, inst:"INPREMA",         tramite:"Pre-análisis para el otorgamiento de Préstamo Hipotecario",                                                                                   financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:22, inst:"INPREMA",         tramite:"Pre-análisis para el Otorgamiento de Préstamo Personal",                                                                                      financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:23, inst:"INPREMA",         tramite:"Pre-análisis para el otorgamiento de Préstamo Personal Consolidación de deudas",                                                              financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:24, inst:"INPREMA",         tramite:"Registro y atención de Denuncias (Protocolo de atención de casos externos)",                                                                  financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:25, inst:"IHTT",            tramite:"Certificación de expediente en trámite",                                                                                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:26, inst:"IHTT",            tramite:"Certificación de código aduanero",                                                                                                            financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:27, inst:"IHTT",            tramite:"Certificación de ser concesionario",                                                                                                          financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:28, inst:"SEN",             tramite:"Inscripción de empresas suplidoras de sistemas y equipos de energía solar fotovoltaica y solar térmica",                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:29, inst:"SEN",             tramite:"Autorización mediante registro de equipos de radiodiagnóstico dental de tipo intraoral",                                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:30, inst:"SEN",             tramite:"Inscripción de la sociedad mercantil o comerciante individual en la cadena de comercialización de hidrocarburos bajo la figura de estación de servicio", financia:"", acta:"Si", activo:"Si", etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER", pdi:"SI", obs:""},
-  {id:31, inst:"CONSUCOOP",       tramite:"Constancia de solvencia de cooperativas",                                                                                                     financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:32, inst:"CONSUCOOP",       tramite:"Emisión de constancia de inscripción de cooperativas",                                                                                        financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:33, inst:"CONSUCOOP",       tramite:"Petición de cálculo de aporte",                                                                                                               financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:34, inst:"CONSUCOOP",       tramite:"Certificación de inscripción de junta directiva y junta de vigilancia",                                                                       financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:35, inst:"CONATEL",         tramite:"Certificado de Homologación",                                                                                                                 financia:"",      acta:"No",        activo:"Si",  etapas:[1,1,1,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:36, inst:"CONATEL",         tramite:"Servicio Móvil Marítimo - Licencia",                                                                                                          financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"No activo aún",               obs:""},
-  {id:37, inst:"IHCINE",          tramite:"Inscripción en el Registro Nacional de Cinematografía Persona Natural",                                                                       financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:38, inst:"IHCINE",          tramite:"Inscripción en el Registro Nacional de Cinematografía Persona Jurídica",                                                                      financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:39, inst:"IHCINE",          tramite:"Solicitud de Fondos de Apoyo Financiero y Patrocinio",                                                                                        financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:40, inst:"SAG",             tramite:"Solicitud de carné para comercialización de productos pesqueros y acuícolas",                                                                 financia:"",      acta:"en proceso",activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:41, inst:"SAG",             tramite:"Solicitud de constancia de trazabilidad — exportación de pepino de mar",                                                                      financia:"",      acta:"en proceso",activo:"Si",  etapas:[1,1,1,1,1,1,1,1,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:42, inst:"SAG",             tramite:"Solicitud de constancia de trazabilidad — comercio local de Caracol rosado",                                                                  financia:"",      acta:"en proceso",activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:43, inst:"SECAPPH",         tramite:"Solicitud de agrupaciones artísticas",                                                                                                        financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:44, inst:"SECAPPH",         tramite:"Registro de Matrícula Anual Academia Nacional de Arte Dramático",                                                                             financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:45, inst:"SECAPPH",         tramite:"Registro de Matrícula Escolar de la Academia Nacional de Danza",                                                                              financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:46, inst:"SECAPPH",         tramite:"Solicitud de Teatros",                                                                                                                        financia:"DIGER", acta:"Si",        activo:"No",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"No activo aún",               obs:""},
-  {id:47, inst:"SECAPPH",         tramite:"Solicitud de Artes Plásticas y Audiovisuales",                                                                                                financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:48, inst:"SRECI",           tramite:"Auténticas y apostillas",                                                                                                                     financia:"",      acta:"No",        activo:"No",  etapas:[1,0,0,0,0,0,0,0,0,0,0,0], aloj:"Propia", pdi:"NO APLICA",                   obs:""},
-  {id:49, inst:"SRECI",           tramite:"Certificación de traducción",                                                                                                                 financia:"",      acta:"No",        activo:"No",  etapas:[1,0,0,0,0,0,0,0,0,0,0,0], aloj:"Propia", pdi:"NO APLICA",                   obs:""},
-  {id:50, inst:"SERNA",           tramite:"Constancia de no requerir licencia ambiental",                                                                                                financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:51, inst:"SERNA",           tramite:"Registro de prestadores de servicios ambientales",                                                                                            financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:52, inst:"SERNA",           tramite:"Registro de importadores de equipos",                                                                                                         financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:53, inst:"SERNA",           tramite:"Registro de importadores de sustancias",                                                                                                      financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:54, inst:"SERNA",           tramite:"Pre-autorización de importación de equipos",                                                                                                  financia:"",      acta:"No",        activo:"No",  etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
-  {id:55, inst:"SGJD",            tramite:"Registro de contratos de la Dirección de Inquilinatos",                                                                                       financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,1,1,1,1,1,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:56, inst:"SGJD",            tramite:"Auténticas de documentación",                                                                                                                 financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,1,1,1,1,1,1,1,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:57, inst:"SGJD",            tramite:"Reconocimiento de personas jurídicas",                                                                                                        financia:"",      acta:"No",        activo:"No",  etapas:[1,0,0,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI / Aún en proceso",         obs:""},
-  {id:58, inst:"SGJD",            tramite:"Autorización para promociones, sorteos y otros similares",                                                                                    financia:"",      acta:"No",        activo:"No",  etapas:[1,0,0,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI / Aún en proceso",         obs:""},
-  {id:59, inst:"SGJD",            tramite:"Autorización para eventos y espectáculos públicos",                                                                                           financia:"",      acta:"No",        activo:"No",  etapas:[1,0,0,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"NO APARECE ACTIVO",           obs:""},
-  {id:60, inst:"CANATURH / IHT",  tramite:"Inscripción RNT: Servicios de hospitalidad, recreación y espacios para eventos",                                                             financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:61, inst:"CANATURH / IHT",  tramite:"Inscripción RNT: Prestadores de servicios de transporte y arrendadoras de vehículos",                                                       financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:62, inst:"CANATURH / IHT",  tramite:"Inscripción RNT: Guías turísticos",                                                                                                          financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:63, inst:"CANATURH / IHT",  tramite:"Inscripción RNT: Operadoras de turismo receptivo y agencias de viaje",                                                                       financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:64, inst:"CANATURH / IHT",  tramite:"Renovación RNT: Servicios intermediación y facilitación turística",                                                                          financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"No aparece ese trámite sino otro",obs:""},
-  {id:65, inst:"CANATURH / IHT",  tramite:"Renovación RNT: Prestadores de servicios de transporte y arrendadoras de vehículos",                                                        financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:66, inst:"CANATURH / IHT",  tramite:"Renovación RNT: Guías turísticos",                                                                                                           financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  {id:67, inst:"CANATURH / IHT",  tramite:"Renovación RNT: Servicios de hospitalidad, recreación y espacios para eventos",                                                              financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
-  // Instituciones adicionales sin trámites PDI
-  {id:68, inst:"IP",              tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIO", pdi:"",                            obs:""},
-  {id:69, inst:"SESAL",           tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
-  {id:70, inst:"ARSA",            tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIO", pdi:"",                            obs:""},
-  {id:71, inst:"SENASA",          tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"",                            obs:""},
-  {id:72, inst:"BCH",             tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIO", pdi:"",                            obs:""},
-  {id:73, inst:"CNI",             tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
-  {id:74, inst:"ICF",             tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
-  {id:75, inst:"SEGOB",           tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
-  {id:76, inst:"SDE",             tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIO", pdi:"",                            obs:""},
-  {id:77, inst:"PODER JUDICIAL",  tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIO", pdi:"",                            obs:""},
-  {id:78, inst:"HBCBH - BOMBEROS",tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"",                            obs:""},
-  {id:79, inst:"INFOP",           tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"",                            obs:""},
-  {id:80, inst:"ALCALDÍA COMAYAGUA",tramite:"(Trámites en identificación)",                                                                                                             financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
+  // IHADFA (6)
+  {id:4,  inst:"IHADFA",    tramite:"Nuevo certificado para comercializar bebidas alcohólicas",                                                                                     financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:5,  inst:"IHADFA",    tramite:"Renovación para comercializar bebidas alcohólicas",                                                                                            financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:6,  inst:"IHADFA",    tramite:"Nuevo certificado para comercializar productos derivados del tabaco",                                                                          financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:7,  inst:"IHADFA",    tramite:"Renovación del certificado para comercializar productos derivados del tabaco",                                                                 financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:8,  inst:"IHADFA",    tramite:"Nuevo certificado para comercializar productos farmacéuticos",                                                                                 financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:9,  inst:"IHADFA",    tramite:"Renovación certificada para comercializar productos farmacéuticos",                                                                            financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  // BANHPROVI (3)
+  {id:10, inst:"BANHPROVI", tramite:"Precalificación de solicitud de vivienda (Banca de Primer Piso)",                                                                             financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,0,0,0,0], aloj:"PROPIA", pdi:"SI",                          obs:""},
+  {id:11, inst:"BANHPROVI", tramite:"Solicitud de redescuento para vivienda Banca de Segundo Piso",                                                                                financia:"",      acta:"Si",        activo:"No",  etapas:[1,1,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIA", pdi:"NO",                          obs:""},
+  {id:12, inst:"BANHPROVI", tramite:"Reserva para emisión de Certificado de Cobertura Fondo Garantía BCH-FG-MIPYME",                                                              financia:"",      acta:"Si",        activo:"No",  etapas:[1,1,0,0,0,0,0,0,0,0,0,0], aloj:"PROPIA", pdi:"NO",                          obs:""},
+  // INPREUNAH (3)
+  {id:13, inst:"INPREUNAH", tramite:"Solicitud de Historial de Cotizaciones",                                                                                                      financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:14, inst:"INPREUNAH", tramite:"Solicitud de Váucher",                                                                                                                        financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:15, inst:"INPREUNAH", tramite:"Solicitud de Constancia",                                                                                                                     financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  // CNBS (3 + 2 nuevos = 5)
+  {id:16, inst:"CNBS",      tramite:"Inscripción en el Registro de Auditores Externos (RAE)",                                                                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"PROPIO", pdi:"NO APLICA",                   obs:""},
+  {id:17, inst:"CNBS",      tramite:"Actualización del Registro de Auditores Externos (RAE)",                                                                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"PROPIO", pdi:"NO APLICA",                   obs:""},
+  {id:18, inst:"CNBS",      tramite:"Reclasificación en el Registro de Auditores Externos (RAE)",                                                                                  financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"PROPIO", pdi:"NO APLICA",                   obs:""},
+  {id:81, inst:"CNBS",      tramite:"Inscripción en el Registro de Idoneidad de Peritos Valuadores",                                                                               financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"PROPIO", pdi:"NO APLICA",                   obs:""},
+  {id:82, inst:"CNBS",      tramite:"Actualización en el Registro de Idoneidad de Peritos Valuadores",                                                                             financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"PROPIO", pdi:"NO APLICA",                   obs:""},
+  // INPREMA (6)
+  {id:19, inst:"INPREMA",   tramite:"Actualización de Datos Docentes",                                                                                                             financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:20, inst:"INPREMA",   tramite:"Pre-análisis para otorgamiento de Préstamo Rapibono",                                                                                         financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:21, inst:"INPREMA",   tramite:"Pre-análisis para el otorgamiento de Préstamo Hipotecario",                                                                                   financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:22, inst:"INPREMA",   tramite:"Pre-análisis para el Otorgamiento de Préstamo Personal",                                                                                      financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:23, inst:"INPREMA",   tramite:"Pre-análisis para el otorgamiento de Préstamo Personal Consolidación de deudas",                                                              financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:24, inst:"INPREMA",   tramite:"Registro y atención de Denuncias (Protocolo de atención de casos externos)",                                                                  financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  // IHTT (3)
+  {id:25, inst:"IHTT",      tramite:"Certificación de expediente en trámite",                                                                                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:26, inst:"IHTT",      tramite:"Certificación de código aduanero",                                                                                                            financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:27, inst:"IHTT",      tramite:"Certificación de ser concesionario",                                                                                                          financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  // SEN (3)
+  {id:28, inst:"SEN",       tramite:"Inscripción de empresas suplidoras de sistemas y equipos de energía solar fotovoltaica y solar térmica",                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:29, inst:"SEN",       tramite:"Autorización mediante registro de equipos de radiodiagnóstico dental de tipo intraoral",                                                      financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:30, inst:"SEN",       tramite:"Inscripción de la sociedad mercantil o comerciante individual en la cadena de comercialización de hidrocarburos bajo la figura de estación de servicio", financia:"", acta:"Si", activo:"Si", etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER", pdi:"SI", obs:""},
+  // CONSUCOOP (4)
+  {id:31, inst:"CONSUCOOP", tramite:"Constancia de solvencia de cooperativas",                                                                                                     financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:32, inst:"CONSUCOOP", tramite:"Emisión de constancia de inscripción de cooperativas",                                                                                        financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:33, inst:"CONSUCOOP", tramite:"Petición de cálculo de aporte",                                                                                                               financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:34, inst:"CONSUCOOP", tramite:"Certificación de inscripción de junta directiva y junta de vigilancia",                                                                       financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  // CONATEL (2 + 1 en identificación = 3)
+  {id:35, inst:"CONATEL",   tramite:"Certificado de Homologación",                                                                                                                 financia:"",      acta:"No",        activo:"Si",  etapas:[1,1,1,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:36, inst:"CONATEL",   tramite:"Servicio Móvil Marítimo - Licencia",                                                                                                          financia:"",      acta:"No",        activo:"No",  etapas:[1,1,1,0,0,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"No activo aún",               obs:""},
+  {id:83, inst:"CONATEL",   tramite:"(Trámite en identificación)",                                                                                                                 financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
+  // IHCINE (3)
+  {id:37, inst:"IHCINE",    tramite:"Inscripción en el Registro Nacional de Cinematografía Persona Natural",                                                                       financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:38, inst:"IHCINE",    tramite:"Inscripción en el Registro Nacional de Cinematografía Persona Jurídica",                                                                      financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:39, inst:"IHCINE",    tramite:"Solicitud de Fondos de Apoyo Financiero y Patrocinio",                                                                                        financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  // SAG (3)
+  {id:40, inst:"SAG",       tramite:"Solicitud de carné para comercialización de productos pesqueros y acuícolas",                                                                 financia:"",      acta:"en proceso",activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:41, inst:"SAG",       tramite:"Solicitud de constancia de trazabilidad — exportación de pepino de mar",                                                                      financia:"",      acta:"en proceso",activo:"Si",  etapas:[1,1,1,1,1,1,1,1,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:42, inst:"SAG",       tramite:"Solicitud de constancia de trazabilidad — comercio local de Caracol rosado",                                                                  financia:"",      acta:"en proceso",activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  // SECAPPH (5 + 1 nuevo = 6)
+  {id:43, inst:"SECAPPH",   tramite:"Solicitud de agrupaciones artísticas",                                                                                                        financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:44, inst:"SECAPPH",   tramite:"Registro de Matrícula Anual Academia Nacional de Arte Dramático",                                                                             financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:45, inst:"SECAPPH",   tramite:"Registro de Matrícula Escolar de la Academia Nacional de Danza",                                                                              financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:46, inst:"SECAPPH",   tramite:"Solicitud de Teatros",                                                                                                                        financia:"DIGER", acta:"Si",        activo:"No",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"No activo aún",               obs:""},
+  {id:47, inst:"SECAPPH",   tramite:"Solicitud de Artes Plásticas y Audiovisuales",                                                                                                financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:84, inst:"SECAPPH",   tramite:"Solicitud de Apoyo para Publicaciones de Obras Literarias y Editoriales",                                                                    financia:"DIGER", acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,0,0,0,0,0,0,0], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  // IHT (8)
+  {id:60, inst:"IHT",       tramite:"Inscripción RNT: Servicios de hospitalidad, recreación y espacios para eventos",                                                             financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:61, inst:"IHT",       tramite:"Inscripción RNT: Prestadores de servicios de transporte y arrendadoras de vehículos",                                                       financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:62, inst:"IHT",       tramite:"Inscripción RNT: Guías turísticos",                                                                                                          financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:63, inst:"IHT",       tramite:"Inscripción RNT: Operadoras de turismo receptivo y agencias de viaje",                                                                       financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:64, inst:"IHT",       tramite:"Renovación RNT: Servicios intermediación y facilitación turística",                                                                          financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"No aparece ese trámite sino otro",obs:""},
+  {id:65, inst:"IHT",       tramite:"Renovación RNT: Prestadores de servicios de transporte y arrendadoras de vehículos",                                                        financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:66, inst:"IHT",       tramite:"Renovación RNT: Guías turísticos",                                                                                                           financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  {id:67, inst:"IHT",       tramite:"Renovación RNT: Servicios de hospitalidad, recreación y espacios para eventos",                                                              financia:"",      acta:"Si",        activo:"Si",  etapas:[1,1,1,1,1,1,1,1,1,1,1,1], aloj:"DIGER",  pdi:"SI",                          obs:""},
+  // CNI (1 en identificación)
+  {id:73, inst:"CNI",       tramite:"(Trámites en identificación)",                                                                                                                financia:"",      acta:"",          activo:"",    etapas:[0,0,0,0,0,0,0,0,0,0,0,0], aloj:"",       pdi:"",                            obs:""},
 ];
 
 // Notas iniciales (migradas de resumen_instituciones)
@@ -336,8 +326,6 @@ const NOTAS_INICIALES = {
   "IHTT":      [{fecha:"2026-06-03",nota:"Reporte de incidentes en plataforma, cambio de trámites a nuevos usuarios",autor:"DIGER"}],
   "CONSUCOOP": [{fecha:"2026-06-04",nota:"Reunión de coordinación para migración: verificar disponibilidad de recursos, organizar tareas y definir fechas para sesión de migración.\nReunión programada para 08/06/2026 para migración.",autor:"DIGER"}],
   "IHCINE":    [{fecha:"2026-06-03",nota:"De momento el instituto está suprimido, en espera de directrices para traslado institucional a SECAPPH",autor:"DIGER"}],
-  "IP":        [{fecha:"2026-06-04",nota:"Taller de modelado SOL-IP\nSe coordinó una reunión para el 09/06/2026 para continuar con la identificación de potenciales trámites a digitalizar",autor:"DIGER"}],
-  "SESAL":     [{fecha:"2026-06-01",nota:"A la espera de retroalimentación para continuar con proceso de capacitación/lanzamiento de trámites.\nCoorge reunión con Fernando Valladares del área de proyectos para retomar proceso de digitalización",autor:"DIGER"}],
 };
 
 // ── STORAGE TRAMITES ─────────────────────────────────────────────
@@ -370,7 +358,7 @@ function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 
 // ── STATS GLOBALES ────────────────────────────────────────────────
 function refreshStats(){
-  const all=DEFAULT_DATA.map(d=>getRecord(d.id));
+  const all=DEFAULT_DATA.filter(d=>!d.tramite.startsWith('(')).map(d=>getRecord(d.id));
   const op=all.filter(r=>calcPct(r.etapas)>=1).length;
   const ni=all.filter(r=>calcPct(r.etapas)===0).length;
   const proc=all.length-op-ni;
@@ -386,7 +374,9 @@ function refreshStats(){
 function buildDropdown(){
   const sel=document.getElementById('instSelect');
   const insts=uniqueInsts();
+  const totalTram=DEFAULT_DATA.length;
   sel.innerHTML='<option value="">— Seleccione una institución —</option>'+
+    `<option value="__ALL__">🌐 Todas las instituciones (${totalTram} trámites)</option>`+
     insts.map(inst=>{
       const rows=DEFAULT_DATA.filter(d=>d.inst===inst).map(d=>getRecord(d.id));
       const avg=rows.reduce((s,r)=>s+calcPct(r.etapas),0)/rows.length;
@@ -407,15 +397,31 @@ function seleccionar(inst){
   }
   document.getElementById('mainLayout').style.display='grid';
   document.getElementById('placeholder').style.display='none';
+  const isAll = inst==='__ALL__';
+  document.getElementById('notasCol').style.display = isAll ? 'none' : '';
   renderInfoBar(inst);
   renderTramites(inst);
-  renderNotas(inst);
-  // Fecha hoy por defecto en el formulario de nota
-  const hoy=new Date().toISOString().split('T')[0];
-  document.getElementById('nota-fecha').value=hoy;
+  if(!isAll){
+    renderNotas(inst);
+    const hoy=new Date().toISOString().split('T')[0];
+    document.getElementById('nota-fecha').value=hoy;
+  }
 }
 
 function renderInfoBar(inst){
+  if(inst==='__ALL__'){
+    const rows=DEFAULT_DATA.filter(d=>!d.tramite.startsWith('(')).map(d=>getRecord(d.id));
+    const op=rows.filter(r=>calcPct(r.etapas)>=1).length;
+    const ni=rows.filter(r=>calcPct(r.etapas)===0).length;
+    const proc=rows.length-op-ni;
+    const avg=rows.reduce((s,r)=>s+calcPct(r.etapas),0)/rows.length;
+    document.getElementById('instInfoBar').innerHTML=
+      `<span class="info-chip st-op">${op} En operación</span>`+
+      `<span class="info-chip st-proc">${proc} En proceso</span>`+
+      `<span class="info-chip st-ni">${ni} No iniciado</span>`+
+      `<span class="info-chip" style="background:#e8f0ff;color:#1455a4;font-size:12px">Avance global: <strong>${Math.round(avg*100)}%</strong></span>`;
+    return;
+  }
   const rows=DEFAULT_DATA.filter(d=>d.inst===inst).map(d=>getRecord(d.id));
   const avg=rows.reduce((s,r)=>s+calcPct(r.etapas),0)/rows.length;
   const pct=Math.round(avg*100);
@@ -432,12 +438,14 @@ function renderInfoBar(inst){
 
 // ── TRAMITES ─────────────────────────────────────────────────────
 function renderTramites(inst){
-  const rows=DEFAULT_DATA.filter(d=>d.inst===inst).map(d=>getRecord(d.id));
+  const rows = inst==='__ALL__'
+    ? DEFAULT_DATA.map(d=>getRecord(d.id))
+    : DEFAULT_DATA.filter(d=>d.inst===inst).map(d=>getRecord(d.id));
   document.getElementById('tram-count').textContent=rows.length;
-  document.getElementById('tramites-content').innerHTML=rows.map(r=>renderTramite(r)).join('');
+  document.getElementById('tramites-content').innerHTML=rows.map(r=>renderTramite(r, inst==='__ALL__')).join('');
 }
 
-function renderTramite(r){
+function renderTramite(r, showInst){
   const pct=calcPct(r.etapas);
   const pctP=Math.round(pct*100);
   const estado=estadoFromPct(pct);
@@ -464,6 +472,7 @@ function renderTramite(r){
         <div class="tram-name">${esc(r.tramite)}</div>
         <div class="tram-meta">
           <span class="badge ${bcls}">${esc(estado)}</span>
+          ${showInst?`<span class="meta-tag" style="font-weight:600;color:#1455a4">🏛 ${esc(r.inst)}</span>`:''}
           ${r.financia?`<span class="meta-tag">Financia: ${esc(r.financia)}</span>`:''}
           <span class="meta-tag">Acta: ${esc(r.acta)||'—'}</span>
           <span class="meta-tag">PDI: ${esc(r.activo)||'—'}</span>
