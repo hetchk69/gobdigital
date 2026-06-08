@@ -204,6 +204,17 @@ input[type=file].hidden{display:none}
 .pub-closed{background:#fff5f5;border:1.5px solid #fecaca;border-radius:12px;padding:1.5rem;text-align:center;color:#dc2626;font-weight:700}
 .pub-ok{text-align:center;padding:2rem 1rem}
 
+/* ── ACUERDOS TABLE ── */
+.acuerdos-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:8px}
+.acuerdos-tbl th{background:linear-gradient(135deg,#1455a4,#0a4d8c);color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:7px 8px;text-align:left}
+.acuerdos-tbl td{border:1px solid #dde4f0;padding:2px 3px;vertical-align:middle}
+.acuerdos-tbl tbody tr:nth-child(even) td{background:#f8fbff}
+.acuerdos-tbl td:first-child{text-align:center;color:#9aadcc;font-weight:700;font-size:12px;background:#fafbfd;width:36px}
+.acuerdos-tbl td input{width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:12.5px;padding:6px 8px;transition:background .15s;border-radius:4px}
+.acuerdos-tbl td input:focus{background:#e8f0ff}
+.add-acuerdo-btn{margin-top:4px;padding:5px 13px;background:#fff;border:1.5px solid #c8d5ee;border-radius:7px;color:#6b7fa3;font-size:11.5px;cursor:pointer;font-weight:600;transition:all .18s}
+.add-acuerdo-btn:hover{border-color:#1455a4;color:#1455a4}
+
 /* ── MOBILE ── */
 @media(max-width:600px){
   .container{padding:1rem .75rem 2rem}
@@ -312,7 +323,7 @@ input[type=file].hidden{display:none}
 
   <!-- ═══ SECCIÓN 1: DATOS GENERALES ═══ -->
   <div class="card">
-    <div class="stitle">📋 1. Datos Generales del Evento</div>
+    <div class="stitle">Datos Generales del Evento</div>
     <div class="field">
       <label>Título del evento *</label>
       <input type="text" id="g-titulo" placeholder="Ej: Taller de digitalización de trámites">
@@ -443,7 +454,7 @@ input[type=file].hidden{display:none}
   <div class="sec-divider"><div class="sec-divider-line"></div><div class="sec-divider-label">🎓 Capacitación</div><div class="sec-divider-line"></div></div>
 
   <div class="card">
-    <div class="stitle">2. 🎓 Datos de la Capacitación</div>
+    <div class="stitle">Datos de la Capacitación</div>
     <table class="dtable">
       <tr>
         <td class="lbl">Tema de capacitación *:</td>
@@ -481,7 +492,7 @@ input[type=file].hidden{display:none}
 
   <!-- ═══ SECCIÓN 5: EVIDENCIA FOTOGRÁFICA ═══ -->
   <div class="card">
-    <div class="stitle">4. 📷 Evidencia fotográfica</div>
+    <div class="stitle">Evidencia fotográfica</div>
     <div class="foto-grid">
       <div class="foto-box">
         <div class="foto-header">Fotografía 1</div>
@@ -508,7 +519,7 @@ input[type=file].hidden{display:none}
 
   <!-- ═══ SECCIÓN 6: DOCUMENTOS / RECURSOS ═══ -->
   <div class="card">
-    <div class="stitle">5. 📎 Documentos, URL's y recursos</div>
+    <div class="stitle">Documentos, URL's y recursos</div>
     <div class="field" style="margin:0">
       <textarea id="docs-recursos" placeholder="Liste los documentos, URLs y recursos utilizados..."></textarea>
     </div>
@@ -516,24 +527,36 @@ input[type=file].hidden{display:none}
 
   <!-- ═══ SECCIÓN: MEMORIAS ═══ -->
   <div class="card">
-    <div class="stitle">📝 Memorias de la reunión</div>
+    <div class="stitle">Memorias de la reunión</div>
     <div class="field">
-      <label>Agenda / Puntos tratados</label>
-      <textarea id="mem-agenda" placeholder="Liste los puntos de agenda abordados durante la reunión..."></textarea>
+      <label>Objetivo de la reunión</label>
+      <textarea id="mem-agenda" placeholder="Describa el objetivo principal de esta reunión..."></textarea>
     </div>
     <div class="field">
       <label>Desarrollo de la reunión</label>
       <textarea id="mem-desarrollo" placeholder="Resuma el desarrollo de la reunión, discusiones principales y conclusiones..." style="min-height:120px"></textarea>
     </div>
     <div class="field">
-      <label>Acuerdos y decisiones</label>
-      <textarea id="mem-acuerdos" placeholder="Liste los acuerdos y decisiones adoptadas durante la reunión..."></textarea>
+      <label>Acuerdos y compromisos</label>
+      <table class="acuerdos-tbl" id="acuerdos-tbl">
+        <thead>
+          <tr>
+            <th style="width:36px">N°</th>
+            <th>Compromiso</th>
+            <th style="width:175px">Responsable</th>
+            <th style="width:32px"></th>
+          </tr>
+        </thead>
+        <tbody id="acuerdos-tbody"></tbody>
+      </table>
+      <button type="button" onclick="addAcuerdo()" class="add-acuerdo-btn">+ Agregar acuerdo</button>
     </div>
   </div>
 
-  <!-- ═══ SECCIÓN 7: RESULTADOS ═══ -->
+  <!-- ═══ SECCIÓN 7: RESULTADOS (solo si es cap. de plataforma) ═══ -->
+  <div id="resultados-section" style="display:none">
   <div class="card">
-    <div class="stitle">6. 📊 Resultados de la capacitación</div>
+    <div class="stitle">Resultados de la capacitación</div>
     <table class="rtable">
       <tr><td class="rlbl">Número de participantes convocados:</td><td><input type="number" id="r-convocados" placeholder="0" min="0" oninput="calcPct()"></td></tr>
       <tr><td class="rlbl">Número de participantes asistentes:</td><td><input type="number" id="r-asistentes" placeholder="0" min="0" oninput="calcPct()"></td></tr>
@@ -553,9 +576,11 @@ input[type=file].hidden{display:none}
     </table>
   </div>
 
+  </div><!-- /resultados-section -->
+
   <!-- ═══ SECCIÓN 8: VALIDACIÓN ═══ -->
   <div class="card">
-    <div class="stitle">7. ✅ Validación y aprobación</div>
+    <div class="stitle">Validación y aprobación</div>
     <div class="val-grid">
       <div class="val-box">
         <div class="val-role">Responsable DIGER</div>
@@ -716,6 +741,7 @@ function initAdmin(){
   var s = window.DIGER_SESSION;
   if(s && s.role === 'admin'){
     adminEmail = s.email;
+    setAcuerdos([]);
     renderLista();
   } else {
     document.querySelector('.container').innerHTML =
@@ -1013,10 +1039,14 @@ function colectarDatosCap(){
     ep_nombre:gv('ep-nombre'),ep_cargo:gv('ep-cargo'),ep_correo:gv('ep-correo'),ep_tel:gv('ep-tel'),
     fac_nombre:gv('fac-nombre'),fac_cargo:gv('fac-cargo'),fac_correo:gv('fac-correo'),
     participantes:[],docs_recursos:gv('docs-recursos'),
-    mem_agenda:gv('mem-agenda'),mem_desarrollo:gv('mem-desarrollo'),mem_acuerdos:gv('mem-acuerdos'),
+    mem_agenda:gv('mem-agenda'),mem_desarrollo:gv('mem-desarrollo'),mem_acuerdos:getAcuerdos(),
     r_convocados:gv('r-convocados'),r_asistentes:gv('r-asistentes'),r_pct:gv('r-pct'),r_satisfaccion:gv('r-satisfaccion'),
     compromisos:[gv('com1'),gv('com2'),gv('com3'),gv('com4')],
     val_diger:gv('val-diger'),val_inst:gv('val-inst'),
+    foto1:(function(){ var el=document.getElementById('f1-img'); return (el&&el.style.display!=='none'&&el.src&&el.src.startsWith('data:'))?el.src:''; })(),
+    foto1_desc:gv('f1-desc'),
+    foto2:(function(){ var el=document.getElementById('f2-img'); return (el&&el.style.display!=='none'&&el.src&&el.src.startsWith('data:'))?el.src:''; })(),
+    foto2_desc:gv('f2-desc'),
     guardado_en:new Date().toLocaleString('es-HN')
   };
 }
@@ -1034,12 +1064,24 @@ function cargarDatosCap(cap){
   sv('ep-correo',cap.ep_correo||''); sv('ep-tel',cap.ep_tel||'');
   sv('fac-nombre',cap.fac_nombre||''); sv('fac-cargo',cap.fac_cargo||''); sv('fac-correo',cap.fac_correo||'');
   sv('docs-recursos',cap.docs_recursos||'');
-  sv('mem-agenda',cap.mem_agenda||''); sv('mem-desarrollo',cap.mem_desarrollo||''); sv('mem-acuerdos',cap.mem_acuerdos||'');
+  sv('mem-agenda',cap.mem_agenda||''); sv('mem-desarrollo',cap.mem_desarrollo||'');
+  setAcuerdos(cap.mem_acuerdos);
   sv('r-convocados',cap.r_convocados||''); sv('r-asistentes',cap.r_asistentes||'');
   sv('r-satisfaccion',cap.r_satisfaccion||'');
   sv('val-diger',cap.val_diger||''); sv('val-inst',cap.val_inst||'');
   var coms=cap.compromisos||[];
   ['com1','com2','com3','com4'].forEach(function(id,i){ sv(id,coms[i]||''); });
+  // Restaurar fotos
+  if(cap.foto1 && cap.foto1.startsWith('data:')){
+    var i1=document.getElementById('f1-img'); i1.src=cap.foto1; i1.style.display='block';
+    document.getElementById('f1-ph').style.display='none';
+  }
+  sv('f1-desc', cap.foto1_desc||'');
+  if(cap.foto2 && cap.foto2.startsWith('data:')){
+    var i2=document.getElementById('f2-img'); i2.src=cap.foto2; i2.style.display='block';
+    document.getElementById('f2-ph').style.display='none';
+  }
+  sv('f2-desc', cap.foto2_desc||'');
   // Contenido
   var cont=cap.contenido||[];
   contN=Math.max(4,cont.length);
@@ -1092,6 +1134,45 @@ function previewFoto(inp,imgId,phId){
   reader.readAsDataURL(file);
 }
 
+// ── ACUERDOS ──────────────────────────────────────────────────
+var acuerdoIdx = 0;
+function addAcuerdo(compromiso, responsable){
+  acuerdoIdx++;
+  var id = acuerdoIdx;
+  var tbody = document.getElementById('acuerdos-tbody');
+  var num = tbody.rows.length + 1;
+  var tr = document.createElement('tr');
+  tr.setAttribute('data-acid', id);
+  tr.innerHTML =
+    '<td class="ac-num">' + num + '</td>' +
+    '<td><input data-field="comp" placeholder="Descripción del compromiso" value="' + esc(compromiso||'') + '"></td>' +
+    '<td><input data-field="resp" placeholder="Nombre del responsable" value="' + esc(responsable||'') + '"></td>' +
+    '<td style="text-align:center;padding:4px"><button class="btn-danger" style="padding:2px 7px;font-size:11px;line-height:1" onclick="removeAcuerdo(this)">×</button></td>';
+  tbody.appendChild(tr);
+}
+function removeAcuerdo(btn){
+  var tr = btn.closest('tr');
+  if(tr) tr.parentNode.removeChild(tr);
+  Array.from(document.getElementById('acuerdos-tbody').rows).forEach(function(r,i){
+    var c = r.querySelector('.ac-num'); if(c) c.textContent = i+1;
+  });
+}
+function getAcuerdos(){
+  return Array.from(document.getElementById('acuerdos-tbody').rows).map(function(r){
+    return {
+      compromiso: (r.querySelector('[data-field="comp"]').value||'').trim(),
+      responsable: (r.querySelector('[data-field="resp"]').value||'').trim()
+    };
+  }).filter(function(a){ return a.compromiso || a.responsable; });
+}
+function setAcuerdos(list){
+  document.getElementById('acuerdos-tbody').innerHTML = '';
+  acuerdoIdx = 0;
+  var arr = Array.isArray(list) ? list : [];
+  arr.forEach(function(a){ addAcuerdo(a.compromiso, a.responsable); });
+  if(acuerdoIdx === 0) addAcuerdo();
+}
+
 // ── CONTENIDO ─────────────────────────────────────────────────
 function addContenido(){
   contN++;
@@ -1112,6 +1193,7 @@ function toggleTipoOtro(){ document.getElementById('field-tipo-otro').style.disp
 function toggleCapacitacion(){
   var esCap=document.getElementById('es-cap-si')&&document.getElementById('es-cap-si').checked;
   document.getElementById('cap-section').style.display=esCap?'block':'none';
+  document.getElementById('resultados-section').style.display=esCap?'block':'none';
 }
 function getEsCap(){ return document.getElementById('es-cap-si')&&document.getElementById('es-cap-si').checked; }
 
@@ -1150,37 +1232,54 @@ function buildTexto(){
   var tipoDisplay=gv('g-tipo')||datos.tipo_cap||'—'; if(tipoDisplay==='Otro') tipoDisplay=gv('g-tipo-otro')||datos.tipo_cap_otro||'Otro';
   var modalDisplay=gv('g-modalidad')||datos.modalidad||'—'; if(modalDisplay==='Otro') modalDisplay=gv('g-modalidad-otro')||datos.modalidad_otro||'Otro';
   var fecha=new Date().toLocaleDateString('es-HN')+' '+new Date().toLocaleTimeString('es-HN');
+  var esCap=getEsCap();
   var contLn=''; for(var j=1;j<=contN;j++){ var pt=gv('cont'+j); if(pt) contLn+='  '+j+'. '+pt+'\n'; }
-  return 'FORMATO INSTITUCIONAL DE REGISTRO DE CAPACITACIONES - DIGER\n=============================================================\n\n'+
-    '1. GENERALES\n-------------------------------------------------------------\n'+
-    'Título: '+gv('g-titulo')+'\nFecha: '+gv('g-fecha')+'  |  Hora: '+(gv('g-hora')||'—')+'\n'+
-    'Modalidad: '+modalDisplay+'  |  Duración: '+(gv('g-duracion')||'—')+'\nLugar: '+(gv('g-lugar')||'—')+'\n'+
-    'Institución beneficiaria: '+(gv('g-inst')||datos.institucion_beneficiaria||'—')+'\nTipo de capacitación: '+tipoDisplay+'\n\n'+
-    '2. CAPACITACIÓN\n-------------------------------------------------------------\n'+
-    'Tema: '+gv('cap-tema')+'\nObjetivo: '+gv('cap-objetivo')+'\n\nContenido:\n'+(contLn||'  —\n')+'\n'+
-    'Enlace principal: '+gv('ep-nombre')+' | '+gv('ep-cargo')+' | '+gv('ep-correo')+'\n'+
-    'Facilitador: '+gv('fac-nombre')+' | '+gv('fac-cargo')+' | '+gv('fac-correo')+'\n\n'+
-    '3. PARTICIPANTES\n-------------------------------------------------------------\n  (Ver lista de asistencia QR)\n'+
-    '5. DOCUMENTOS Y RECURSOS\n-------------------------------------------------------------\n'+(gv('docs-recursos')||'—')+'\n\n'+
-    '6. RESULTADOS\n-------------------------------------------------------------\n'+
-    'Convocados: '+(gv('r-convocados')||'—')+'\nAsistentes: '+(gv('r-asistentes')||'—')+'\n'+
-    '% Asistencia: '+(gv('r-pct')||'—')+'\nSatisfacción: '+(gv('r-satisfaccion')?gv('r-satisfaccion')+'%':'—')+'\n\n'+
-    'Compromisos:\n  1. '+(gv('com1')||'—')+'\n  2. '+(gv('com2')||'—')+'\n  3. '+(gv('com3')||'—')+'\n  4. '+(gv('com4')||'—')+'\n\n'+
-    '7. VALIDACIÓN\n-------------------------------------------------------------\n'+
-    'Responsable DIGER: '+(gv('val-diger')||'—')+'\nRepresentante Institución: '+(gv('val-inst')||'—')+'\n\n'+
+  var acuerdosLn=''; var acs=getAcuerdos();
+  if(acs.length){ acs.forEach(function(a,i){ acuerdosLn+='  '+(i+1)+'. '+a.compromiso+(a.responsable?' (Responsable: '+a.responsable+')':'')+'\n'; }); }
+  else { acuerdosLn='  —\n'; }
+  var txt='REGISTRO INSTITUCIONAL - DIGER\n=============================================================\n\n';
+  txt+='GENERALES\n-------------------------------------------------------------\n'+
+    'Titulo: '+gv('g-titulo')+'\nFecha: '+gv('g-fecha')+'  |  Hora: '+(gv('g-hora')||'—')+'\n'+
+    'Modalidad: '+modalDisplay+'  |  Duracion: '+(gv('g-duracion')||'—')+'\nLugar: '+(gv('g-lugar')||'—')+'\n'+
+    'Institucion beneficiaria: '+(gv('g-inst')||datos.institucion_beneficiaria||'—')+'\nTipo: '+tipoDisplay+'\n\n';
+  if(esCap){
+    txt+='CAPACITACION\n-------------------------------------------------------------\n'+
+      'Tema: '+gv('cap-tema')+'\nObjetivo: '+gv('cap-objetivo')+'\n\nContenido:\n'+(contLn||'  —\n')+'\n'+
+      'Enlace principal: '+gv('ep-nombre')+' | '+gv('ep-cargo')+' | '+gv('ep-correo')+'\n'+
+      'Facilitador: '+gv('fac-nombre')+' | '+gv('fac-cargo')+' | '+gv('fac-correo')+'\n\n';
+  }
+  txt+='PARTICIPANTES\n-------------------------------------------------------------\n  (Ver lista de asistencia QR)\n\n';
+  txt+='MEMORIAS\n-------------------------------------------------------------\n'+
+    'Objetivo de la reunion:\n  '+(gv('mem-agenda')||'—')+'\n\n'+
+    'Desarrollo de la reunion:\n  '+(gv('mem-desarrollo')||'—')+'\n\n'+
+    'Acuerdos:\n'+acuerdosLn+'\n';
+  txt+='DOCUMENTOS\n-------------------------------------------------------------\n'+(gv('docs-recursos')||'—')+'\n\n';
+  if(esCap){
+    txt+='RESULTADOS\n-------------------------------------------------------------\n'+
+      'Convocados: '+(gv('r-convocados')||'—')+'\nAsistentes: '+(gv('r-asistentes')||'—')+'\n'+
+      '% Asistencia: '+(gv('r-pct')||'—')+'\nSatisfaccion: '+(gv('r-satisfaccion')?gv('r-satisfaccion')+'%':'—')+'\n\n'+
+      'Compromisos proximos pasos:\n  1. '+(gv('com1')||'—')+'\n  2. '+(gv('com2')||'—')+'\n  3. '+(gv('com3')||'—')+'\n  4. '+(gv('com4')||'—')+'\n\n';
+  }
+  txt+='VALIDACION\n-------------------------------------------------------------\n'+
+    'Responsable DIGER: '+(gv('val-diger')||'—')+'\nRepresentante Institucion: '+(gv('val-inst')||'—')+'\n\n'+
     '=============================================================\nGuardado el '+fecha;
+  return txt;
 }
 
 // ── PDF ───────────────────────────────────────────────────────
 function descargarPDF(){
   var datos={}; try{ datos=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
   var txt=window._lastTxt||buildTexto();
-  generarPDF(txt,gv('g-inst')||datos.institucion_beneficiaria||'',gv('g-fecha'));
+  var f1el=document.getElementById('f1-img');
+  var f2el=document.getElementById('f2-img');
+  var foto1=(f1el&&f1el.style.display!=='none'&&f1el.src&&f1el.src.startsWith('data:'))?f1el.src:'';
+  var foto2=(f2el&&f2el.style.display!=='none'&&f2el.src&&f2el.src.startsWith('data:'))?f2el.src:'';
+  generarPDF(txt,gv('g-inst')||datos.institucion_beneficiaria||'',gv('g-fecha'),foto1,gv('f1-desc'),foto2,gv('f2-desc'));
 }
 
 function normP(str){ return String(str||'').replace(/[ÁÀÄÂÃ]/g,'A').replace(/[áàäâã]/g,'a').replace(/[ÉÈËÊ]/g,'E').replace(/[éèëê]/g,'e').replace(/[ÍÌÏÎ]/g,'I').replace(/[íìïî]/g,'i').replace(/[ÓÒÖÔÕ]/g,'O').replace(/[óòöôõ]/g,'o').replace(/[ÚÙÜÛ]/g,'U').replace(/[úùüû]/g,'u').replace(/[Ñ]/g,'N').replace(/[ñ]/g,'n').replace(/[—–]/g,'-'); }
 
-function generarPDF(texto,inst,fecha){
+function generarPDF(texto,inst,fecha,foto1,foto1desc,foto2,foto2desc){
   var jsPDFLib=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
   if(!jsPDFLib){ descTxt(texto,inst,fecha); return; }
   try{
@@ -1192,9 +1291,24 @@ function generarPDF(texto,inst,fecha){
     function rLine(item){ var ls=doc.splitTextToSize(normP(item),cw-4),bh=ls.length*4.8+3;ckPg(bh+1);doc.setFillColor(248,251,255);doc.rect(mg,y,cw,bh,'F');doc.setDrawColor(210,220,238);doc.setLineWidth(0.15);doc.rect(mg,y,cw,bh,'S');doc.setFontSize(7.8);doc.setFont('helvetica','normal');doc.setTextColor(35,35,35);doc.text(ls,mg+3,y+4.2);y+=bh; }
     hdr();
     doc.setTextColor(10,45,110);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text('REGISTRO DE CAPACITACIONES - DIGER',pw/2,y,{align:'center'});y+=5;doc.setDrawColor(13,140,160);doc.setLineWidth(0.5);doc.line(mg,y,pw-mg,y);y+=7;
-    var SECS={'GENERALES':[10,45,110],'CAPACITACION':[20,85,164],'PARTICIPANTES':[13,140,160],'DOCUMENTOS':[60,100,160],'RESULTADOS':[16,100,60],'VALIDACION':[120,60,20]};
+    var SECS={'GENERALES':[10,45,110],'CAPACITACION':[20,85,164],'PARTICIPANTES':[13,140,160],'MEMORIAS':[80,30,120],'DOCUMENTOS':[60,100,160],'RESULTADOS':[16,100,60],'VALIDACION':[120,60,20]};
     texto.split('\n').forEach(function(line){ if(!line.trim()||line.match(/^={5,}/)||line.match(/^-{5,}/))return; var nu=normP(line).trim().toUpperCase(),sk=Object.keys(SECS).find(function(k){return nu.indexOf(k)>=0&&nu.length<70;}); if(sk){y+=2;secBar(line,SECS[sk]);y+=1;}else{rLine(line);} });
     ckPg(14);y+=5;doc.setDrawColor(200,213,238);doc.setLineWidth(0.3);doc.line(mg,y,pw-mg,y);y+=5;doc.setFontSize(7);doc.setFont('helvetica','italic');doc.setTextColor(150,160,180);doc.text('Generado por el Sistema DIGER - Plataforma SOL',pw/2,y,{align:'center'});
+    // Evidencia fotografica
+    if(foto1||foto2){
+      doc.addPage(); pg++; hdr();
+      y+=3; secBar('EVIDENCIA FOTOGRAFICA',[80,30,120]); y+=4;
+      var fW=Math.floor((cw-8)/2), fH=68;
+      function tryImg(src,desc,xp){
+        try{
+          var fmt=src.startsWith('data:image/png')?'PNG':'JPEG';
+          doc.addImage(src,fmt,xp,y,fW,fH);
+          if(desc){ doc.setFontSize(7);doc.setFont('helvetica','italic');doc.setTextColor(80,80,80);doc.text(normP(desc),xp+fW/2,y+fH+4,{align:'center'});doc.setTextColor(30,30,30); }
+        }catch(e){}
+      }
+      if(foto1) tryImg(foto1,foto1desc,mg);
+      if(foto2) tryImg(foto2,foto2desc,mg+fW+8);
+    }
     doc.save('Capacitacion_'+normP(inst||'cap').replace(/[\s\/]/g,'_').substring(0,28)+'_'+(fecha||new Date().toISOString().split('T')[0])+'.pdf');
   }catch(e){ descTxt(texto,inst,fecha); }
 }
@@ -1210,6 +1324,8 @@ function reiniciarForm(){
   document.getElementById('field-tipo-otro').style.display='none';
   var noEl=document.getElementById('es-cap-no'); if(noEl) noEl.checked=true;
   document.getElementById('cap-section').style.display='none';
+  document.getElementById('resultados-section').style.display='none';
+  setAcuerdos([]);
   document.getElementById('gen-err').style.display='none';
   contN=4;
   document.getElementById('contenido-list').innerHTML=
