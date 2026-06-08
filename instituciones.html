@@ -72,9 +72,24 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .tram-dot.op{background:var(--verde)}
 .tram-dot.proc{background:var(--ambar)}
 .tram-dot.ni{background:#dc2626}
-.tram-info{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
+/* Columnas de fila */
 .tram-name{flex:1;min-width:0;font-size:13px;font-weight:600;color:#1e2a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;letter-spacing:-.01em}
-.tram-inst-tag{font-size:10px;font-weight:700;color:var(--azul-m);background:var(--azul-c);padding:2px 9px;border-radius:5px;white-space:nowrap;flex-shrink:0;letter-spacing:.03em}
+.tram-inst-tag{width:72px;flex-shrink:0;font-size:10px;font-weight:700;color:var(--azul-m);background:var(--azul-c);padding:2px 6px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;letter-spacing:.02em}
+.tram-updated{width:100px;flex-shrink:0;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tram-by{width:148px;flex-shrink:0;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Encabezado de tabla */
+.tram-list-header{display:flex;align-items:center;gap:10px;padding:.45rem 1rem .45rem .85rem;background:#f0f4fb;border-bottom:1.5px solid var(--borde)}
+.tram-list-header .th-dot{width:9px;flex-shrink:0}
+.tram-list-header .th-name{flex:1;min-width:0}
+.tram-list-header .th-inst{width:72px;flex-shrink:0}
+.tram-list-header .th-pbar{width:120px;flex-shrink:0}
+.tram-list-header .th-updated{width:100px;flex-shrink:0}
+.tram-list-header .th-by{width:148px;flex-shrink:0}
+.tram-list-header .th-arrow{width:14px;flex-shrink:0}
+.th-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+@media(max-width:700px){.tram-updated,.tram-by,.tram-list-header .th-updated,.tram-list-header .th-by{display:none}}
 .tram-pbar-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0;width:130px}
 .tram-pbar-track{flex:1;height:5px;background:#e4eaf5;border-radius:3px;overflow:hidden}
 .tram-pbar-fill{height:100%;border-radius:3px;background:var(--azul-m);transition:width .4s}
@@ -403,7 +418,12 @@ function saveTram(s){
     .then(()=>{ setTimeout(()=>{ _pendingTramSave=false; }, 1000); });
 }
 function getRecord(id){ const s=loadTram(); const def=DEFAULT_DATA.find(d=>d.id===id); return Object.assign({},def,s[id]||{}); }
-function patchRecord(id,patch){ const s=loadTram(); s[id]=Object.assign({},s[id]||{},patch); saveTram(s); }
+function patchRecord(id,patch){
+  const s=loadTram();
+  const meta={updatedAt:new Date().toISOString(), updatedBy:(window.DIGER_SESSION?.email||'—')};
+  s[id]=Object.assign({},s[id]||{},patch,meta);
+  saveTram(s);
+}
 
 function loadNotas(){ return notasCache; }
 function saveNotas(n){
@@ -495,11 +515,25 @@ function renderInfoBar(inst){
 
 // ── TRAMITES ─────────────────────────────────────────────────────
 function renderTramites(inst){
-  const rows = inst==='__ALL__'
-    ? DEFAULT_DATA.map(d=>getRecord(d.id))
+  const isAll=inst==='__ALL__';
+  const rows=isAll
+    ? DEFAULT_DATA.filter(d=>!d.tramite.startsWith('(')).map(d=>getRecord(d.id))
     : DEFAULT_DATA.filter(d=>d.inst===inst).map(d=>getRecord(d.id));
   document.getElementById('tram-count').textContent=rows.length;
-  document.getElementById('tramites-content').innerHTML=rows.map(r=>renderTramite(r, inst==='__ALL__')).join('');
+  document.getElementById('tramites-content').innerHTML=
+    renderTramHeader(isAll)+rows.map(r=>renderTramite(r,isAll)).join('');
+}
+
+function renderTramHeader(showInst){
+  return `<div class="tram-list-header">
+    <div class="th-dot"></div>
+    <div class="th-name"><span class="th-lbl">Trámite</span></div>
+    ${showInst?'<div class="th-inst"><span class="th-lbl">Institución</span></div>':''}
+    <div class="th-pbar"><span class="th-lbl">Avance</span></div>
+    <div class="th-updated"><span class="th-lbl">Ult. actualización</span></div>
+    <div class="th-by"><span class="th-lbl">Por quién</span></div>
+    <div class="th-arrow"></div>
+  </div>`;
 }
 
 function renderTramite(r, showInst){
@@ -507,19 +541,22 @@ function renderTramite(r, showInst){
   const pctP=Math.round(pct*100);
   const estado=estadoFromPct(pct);
   const bcls=badgeCls(estado);
-  const color=pctColor(pct);
+  const updatedAt=r.updatedAt
+    ? new Date(r.updatedAt).toLocaleDateString('es',{day:'2-digit',month:'2-digit',year:'2-digit'})
+    : '—';
+  const byDisplay=r.updatedBy||'—';
 
   return `<div class="tram-card s-${bcls}" id="tc-${r.id}" onclick="openModal(${r.id})">
     <div class="tram-head">
       <div class="tram-dot ${bcls}" id="dot-${r.id}"></div>
-      <div class="tram-info">
-        <div class="tram-name" title="${esc(r.tramite)}">${esc(r.tramite)}</div>
-        ${showInst?`<div class="tram-inst-tag">${esc(r.inst)}</div>`:''}
-      </div>
+      <div class="tram-name" title="${esc(r.tramite)}">${esc(r.tramite)}</div>
+      ${showInst?`<div class="tram-inst-tag" title="${esc(r.inst)}">${esc(r.inst)}</div>`:''}
       <div class="tram-pbar-wrap">
         <div class="tram-pbar-track"><div class="tram-pbar-fill" id="fill-${r.id}" style="width:${pctP}%"></div></div>
         <span class="tram-pct" id="pct-${r.id}">${pctP}%</span>
       </div>
+      <div class="tram-updated">${esc(updatedAt)}</div>
+      <div class="tram-by" title="${esc(byDisplay)}">${esc(byDisplay)}</div>
       <div class="tram-arrow">›</div>
     </div>
   </div>`;
