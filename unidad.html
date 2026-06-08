@@ -432,6 +432,9 @@ var tabParam  = params.get('tab') || 'modulos';
 
 var app = document.getElementById('app');
 
+// Inicializar calState aquí para que esté disponible antes de renderUnitPage
+var calState = { y: new Date().getFullYear(), m: new Date().getMonth() };
+
 if (unitParam && UNITS[unitParam]) {
   renderUnitPage(unitParam, tabParam);
 } else {
@@ -621,8 +624,6 @@ document.getElementById('modal-bg').addEventListener('click', function(e){
 // ════════════════════════════════════════════════════════════════
 // CALENDARIO
 // ════════════════════════════════════════════════════════════════
-var calState = { y: new Date().getFullYear(), m: new Date().getMonth() };
-
 function calKey(unitKey) { return 'diger_cal_' + unitKey; }
 function calEvents(unitKey) { return lsGet(calKey(unitKey), []); }
 
