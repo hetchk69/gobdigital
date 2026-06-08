@@ -376,6 +376,18 @@ input[type=file].hidden{display:none}
       <label>Describa el tipo de evento</label>
       <input type="text" id="g-tipo-otro" placeholder="De qué se trata este evento...">
     </div>
+    <!-- ¿Es capacitación de plataforma? -->
+    <div class="field" style="margin-top:.6rem">
+      <label>¿Es una capacitación de plataforma?</label>
+      <div style="display:flex;gap:18px;margin-top:6px">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a1a">
+          <input type="radio" name="es-cap-plat" id="es-cap-si" value="si" onchange="toggleCapacitacion()">Sí
+        </label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a1a">
+          <input type="radio" name="es-cap-plat" id="es-cap-no" value="no" onchange="toggleCapacitacion()" checked>No
+        </label>
+      </div>
+    </div>
     <div class="err-msg" id="gen-err" style="display:block"></div>
     <!-- Botón guardar generales (nuevo evento) -->
     <div id="btn-guardar-gen-wrap" style="margin-top:.8rem">
@@ -426,7 +438,8 @@ input[type=file].hidden{display:none}
     </div>
   </div>
 
-  <!-- ═══ SECCIÓN 3: CAPACITACIÓN ═══ -->
+  <!-- ═══ SECCIÓN 3: CAPACITACIÓN (solo visible si es cap. de plataforma) ═══ -->
+  <div id="cap-section" style="display:none">
   <div class="sec-divider"><div class="sec-divider-line"></div><div class="sec-divider-label">🎓 Capacitación</div><div class="sec-divider-line"></div></div>
 
   <div class="card">
@@ -464,7 +477,7 @@ input[type=file].hidden{display:none}
     </table>
   </div>
 
-  <!-- Sección de participantes manuales eliminada — se usa la lista de asistencia QR -->
+  </div><!-- /cap-section -->
 
   <!-- ═══ SECCIÓN 5: EVIDENCIA FOTOGRÁFICA ═══ -->
   <div class="card">
@@ -498,6 +511,23 @@ input[type=file].hidden{display:none}
     <div class="stitle">5. 📎 Documentos, URL's y recursos</div>
     <div class="field" style="margin:0">
       <textarea id="docs-recursos" placeholder="Liste los documentos, URLs y recursos utilizados..."></textarea>
+    </div>
+  </div>
+
+  <!-- ═══ SECCIÓN: MEMORIAS ═══ -->
+  <div class="card">
+    <div class="stitle">📝 Memorias de la reunión</div>
+    <div class="field">
+      <label>Agenda / Puntos tratados</label>
+      <textarea id="mem-agenda" placeholder="Liste los puntos de agenda abordados durante la reunión..."></textarea>
+    </div>
+    <div class="field">
+      <label>Desarrollo de la reunión</label>
+      <textarea id="mem-desarrollo" placeholder="Resuma el desarrollo de la reunión, discusiones principales y conclusiones..." style="min-height:120px"></textarea>
+    </div>
+    <div class="field">
+      <label>Acuerdos y decisiones</label>
+      <textarea id="mem-acuerdos" placeholder="Liste los acuerdos y decisiones adoptadas durante la reunión..."></textarea>
     </div>
   </div>
 
@@ -978,10 +1008,12 @@ function colectarDatosCap(){
   var cont=[];
   for(var i=1;i<=contN;i++){ var v=gv('cont'+i); if(v) cont.push(v); }
   return {
+    es_cap_plataforma: getEsCap(),
     tema:gv('cap-tema'),objetivo:gv('cap-objetivo'),contenido:cont,
     ep_nombre:gv('ep-nombre'),ep_cargo:gv('ep-cargo'),ep_correo:gv('ep-correo'),ep_tel:gv('ep-tel'),
     fac_nombre:gv('fac-nombre'),fac_cargo:gv('fac-cargo'),fac_correo:gv('fac-correo'),
     participantes:[],docs_recursos:gv('docs-recursos'),
+    mem_agenda:gv('mem-agenda'),mem_desarrollo:gv('mem-desarrollo'),mem_acuerdos:gv('mem-acuerdos'),
     r_convocados:gv('r-convocados'),r_asistentes:gv('r-asistentes'),r_pct:gv('r-pct'),r_satisfaccion:gv('r-satisfaccion'),
     compromisos:[gv('com1'),gv('com2'),gv('com3'),gv('com4')],
     val_diger:gv('val-diger'),val_inst:gv('val-inst'),
@@ -991,11 +1023,18 @@ function colectarDatosCap(){
 
 function cargarDatosCap(cap){
   if(!cap) return;
+  // Restaurar toggle capacitación
+  var esCap=!!cap.es_cap_plataforma;
+  var siEl=document.getElementById('es-cap-si'), noEl=document.getElementById('es-cap-no');
+  if(siEl) siEl.checked=esCap;
+  if(noEl) noEl.checked=!esCap;
+  toggleCapacitacion();
   sv('cap-tema',cap.tema||''); sv('cap-objetivo',cap.objetivo||'');
   sv('ep-nombre',cap.ep_nombre||''); sv('ep-cargo',cap.ep_cargo||'');
   sv('ep-correo',cap.ep_correo||''); sv('ep-tel',cap.ep_tel||'');
   sv('fac-nombre',cap.fac_nombre||''); sv('fac-cargo',cap.fac_cargo||''); sv('fac-correo',cap.fac_correo||'');
   sv('docs-recursos',cap.docs_recursos||'');
+  sv('mem-agenda',cap.mem_agenda||''); sv('mem-desarrollo',cap.mem_desarrollo||''); sv('mem-acuerdos',cap.mem_acuerdos||'');
   sv('r-convocados',cap.r_convocados||''); sv('r-asistentes',cap.r_asistentes||'');
   sv('r-satisfaccion',cap.r_satisfaccion||'');
   sv('val-diger',cap.val_diger||''); sv('val-inst',cap.val_inst||'');
@@ -1070,6 +1109,11 @@ function calcPct(){
 // ── TOGGLES ───────────────────────────────────────────────────
 function toggleModalidadOtro(){ document.getElementById('field-modalidad-otro').style.display=gv('g-modalidad')==='Otro'?'block':'none'; }
 function toggleTipoOtro(){ document.getElementById('field-tipo-otro').style.display=gv('g-tipo')==='Otro'?'block':'none'; }
+function toggleCapacitacion(){
+  var esCap=document.getElementById('es-cap-si')&&document.getElementById('es-cap-si').checked;
+  document.getElementById('cap-section').style.display=esCap?'block':'none';
+}
+function getEsCap(){ return document.getElementById('es-cap-si')&&document.getElementById('es-cap-si').checked; }
 
 // ── ENVIAR ────────────────────────────────────────────────────
 async function enviarRegistro(){
@@ -1164,6 +1208,8 @@ function reiniciarForm(){
   document.querySelectorAll('.foto-placeholder').forEach(function(ph){ ph.style.display='block'; });
   document.getElementById('field-modalidad-otro').style.display='none';
   document.getElementById('field-tipo-otro').style.display='none';
+  var noEl=document.getElementById('es-cap-no'); if(noEl) noEl.checked=true;
+  document.getElementById('cap-section').style.display='none';
   document.getElementById('gen-err').style.display='none';
   contN=4;
   document.getElementById('contenido-list').innerHTML=
