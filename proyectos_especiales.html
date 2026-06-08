@@ -1401,7 +1401,7 @@ function generarPDFProfesional(d){
         var lines=doc.splitTextToSize(p,w);
         lines.forEach(function(l,li){
           ckPg(5.5); doc.setTextColor(CN[0],CN[1],CN[2]);
-          doc.text(l,x,y,li<lines.length-1?{maxWidth:w,align:'justify'}:{});
+          doc.text(l,x,y);
           y+=4.8;
         });
         y+=1.5;
