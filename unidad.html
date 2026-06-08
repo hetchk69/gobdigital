@@ -66,23 +66,81 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .unit-desc{font-size:12.5px;color:var(--muted);line-height:1.6}
 .unit-arrow{font-size:18px;color:var(--muted);align-self:flex-end}
 
-/* ── MODULE GRID ── */
-.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-.mod-card{
-  background:var(--blanco);border:1.5px solid var(--borde);
-  border-radius:13px;padding:1.3rem;
-  transition:all .22s;cursor:pointer;text-decoration:none;
-  display:flex;flex-direction:column;gap:10px;
+/* ── MODULE LIST (documento style) ── */
+.mod-list{display:flex;flex-direction:column;gap:0}
+
+.mod-row{
+  border-bottom:1px solid var(--borde);
+  transition:background .15s;
 }
-.mod-card:hover{border-color:var(--azul-m);box-shadow:0 6px 20px rgba(10,45,110,.12);transform:translateY(-2px)}
-.mod-card.disabled{opacity:.45;pointer-events:none;filter:grayscale(.5)}
-.mod-icon{
-  width:46px;height:46px;border-radius:11px;
+.mod-row:last-child{border-bottom:none}
+.mod-row-head{
+  display:grid;
+  grid-template-columns:40px 1fr 110px 1fr 90px;
+  align-items:center;gap:12px;
+  padding:14px 12px;
+  cursor:pointer;
+  user-select:none;
+  transition:background .15s;
+}
+.mod-row-head:hover{background:#f5f8ff}
+.mod-row-icon{
+  width:36px;height:36px;border-radius:9px;
   background:linear-gradient(135deg,var(--azul-c),#d5e8ff);
-  display:flex;align-items:center;justify-content:center;font-size:22px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
 }
-.mod-name{font-size:15px;font-weight:700;color:var(--azul)}
-.mod-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.mod-row-name{font-size:14px;font-weight:700;color:var(--azul);line-height:1.3}
+.mod-row-name small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:1px}
+.mod-type-badge{
+  display:inline-flex;align-items:center;
+  padding:3px 10px;border-radius:20px;
+  font-size:11px;font-weight:700;white-space:nowrap;
+  background:var(--azul-c);color:var(--azul-m);
+}
+.mod-type-badge.registro{background:#dcfce7;color:#15803d}
+.mod-type-badge.control{background:#fef3c7;color:#b45309}
+.mod-type-badge.levantamiento{background:#ede9fe;color:#5b21b6}
+.mod-type-badge.ficha{background:#fee2e2;color:#b91c1c}
+.mod-row-desc{font-size:12.5px;color:var(--muted);line-height:1.5}
+.mod-row-actions{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.btn-open{
+  padding:6px 14px;background:linear-gradient(135deg,var(--azul-m),var(--azul));
+  color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;
+  cursor:pointer;text-decoration:none;display:inline-block;white-space:nowrap;
+  transition:opacity .2s;
+}
+.btn-open:hover{opacity:.85}
+.mod-chevron{font-size:13px;color:var(--muted);transition:transform .25s;flex-shrink:0}
+.mod-chevron.open{transform:rotate(180deg)}
+
+/* ── INST VERSIONS PANEL ── */
+.mod-versions{
+  display:none;background:#f8fbff;border-top:1px solid var(--borde);
+  padding:12px 14px 14px 52px;
+}
+.mod-versions.open{display:block}
+.versions-label{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.versions-grid{display:flex;flex-wrap:wrap;gap:7px}
+.ver-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:20px;
+  border:1.5px solid var(--borde);background:var(--blanco);
+  font-size:12px;font-weight:600;color:var(--texto);
+  text-decoration:none;cursor:pointer;
+  transition:all .18s;
+}
+.ver-chip:hover{border-color:var(--azul-m);background:var(--azul-c);color:var(--azul)}
+.ver-chip .dot{width:7px;height:7px;border-radius:50%;background:#c8d5ee;flex-shrink:0}
+.ver-chip.activo .dot{background:var(--verde)}
+
+/* ── TABLE HEADER ── */
+.list-header{
+  display:grid;
+  grid-template-columns:40px 1fr 110px 1fr 90px;
+  gap:12px;padding:8px 12px;
+  background:var(--gris);border-radius:8px;margin-bottom:2px;
+}
+.list-header span{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 
 /* ── BREADCRUMB ── */
 .breadcrumb{
@@ -188,10 +246,60 @@ var UNITS = {
     color: 'blue',
     desc: 'Estado técnico y checklist de digitalización de trámites SOL.',
     modulos: [
-      { key:'tramites_estado',       label:'Trámites — Estado',        icon:'📋', desc:'Levantamiento del estado actual de trámites por institución.',                    url:'tramites_estado.html' },
-      { key:'tramites_tecnica',      label:'Trámites — Técnica',       icon:'🔬', desc:'Ficha técnica: requisitos, flujo de actividades y racionalización.',              url:'tramites_tecnica.html' },
-      { key:'instituciones',         label:'Instituciones',            icon:'🏛', desc:'Trámites digitalizados, avance por etapas y notas de seguimiento por institución.', url:'instituciones.html' },
-      { key:'levantamiento_reunion', label:'Levantamiento de Reunión', icon:'🎓', desc:'Gestión de eventos, capacitaciones, asistencia y memorias institucionales.',      url:'proyectos_especiales.html' }
+      {
+        key:'tramites_estado',
+        label:'Trámites — Estado',
+        icon:'📋',
+        tipo:'Levantamiento',
+        tipoCls:'levantamiento',
+        desc:'Levantamiento del estado actual de trámites por institución (requisitos, canales, tiempo, costos).',
+        url:'tramites_estado.html',
+        versiones: [
+          'CONVIVIENDA','COPECO','SIT','IHADFA','BANHPROVI','INPREUNAH',
+          'CNBS','INPREMA','IHTT','SEN','CONSUCOOP','CONATEL','IHCINE',
+          'SAG','SECAPPH','SRECI','SERNA','SGJD','CANATURH / IHT'
+        ]
+      },
+      {
+        key:'tramites_tecnica',
+        label:'Trámites — Técnica',
+        icon:'🔬',
+        tipo:'Ficha Técnica',
+        tipoCls:'ficha',
+        desc:'Ficha técnica por trámite: flujo de actividades, requisitos normativos y racionalización SOL.',
+        url:'tramites_tecnica.html',
+        versiones: [
+          'CONVIVIENDA','COPECO','SIT','IHADFA','BANHPROVI','INPREUNAH',
+          'CNBS','INPREMA','IHTT','SEN','CONSUCOOP','CONATEL','IHCINE',
+          'SAG','SECAPPH','SRECI','SERNA','SGJD','CANATURH / IHT'
+        ]
+      },
+      {
+        key:'instituciones',
+        label:'Instituciones',
+        icon:'🏛',
+        tipo:'Control',
+        tipoCls:'control',
+        desc:'Avance de digitalización por etapas, checklists editables y notas de seguimiento por institución.',
+        url:'instituciones.html',
+        versiones: [
+          'CONVIVIENDA','COPECO','SIT','IHADFA','BANHPROVI','INPREUNAH',
+          'CNBS','INPREMA','IHTT','SEN','CONSUCOOP','CONATEL','IHCINE',
+          'SAG','SECAPPH','SRECI','SERNA','SGJD','CANATURH / IHT',
+          'IP','SESAL','ARSA','SENASA','BCH','CNI','ICF','SEGOB','SDE',
+          'PODER JUDICIAL','HBCBH - BOMBEROS','INFOP','ALCALDÍA COMAYAGUA'
+        ]
+      },
+      {
+        key:'levantamiento_reunion',
+        label:'Levantamiento de Reunión',
+        icon:'🎓',
+        tipo:'Registro',
+        tipoCls:'registro',
+        desc:'Gestión de eventos, asistencia con QR, capacitaciones y memorias institucionales.',
+        url:'proyectos_especiales.html',
+        versiones: []
+      }
     ]
   }
 };
@@ -292,7 +400,7 @@ function renderSelector() {
 }
 
 // ════════════════════════════════════════════════════════════════
-// UNIT PAGE (module grid for a specific unit)
+// UNIT PAGE (module list — professional document view)
 // ════════════════════════════════════════════════════════════════
 function renderUnitPage(unitKey) {
   var u = UNITS[unitKey];
@@ -300,38 +408,91 @@ function renderUnitPage(unitKey) {
   var isAdmin = ses.role === 'admin';
   var acc = ses.access || {};
 
-  var html = '<div class="breadcrumb">' +
-    '<a href="unidad.html">Inicio</a>' +
-    '<span>›</span>' +
-    '<span>' + u.label + '</span>' +
-  '</div>' +
-  '<div class="welcome">' +
-    '<div class="badge">' + u.icon + ' ' + u.label + '</div>' +
-    '<h2>Módulos habilitados</h2>' +
-    '<p>Seleccione el módulo al que desea acceder.</p>' +
-  '</div>' +
-  '<div class="card">' +
-    '<div class="sec-title">📂 Módulos de ' + u.label + '</div>' +
-    '<div class="mod-grid">';
+  var visibles = u.modulos.filter(function(m){ return isAdmin || acc[m.key]; });
 
-  var alguno = false;
-  u.modulos.forEach(function(m) {
-    var allowed = isAdmin || acc[m.key];
-    if (!allowed) return;
-    alguno = true;
-    html += '<a class="mod-card" href="' + m.url + '">' +
-      '<div class="mod-icon">' + m.icon + '</div>' +
-      '<div class="mod-name">' + m.label + '</div>' +
-      '<div class="mod-desc">' + m.desc + '</div>' +
-    '</a>';
-  });
+  var html =
+    '<div class="breadcrumb">' +
+      '<a href="unidad.html">Inicio</a><span>›</span><span>' + u.label + '</span>' +
+    '</div>' +
+    '<div class="welcome">' +
+      '<div class="badge">' + u.icon + ' ' + u.label + '</div>' +
+      '<h2>Módulos habilitados</h2>' +
+      '<p>' + visibles.length + ' documento' + (visibles.length !== 1 ? 's' : '') + ' disponible' + (visibles.length !== 1 ? 's' : '') + ' · Haga clic en una fila para ver versiones por institución.</p>' +
+    '</div>' +
+    '<div class="card" style="padding:0;overflow:hidden">' +
+      '<div style="padding:1rem 1.25rem .5rem;border-bottom:1px solid var(--borde)">' +
+        '<div class="sec-title" style="margin:0;border:none;padding:0">📂 Documentos de ' + u.label + '</div>' +
+      '</div>';
 
-  if (!alguno) {
-    html += '<div class="empty" style="grid-column:1/-1">No tiene módulos habilitados en esta unidad. Contacte al administrador DIGER.</div>';
+  if (visibles.length === 0) {
+    html += '<div class="empty" style="padding:2rem">No tiene módulos habilitados en esta unidad. Contacte al administrador DIGER.</div>';
+  } else {
+    // Table header
+    html +=
+      '<div style="padding:8px 14px;background:#f0f4fb;border-bottom:1px solid var(--borde)">' +
+        '<div class="list-header" style="background:none;margin:0;padding:0">' +
+          '<span></span>' +
+          '<span>Nombre del documento</span>' +
+          '<span>Tipo</span>' +
+          '<span>Descripción</span>' +
+          '<span style="text-align:right">Acciones</span>' +
+        '</div>' +
+      '</div>';
+
+    html += '<div class="mod-list">';
+
+    visibles.forEach(function(m, idx) {
+      var hasVers = m.versiones && m.versiones.length > 0;
+
+      // Main row
+      html +=
+        '<div class="mod-row" id="modrow-' + idx + '">' +
+          '<div class="mod-row-head" onclick="toggleModRow(' + idx + ', ' + hasVers + ')">' +
+            '<div class="mod-row-icon">' + m.icon + '</div>' +
+            '<div class="mod-row-name">' + esc(m.label) +
+              '<small>' + (m.versiones ? m.versiones.length + ' institución' + (m.versiones.length !== 1 ? 'es' : '') : 'Global') + '</small>' +
+            '</div>' +
+            '<div><span class="mod-type-badge ' + (m.tipoCls||'') + '">' + esc(m.tipo||'Módulo') + '</span></div>' +
+            '<div class="mod-row-desc">' + esc(m.desc) + '</div>' +
+            '<div class="mod-row-actions">' +
+              '<a class="btn-open" href="' + m.url + '" onclick="event.stopPropagation()">Abrir →</a>' +
+              (hasVers ? '<span class="mod-chevron" id="chev-' + idx + '">▾</span>' : '<span style="width:20px"></span>') +
+            '</div>' +
+          '</div>';
+
+      // Versions panel
+      if (hasVers) {
+        html += '<div class="mod-versions" id="modver-' + idx + '">' +
+          '<div class="versions-label">Instituciones con versión en este módulo</div>' +
+          '<div class="versions-grid">';
+
+        m.versiones.forEach(function(inst) {
+          var instParam = encodeURIComponent(inst);
+          html += '<a class="ver-chip activo" href="' + m.url + '?inst=' + instParam + '" onclick="event.stopPropagation()">' +
+            '<span class="dot"></span>' + esc(inst) +
+          '</a>';
+        });
+
+        html += '</div></div>';
+      }
+
+      html += '</div>'; // mod-row
+    });
+
+    html += '</div>'; // mod-list
   }
 
-  html += '</div></div>';
+  html += '</div>'; // card
   app.innerHTML = html;
+}
+
+function toggleModRow(idx, hasVers) {
+  if (!hasVers) return;
+  var panel = document.getElementById('modver-' + idx);
+  var chev  = document.getElementById('chev-' + idx);
+  if (!panel) return;
+  var open = panel.classList.toggle('open');
+  if (chev) chev.classList.toggle('open', open);
 }
 
 // ════════════════════════════════════════════════════════════════
