@@ -13,14 +13,10 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--texto);background:var(--gris);min-height:100vh}
 
-/* HEADER */
-.header{background:var(--blanco);padding:14px 2rem;display:flex;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.08);position:relative;overflow:hidden}
-.header::before{content:'';position:absolute;right:0;top:0;bottom:0;width:200px;background:linear-gradient(135deg,transparent 30px,#1455a4 30px)}
-.header::after{content:'';position:absolute;right:0;top:0;bottom:0;width:130px;background:linear-gradient(135deg,transparent 30px,#0a2d6e 30px)}
-.header img{height:60px;width:auto;position:relative;z-index:1}
-.header-title{margin-left:1.4rem;position:relative;z-index:1}
-.header-title h1{font-size:15px;font-weight:800;color:var(--azul)}
-.header-title p{font-size:11px;color:var(--muted);margin-top:2px}
+/* PAGE HEAD */
+.page-head{margin-bottom:1.25rem}
+.page-head h1{font-size:20px;font-weight:800;color:var(--azul)}
+.page-head p{font-size:13px;color:var(--muted);margin-top:2px}
 
 /* WRAP */
 .wrap{max-width:1200px;margin:0 auto;padding:1.5rem 1.25rem 4rem}
@@ -155,16 +151,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 </style>
 </head>
 <body>
-
-<div class="header">
-  <img src="https://www.diger.gob.hn/wp-content/uploads/2021/05/logo-diger.png" alt="DIGER" onerror="this.style.display='none'">
-  <div class="header-title">
-    <h1>Dirección de Gestión por Resultados (DIGER)</h1>
-    <p>Plataforma SOL — Instituciones y Digitalización de Trámites</p>
-  </div>
-</div>
+<!-- header.js prepends the shared DIGER header -->
+<script src="header.js"></script>
 
 <div class="wrap">
+
+  <div class="page-head">
+    <h1>Instituciones</h1>
+    <p>Avance de digitalización por etapas, checklists y notas de seguimiento por institución.</p>
+  </div>
 
   <!-- Stats globales -->
   <div class="stats">
@@ -232,7 +227,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
 </div>
 
-<script src="header.js"></script>
 <script>
 // ── ETAPAS ──────────────────────────────────────────────────────
 const ETAPAS = [
