@@ -374,22 +374,6 @@ var UNITS = {
         ]
       },
       {
-        key:'instituciones',
-        label:'Instituciones',
-        icon:'building',
-        tipo:'Control',
-        tipoCls:'control',
-        desc:'Avance de digitalización por etapas, checklists editables y notas de seguimiento por institución.',
-        url:'instituciones.html',
-        versiones: [
-          'CONVIVIENDA','COPECO','SIT','IHADFA','BANHPROVI','INPREUNAH',
-          'CNBS','INPREMA','IHTT','SEN','CONSUCOOP','CONATEL','IHCINE',
-          'SAG','SECAPPH','SRECI','SERNA','SGJD','CANATURH / IHT',
-          'IP','SESAL','ARSA','SENASA','BCH','CNI','ICF','SEGOB','SDE',
-          'PODER JUDICIAL','HBCBH - BOMBEROS','INFOP','ALCALDÍA COMAYAGUA'
-        ]
-      },
-      {
         key:'levantamiento_reunion',
         label:'Levantamiento de Reunión',
         icon:'calendar-check',
@@ -398,6 +382,15 @@ var UNITS = {
         desc:'Gestión de eventos, asistencia con QR, capacitaciones y memorias institucionales.',
         url:'proyectos_especiales.html',
         versiones: []
+      }
+    ],
+    // Documentos fijos del sistema (aparecen en la pestaña Documentos)
+    documentosFijos: [
+      {
+        nombre:'Instituciones',
+        tipo:'Control',
+        desc:'Avance de digitalización por etapas, checklists editables y notas de seguimiento por institución.',
+        url:'instituciones.html'
       }
     ]
   }
@@ -748,28 +741,47 @@ function docuItems(unitKey) { return lsGet(docuKey(unitKey), []); }
 function renderDocumentos(unitKey) {
   CURRENT_UNIT = unitKey;
   var u = UNITS[unitKey];
+  var fijos = u.documentosFijos || [];
   var items = docuItems(unitKey).slice().sort(function(a,b){ return (b.fecha||'').localeCompare(a.fecha||''); });
+  var total = fijos.length + items.length;
 
-  var listHtml;
-  if (!items.length) {
+  // Documentos fijos del sistema (no editables / no eliminables)
+  var fijosHtml = fijos.map(function(d){
+    return '<div class="dr-item">' +
+      '<div class="dr-ico">' + (SVGS['building'] || DOC_ICO) + '</div>' +
+      '<div class="dr-info"><div class="dr-name">' + esc(d.nombre) + '</div>' +
+        '<div class="dr-meta">' +
+          '<span class="dr-badge" style="background:#dcfce7;color:#15803d">Sistema</span>' +
+          (d.tipo ? '<span class="dr-badge">' + esc(d.tipo) + '</span>' : '') +
+          (d.desc ? '<span>' + esc(d.desc) + '</span>' : '') +
+        '</div></div>' +
+      '<div class="dr-acts">' +
+        '<a class="dr-open" href="' + esc(d.url) + '">Abrir →</a>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  // Documentos agregados por el usuario
+  var userHtml = items.map(function(d){
+    return '<div class="dr-item">' +
+      '<div class="dr-ico">' + DOC_ICO + '</div>' +
+      '<div class="dr-info"><div class="dr-name">' + esc(d.nombre) + '</div>' +
+        '<div class="dr-meta">' +
+          (d.tipo ? '<span class="dr-badge">' + esc(d.tipo) + '</span>' : '') +
+          (d.fecha ? '<span>📅 ' + esc(d.fecha) + '</span>' : '') +
+          (d.autor ? '<span>👤 ' + esc(d.autor) + '</span>' : '') +
+        '</div></div>' +
+      '<div class="dr-acts">' +
+        (d.url ? '<a class="dr-open" href="' + esc(d.url) + '" target="_blank" rel="noopener">Abrir →</a>' : '') +
+        '<button class="dr-del" onclick="docDel(\'' + d.id + '\')">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  var listHtml = fijosHtml + userHtml;
+  if (!total) {
     listHtml = '<div class="tab-empty"><div class="ico">' + DOC_ICO.replace(/width="20" height="20"/,'width="40" height="40"') + '</div>' +
       '<p>No hay documentos registrados en esta unidad.<br>Agregue el primero con el botón de arriba.</p></div>';
-  } else {
-    listHtml = items.map(function(d){
-      return '<div class="dr-item">' +
-        '<div class="dr-ico">' + DOC_ICO + '</div>' +
-        '<div class="dr-info"><div class="dr-name">' + esc(d.nombre) + '</div>' +
-          '<div class="dr-meta">' +
-            (d.tipo ? '<span class="dr-badge">' + esc(d.tipo) + '</span>' : '') +
-            (d.fecha ? '<span>📅 ' + esc(d.fecha) + '</span>' : '') +
-            (d.autor ? '<span>👤 ' + esc(d.autor) + '</span>' : '') +
-          '</div></div>' +
-        '<div class="dr-acts">' +
-          (d.url ? '<a class="dr-open" href="' + esc(d.url) + '" target="_blank" rel="noopener">Abrir →</a>' : '') +
-          '<button class="dr-del" onclick="docDel(\'' + d.id + '\')">✕</button>' +
-        '</div>' +
-      '</div>';
-    }).join('');
   }
 
   app.innerHTML =
@@ -777,7 +789,7 @@ function renderDocumentos(unitKey) {
     '<div class="welcome"><div class="badge">' + esc(u.label) + '</div>' +
       '<h2>Documentos</h2><p>Registro central de documentos de la unidad.</p></div>' +
     '<div class="tab-toolbar">' +
-      '<div style="font-size:13px;color:var(--muted);font-weight:600">' + items.length + ' documento' + (items.length!==1?'s':'') + '</div>' +
+      '<div style="font-size:13px;color:var(--muted);font-weight:600">' + total + ' documento' + (total!==1?'s':'') + '</div>' +
       '<button class="btn-prim" onclick="docAddPrompt()">+ Agregar documento</button>' +
     '</div>' +
     listHtml;
