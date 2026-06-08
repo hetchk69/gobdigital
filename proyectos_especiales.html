@@ -1152,6 +1152,21 @@ async function uploadPendingFotos(){
   if(_foto1_file){ var u=await uploadFoto(_foto1_file,'1'); if(u){ _foto1_url=u; _foto1_file=null; } }
   if(_foto2_file){ var u2=await uploadFoto(_foto2_file,'2'); if(u2){ _foto2_url=u2; _foto2_file=null; } }
 }
+function comprimirParaPDF(dataUrl,maxPx,calidad){
+  return new Promise(function(res){
+    var img=new Image();
+    img.onload=function(){
+      var w=img.width,h=img.height;
+      var scale=Math.min((maxPx||1200)/Math.max(w,h),1);
+      var cw=Math.round(w*scale),ch=Math.round(h*scale);
+      var cv=document.createElement('canvas'); cv.width=cw; cv.height=ch;
+      cv.getContext('2d').drawImage(img,0,0,cw,ch);
+      res(cv.toDataURL('image/jpeg',calidad||0.82));
+    };
+    img.onerror=function(){ res(dataUrl); };
+    img.src=dataUrl;
+  });
+}
 async function urlToBase64(url){
   try{
     var r=await fetch(url); var blob=await r.blob();
@@ -1299,9 +1314,12 @@ async function descargarPDF(){
   var datos={}; try{ datos=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
   var cap=datos.cap||{};
   var logo=await urlToBase64('logo_diger-14.png');
+  if(logo) logo=await comprimirParaPDF(logo,600,0.9);
   var foto1=_foto1_url||'', foto2=_foto2_url||'';
   if(foto1&&!foto1.startsWith('data:')) foto1=(await urlToBase64(foto1))||'';
   if(foto2&&!foto2.startsWith('data:')) foto2=(await urlToBase64(foto2))||'';
+  if(foto1) foto1=await comprimirParaPDF(foto1,1200,0.80);
+  if(foto2) foto2=await comprimirParaPDF(foto2,1200,0.80);
   var tipo=gv('g-tipo')||datos.tipo_cap||'';
   if(tipo==='Otro') tipo=gv('g-tipo-otro')||datos.tipo_cap_otro||tipo;
   var modal=gv('g-modalidad')||datos.modalidad||'';
