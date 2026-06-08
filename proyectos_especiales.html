@@ -1071,14 +1071,18 @@ function cargarDatosCap(cap){
   sv('val-diger',cap.val_diger||''); sv('val-inst',cap.val_inst||'');
   var coms=cap.compromisos||[];
   ['com1','com2','com3','com4'].forEach(function(id,i){ sv(id,coms[i]||''); });
-  // Restaurar fotos
+  // Restaurar fotos (siempre limpiar primero para no heredar fotos de otro evento)
+  var i1=document.getElementById('f1-img'); i1.src=''; i1.style.display='none';
+  document.getElementById('f1-ph').style.display='block'; sv('f1-desc','');
+  var i2=document.getElementById('f2-img'); i2.src=''; i2.style.display='none';
+  document.getElementById('f2-ph').style.display='block'; sv('f2-desc','');
   if(cap.foto1 && cap.foto1.startsWith('data:')){
-    var i1=document.getElementById('f1-img'); i1.src=cap.foto1; i1.style.display='block';
+    i1.src=cap.foto1; i1.style.display='block';
     document.getElementById('f1-ph').style.display='none';
   }
   sv('f1-desc', cap.foto1_desc||'');
   if(cap.foto2 && cap.foto2.startsWith('data:')){
-    var i2=document.getElementById('f2-img'); i2.src=cap.foto2; i2.style.display='block';
+    i2.src=cap.foto2; i2.style.display='block';
     document.getElementById('f2-ph').style.display='none';
   }
   sv('f2-desc', cap.foto2_desc||'');
