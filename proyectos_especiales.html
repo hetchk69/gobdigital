@@ -1338,12 +1338,12 @@ function generarPDFProfesional(d){
     var CA=[10,45,110],CM=[20,85,164],CT=[13,140,160],CN=[26,26,26],CG=[100,116,139],CB=[210,220,238],CR=[248,250,252];
 
     function pageBands(){
-      if(d.logo){ try{ var lw=72,lh=16; doc.addImage(d.logo,'PNG',(PW-lw)/2,2,lw,lh); }catch(e){} }
-      doc.setDrawColor(CT[0],CT[1],CT[2]); doc.setLineWidth(0.8); doc.line(0,17,PW,17);
+      if(d.logo){ try{ var lw=72,lh=16; doc.addImage(d.logo,'PNG',(PW-lw)/2,3,lw,lh); }catch(e){} }
+      doc.setDrawColor(CT[0],CT[1],CT[2]); doc.setLineWidth(0.8); doc.line(0,21,PW,21);
       doc.setFontSize(6.5); doc.setFont('helvetica','italic'); doc.setTextColor(160,170,190);
       doc.text('DIGER - Registro de Reunion',ML,PH-7);
       doc.text('Pag '+pg,PW-MR,PH-7,{align:'right'});
-      y=22; doc.setTextColor(CN[0],CN[1],CN[2]);
+      y=26; doc.setTextColor(CN[0],CN[1],CN[2]);
     }
     function newPage(){ doc.addPage(); pg++; pageBands(); }
     function ckPg(n){ if(y+n>PH-14) newPage(); }
