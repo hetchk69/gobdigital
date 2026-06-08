@@ -204,6 +204,29 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
 /* ── HINT ── */
 .hint{font-size:12px;color:#6b7fa3;margin-top:5px;display:block}
 
+/* ── DOC ATTACH ── */
+.doc-attach-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 2px 8px rgba(10,45,110,.06)}
+.doc-list{margin-bottom:1rem}
+.doc-item{display:flex;align-items:center;gap:10px;padding:10px 13px;background:#f8fbff;border:1px solid #dde4f0;border-radius:10px;margin-bottom:7px;transition:box-shadow .2s}
+.doc-item:hover{box-shadow:0 3px 12px rgba(10,45,110,.09)}
+.doc-item-ico{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#e8f0ff,#d5e8ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.doc-item-info{flex:1;min-width:0}
+.doc-item-name{font-size:13px;font-weight:700;color:#0a2d6e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-item-meta{font-size:11px;color:#6b7fa3;margin-top:1px}
+.doc-item-acts{display:flex;gap:6px;flex-shrink:0;align-items:center}
+.doc-btn-open{padding:4px 12px;background:#1455a4;color:#fff;border:none;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;white-space:nowrap}
+.doc-btn-del{padding:4px 9px;background:#fff;border:1.5px solid #e2e8f0;color:#6b7fa3;border-radius:6px;font-size:11.5px;cursor:pointer;transition:all .2s}
+.doc-btn-del:hover{border-color:#dc2626;color:#dc2626}
+.doc-add-form{background:#f5f8ff;border:1.5px dashed #c0d0f0;border-radius:11px;padding:1rem}
+.doc-add-title{font-size:11px;font-weight:700;color:#6b7fa3;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem}
+.doc-add-grid{display:grid;grid-template-columns:1fr 150px 220px 130px;gap:.5rem;margin-bottom:.5rem}
+.doc-add-inp{padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:inherit;background:#fff;outline:none;width:100%;transition:border .2s}
+.doc-add-inp:focus{border-color:#1455a4;box-shadow:0 0 0 3px rgba(20,85,164,.1)}
+.btn-doc-add{padding:9px 18px;background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.btn-doc-add:hover{opacity:.88}
+.doc-empty{text-align:center;padding:1.5rem;color:#9aadcc;font-size:13px}
+@media(max-width:700px){.doc-add-grid{grid-template-columns:1fr 1fr}}
+
 /* ── MOBILE ── */
 @media (max-width:600px){
   .container{padding:1rem .75rem 2rem}
@@ -400,6 +423,33 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
       <div class="stitle">💬 Observaciones generales de integración SOL</div>
       <textarea id="obs-gen" style="width:100%;min-height:100px" placeholder="Observaciones generales sobre la integración de la plataforma SOL..."></textarea>
     </div>
+
+    <!-- DOCUMENTOS ADJUNTOS -->
+    <div class="doc-attach-card">
+      <div class="stitle">📎 Documentos adjuntos</div>
+      <div class="doc-list" id="doc-lista-estado"></div>
+      <div class="doc-add-form">
+        <div class="doc-add-title">+ Agregar documento</div>
+        <div class="doc-add-grid">
+          <input class="doc-add-inp" type="text" id="doc-nombre" placeholder="Nombre del documento">
+          <select class="doc-add-inp" id="doc-tipo">
+            <option value="">Tipo…</option>
+            <option>Acta</option>
+            <option>Informe</option>
+            <option>Instructivo</option>
+            <option>Presentación</option>
+            <option>Memorando</option>
+            <option>Video tutorial</option>
+            <option>Resolución</option>
+            <option>Otro</option>
+          </select>
+          <input class="doc-add-inp" type="url" id="doc-url" placeholder="https://drive.google.com/…">
+          <input class="doc-add-inp" type="date" id="doc-fecha">
+        </div>
+        <button class="btn-doc-add" onclick="agregarDocEstado()">Guardar documento</button>
+      </div>
+    </div>
+
     <div class="nav">
       <button class="btns" onclick="goStep(1)">← Anterior</button>
       <button class="btnp" onclick="goStep(3)">Revisar y enviar →</button>
@@ -576,7 +626,7 @@ function goStep(n) {
     if (!tieneEquipo) { alert('Por favor agregue al menos un miembro al equipo institucional de digitalizacion.'); return; }
   }
   var inst = getVal('inst');
-  if (n === 2) buildTramites(inst);
+  if (n === 2) { buildTramites(inst); renderDocsEstado(); }
   if (n === 3) buildResumen();
   var steps = document.querySelectorAll('.step');
   for (var i = 0; i < steps.length; i++) steps[i].classList.remove('active');
@@ -782,6 +832,82 @@ function importarAsistente(idx) {
 function esc(v) {
   return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ── DOCUMENTOS ADJUNTOS ────────────────────────────────────────
+var DOC_LS_KEY = 'diger_docs_estado_v1';
+var DOC_TIPO_ICO = {
+  'Acta':'📄','Informe':'📊','Instructivo':'📘','Presentación':'📑',
+  'Memorando':'📝','Video tutorial':'🎬','Resolución':'⚖️','Otro':'📎'
+};
+
+function loadDocsEstado(inst) {
+  try { return (JSON.parse(localStorage.getItem(DOC_LS_KEY)) || {})[inst] || []; }
+  catch { return []; }
+}
+function saveDocsEstado(inst, docs) {
+  try {
+    var all = JSON.parse(localStorage.getItem(DOC_LS_KEY)) || {};
+    all[inst] = docs;
+    localStorage.setItem(DOC_LS_KEY, JSON.stringify(all));
+  } catch(e) {}
+}
+
+function renderDocsEstado() {
+  var inst = getVal('inst');
+  var lista = document.getElementById('doc-lista-estado');
+  if (!lista) return;
+  var docs = loadDocsEstado(inst);
+  if (!docs.length) {
+    lista.innerHTML = '<div class="doc-empty">No hay documentos adjuntos para esta institución.<br>Agrega el primero abajo.</div>';
+    return;
+  }
+  lista.innerHTML = docs.map(function(d, i) {
+    var ico = DOC_TIPO_ICO[d.tipo] || '📎';
+    return '<div class="doc-item">' +
+      '<div class="doc-item-ico">' + ico + '</div>' +
+      '<div class="doc-item-info">' +
+        '<div class="doc-item-name">' + esc(d.nombre) + '</div>' +
+        '<div class="doc-item-meta">' + esc(d.tipo||'Sin tipo') + ' · ' + esc(d.fecha||'Sin fecha') + '</div>' +
+      '</div>' +
+      '<div class="doc-item-acts">' +
+        (d.url ? '<a class="doc-btn-open" href="' + esc(d.url) + '" target="_blank" rel="noopener">Abrir →</a>' : '') +
+        '<button class="doc-btn-del" onclick="eliminarDocEstado(' + i + ')">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function agregarDocEstado() {
+  var inst = getVal('inst');
+  if (!inst) { alert('Seleccione una institución primero.'); return; }
+  var nombre = (document.getElementById('doc-nombre').value || '').trim();
+  var tipo   = document.getElementById('doc-tipo').value;
+  var url    = (document.getElementById('doc-url').value || '').trim();
+  var fecha  = document.getElementById('doc-fecha').value;
+  if (!nombre) { alert('Ingrese el nombre del documento.'); return; }
+  var docs = loadDocsEstado(inst);
+  docs.push({ nombre: nombre, tipo: tipo, url: url, fecha: fecha, ts: new Date().toISOString() });
+  saveDocsEstado(inst, docs);
+  document.getElementById('doc-nombre').value = '';
+  document.getElementById('doc-tipo').value = '';
+  document.getElementById('doc-url').value = '';
+  renderDocsEstado();
+}
+
+function eliminarDocEstado(idx) {
+  var inst = getVal('inst');
+  if (!confirm('¿Eliminar este documento?')) return;
+  var docs = loadDocsEstado(inst);
+  docs.splice(idx, 1);
+  saveDocsEstado(inst, docs);
+  renderDocsEstado();
+}
+
+// Inicializar fecha de doc-fecha con hoy
+document.addEventListener('DOMContentLoaded', function() {
+  var df = document.getElementById('doc-fecha');
+  if (df) df.value = new Date().toISOString().split('T')[0];
+});
 
 </script>
 </body>

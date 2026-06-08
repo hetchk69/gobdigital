@@ -162,6 +162,28 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .btn-ol-b{background:#fff;border:1.5px solid var(--azul-m);color:var(--azul-m);font-weight:700}
 .btn-ol-b:hover{background:var(--azul-c)}
 
+/* ── DOC ATTACH ── */
+.doc-list{margin-bottom:1rem}
+.doc-item{display:flex;align-items:center;gap:10px;padding:10px 13px;background:#f8fbff;border:1px solid var(--borde);border-radius:10px;margin-bottom:7px;transition:box-shadow .2s}
+.doc-item:hover{box-shadow:0 3px 12px rgba(10,45,110,.09)}
+.doc-item-ico{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--azul-c),#d5e8ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.doc-item-info{flex:1;min-width:0}
+.doc-item-name{font-size:13px;font-weight:700;color:var(--azul);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-item-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.doc-item-acts{display:flex;gap:6px;flex-shrink:0;align-items:center}
+.doc-btn-open{padding:4px 12px;background:var(--azul-m);color:#fff;border:none;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;white-space:nowrap}
+.doc-btn-del{padding:4px 9px;background:#fff;border:1.5px solid var(--borde);color:var(--muted);border-radius:6px;font-size:11.5px;cursor:pointer;transition:all .2s}
+.doc-btn-del:hover{border-color:var(--rojo);color:var(--rojo)}
+.doc-add-form{background:#f5f8ff;border:1.5px dashed #c0d0f0;border-radius:11px;padding:1rem;margin-top:.5rem}
+.doc-add-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem}
+.doc-add-grid{display:grid;grid-template-columns:1fr 150px 220px 130px;gap:.5rem;margin-bottom:.5rem}
+.doc-add-inp{padding:8px 10px;border:1.5px solid var(--borde);border-radius:8px;font-size:13px;font-family:inherit;background:#fff;outline:none;width:100%;transition:border .2s}
+.doc-add-inp:focus{border-color:var(--azul-m);box-shadow:0 0 0 3px rgba(20,85,164,.09)}
+.btn-doc-add{padding:9px 18px;background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.btn-doc-add:hover{opacity:.88}
+.doc-empty{text-align:center;padding:1.5rem;color:#c4cfde;font-size:13px}
+@media(max-width:700px){.doc-add-grid{grid-template-columns:1fr 1fr}}
+
 /* PRINT */
 @media print{
   #gate,.topbar,.pstrip,.sidebar,.nav,.btn,.tb-right{display:none!important}
@@ -569,6 +591,33 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
         <p style="font-size:12px;color:var(--muted);margin-top:.65rem">Para el PDF: en el diálogo de impresión seleccione <strong>"Guardar como PDF"</strong> como destino.</p>
       </div>
 
+      <!-- DOCUMENTOS ADJUNTOS -->
+      <div class="card">
+        <div class="ct">📎 Documentos adjuntos</div>
+        <div class="doc-list" id="doc-lista-tecnica"></div>
+        <div class="doc-add-form">
+          <div class="doc-add-title">+ Agregar documento</div>
+          <div class="doc-add-grid">
+            <input class="doc-add-inp" type="text" id="doc-t-nombre" placeholder="Nombre del documento">
+            <select class="doc-add-inp" id="doc-t-tipo">
+              <option value="">Tipo…</option>
+              <option>Acta</option>
+              <option>Informe</option>
+              <option>Ficha técnica</option>
+              <option>Flujo de proceso</option>
+              <option>Instructivo</option>
+              <option>Presentación</option>
+              <option>Memorando</option>
+              <option>Resolución</option>
+              <option>Otro</option>
+            </select>
+            <input class="doc-add-inp" type="url" id="doc-t-url" placeholder="https://drive.google.com/…">
+            <input class="doc-add-inp" type="date" id="doc-t-fecha">
+          </div>
+          <button class="btn-doc-add" onclick="agregarDocTecnica()">Guardar documento</button>
+        </div>
+      </div>
+
       <div class="nav">
         <button class="btn btn-s" onclick="ir(5)">← Anterior</button>
         <button class="btn btn-ok" onclick="imprimirPDF()">🖨 Generar PDF final</button>
@@ -857,6 +906,96 @@ function imprimirPDF(){
     document.getElementById('sec'+secActual).classList.add('active');
   },1200);
 }
+
+// ── DOCUMENTOS ADJUNTOS ────────────────────────────────────────
+var DOC_LS_TECNICA = 'diger_docs_tecnica_v1';
+var DOC_TIPO_ICO_T = {
+  'Acta':'📄','Informe':'📊','Ficha técnica':'🔬','Flujo de proceso':'🔀',
+  'Instructivo':'📘','Presentación':'📑','Memorando':'📝','Resolución':'⚖️','Otro':'📎'
+};
+
+function _docTecnicaKey(){
+  var inst  = (document.getElementById('institucion')||{}).value||'_';
+  var tram  = (document.getElementById('nombre_tramite')||{}).value||'_';
+  return (inst+'__'+tram).replace(/\s+/g,'_').substring(0,80);
+}
+
+function loadDocsTecnica(key){
+  try{ return (JSON.parse(localStorage.getItem(DOC_LS_TECNICA))||{})[key]||[]; }
+  catch{ return []; }
+}
+function saveDocsTecnica(key, docs){
+  try{
+    var all = JSON.parse(localStorage.getItem(DOC_LS_TECNICA))||{};
+    all[key] = docs;
+    localStorage.setItem(DOC_LS_TECNICA, JSON.stringify(all));
+  } catch(e){}
+}
+
+function renderDocsTecnica(){
+  var lista = document.getElementById('doc-lista-tecnica');
+  if(!lista) return;
+  var key  = _docTecnicaKey();
+  var docs = loadDocsTecnica(key);
+  if(!docs.length){
+    lista.innerHTML = '<div class="doc-empty">No hay documentos adjuntos para este trámite.<br>Agrega el primero abajo.</div>';
+    return;
+  }
+  lista.innerHTML = docs.map(function(d, i){
+    var ico = DOC_TIPO_ICO_T[d.tipo]||'📎';
+    return '<div class="doc-item">' +
+      '<div class="doc-item-ico">' + ico + '</div>' +
+      '<div class="doc-item-info">' +
+        '<div class="doc-item-name">' + escH(d.nombre) + '</div>' +
+        '<div class="doc-item-meta">' + escH(d.tipo||'Sin tipo') + ' · ' + escH(d.fecha||'Sin fecha') + '</div>' +
+      '</div>' +
+      '<div class="doc-item-acts">' +
+        (d.url ? '<a class="doc-btn-open" href="' + escH(d.url) + '" target="_blank" rel="noopener">Abrir →</a>' : '') +
+        '<button class="doc-btn-del" onclick="eliminarDocTecnica('+i+')">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function agregarDocTecnica(){
+  var nombre = (document.getElementById('doc-t-nombre').value||'').trim();
+  var tipo   = document.getElementById('doc-t-tipo').value;
+  var url    = (document.getElementById('doc-t-url').value||'').trim();
+  var fecha  = document.getElementById('doc-t-fecha').value;
+  if(!nombre){ alert('Ingrese el nombre del documento.'); return; }
+  var key  = _docTecnicaKey();
+  var docs = loadDocsTecnica(key);
+  docs.push({nombre:nombre,tipo:tipo,url:url,fecha:fecha,ts:new Date().toISOString()});
+  saveDocsTecnica(key, docs);
+  document.getElementById('doc-t-nombre').value = '';
+  document.getElementById('doc-t-tipo').value   = '';
+  document.getElementById('doc-t-url').value    = '';
+  renderDocsTecnica();
+}
+
+function eliminarDocTecnica(idx){
+  if(!confirm('¿Eliminar este documento?')) return;
+  var key  = _docTecnicaKey();
+  var docs = loadDocsTecnica(key);
+  docs.splice(idx,1);
+  saveDocsTecnica(key, docs);
+  renderDocsTecnica();
+}
+
+function escH(v){
+  return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Inicializar fecha y render al ir a sec6
+var _irOrig = ir;
+ir = function(n){
+  _irOrig(n);
+  if(n===6){
+    renderDocsTecnica();
+    var df = document.getElementById('doc-t-fecha');
+    if(df && !df.value) df.value = new Date().toISOString().split('T')[0];
+  }
+};
 </script>
 </body>
 </html>

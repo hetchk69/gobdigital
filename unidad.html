@@ -60,8 +60,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   width:56px;height:56px;border-radius:14px;
   display:flex;align-items:center;justify-content:center;font-size:26px;
 }
-.unit-icon.green{background:linear-gradient(135deg,#d1fae5,#a7f3d0)}
-.unit-icon.blue{background:linear-gradient(135deg,var(--azul-c),#d5e8ff)}
+.unit-icon.green{background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#15803d}
+.unit-icon.blue{background:linear-gradient(135deg,var(--azul-c),#d5e8ff);color:var(--azul-m)}
+.unit-icon svg,.mod-row-icon svg{display:block}
 .unit-name{font-size:17px;font-weight:800;color:var(--azul)}
 .unit-desc{font-size:12.5px;color:var(--muted);line-height:1.6}
 .unit-arrow{font-size:18px;color:var(--muted);align-self:flex-end}
@@ -225,6 +226,16 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 var CONFIG_KEY  = 'diger_sol_config';
 var SESSION_KEY = 'diger_sol_session';
 
+// ── SVG ICONS ────────────────────────────────────────────────────
+var SVGS = {
+  'folder': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+  'monitor': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+  'clipboard': '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M9 10h6M9 18h4"/></svg>',
+  'file-search': '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><circle cx="11.5" cy="14.5" r="2.5"/><line x1="13.5" y1="16.5" x2="15.5" y2="18.5"/></svg>',
+  'building': '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 21V9"/><rect x="12" y="13" width="3" height="3"/><rect x="12" y="17" width="3" height="3"/></svg>',
+  'calendar-check': '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/></svg>'
+};
+
 var INST_LIST = [
   'CONVIVIENDA','COPECO','SIT','IHADFA','BANHPROVI','INPREUNAH',
   'CNBS','INPREMA','IHTT','SEN','CONSUCOOP','CONATEL','IHCINE',
@@ -235,21 +246,21 @@ var INST_LIST = [
 var UNITS = {
   proyectos: {
     label: 'Proyectos Especiales',
-    icon: '📁',
+    icon: 'folder',
     color: 'green',
     desc: 'Reuniones, asistencia, capacitaciones y memorias institucionales.',
     modulos: []
   },
   digitalizacion: {
     label: 'Digitalización de Trámites',
-    icon: '🖥',
+    icon: 'monitor',
     color: 'blue',
     desc: 'Estado técnico y checklist de digitalización de trámites SOL.',
     modulos: [
       {
         key:'tramites_estado',
         label:'Trámites — Estado',
-        icon:'📋',
+        icon:'clipboard',
         tipo:'Levantamiento',
         tipoCls:'levantamiento',
         desc:'Levantamiento del estado actual de trámites por institución (requisitos, canales, tiempo, costos).',
@@ -263,7 +274,7 @@ var UNITS = {
       {
         key:'tramites_tecnica',
         label:'Trámites — Técnica',
-        icon:'🔬',
+        icon:'file-search',
         tipo:'Ficha Técnica',
         tipoCls:'ficha',
         desc:'Ficha técnica por trámite: flujo de actividades, requisitos normativos y racionalización SOL.',
@@ -277,7 +288,7 @@ var UNITS = {
       {
         key:'instituciones',
         label:'Instituciones',
-        icon:'🏛',
+        icon:'building',
         tipo:'Control',
         tipoCls:'control',
         desc:'Avance de digitalización por etapas, checklists editables y notas de seguimiento por institución.',
@@ -293,7 +304,7 @@ var UNITS = {
       {
         key:'levantamiento_reunion',
         label:'Levantamiento de Reunión',
-        icon:'🎓',
+        icon:'calendar-check',
         tipo:'Registro',
         tipoCls:'registro',
         desc:'Gestión de eventos, asistencia con QR, capacitaciones y memorias institucionales.',
@@ -343,7 +354,7 @@ if (unitParam && UNITS[unitParam]) {
 function renderSelector() {
   document.title = 'Selección de Unidad — DIGER';
   var isAdmin = ses.role === 'admin';
-  var badge   = isAdmin ? '⚙ Administrador' : '👤 Funcionario';
+  var badge   = isAdmin ? '⚙️ Administrador' : 'Funcionario';
 
   var html = '<div class="welcome">' +
     '<div class="badge">' + badge + '</div>' +
@@ -362,7 +373,7 @@ function renderSelector() {
     }
     var disabled = hasAccess ? '' : ' style="opacity:.45;pointer-events:none;filter:grayscale(.5)"';
     html += '<a class="unit-card ' + key + '" href="unidad.html?u=' + key + '"' + disabled + '>' +
-      '<div class="unit-icon ' + u.color + '">' + u.icon + '</div>' +
+      '<div class="unit-icon ' + u.color + '">' + (SVGS[u.icon]||u.icon) + '</div>' +
       '<div>' +
         '<div class="unit-name">' + u.label + '</div>' +
         '<div class="unit-desc">' + u.desc + '</div>' +
@@ -415,7 +426,7 @@ function renderUnitPage(unitKey) {
       '<a href="unidad.html">Inicio</a><span>›</span><span>' + u.label + '</span>' +
     '</div>' +
     '<div class="welcome">' +
-      '<div class="badge">' + u.icon + ' ' + u.label + '</div>' +
+      '<div class="badge">' + u.label + '</div>' +
       '<h2>Módulos habilitados</h2>' +
       '<p>' + visibles.length + ' documento' + (visibles.length !== 1 ? 's' : '') + ' disponible' + (visibles.length !== 1 ? 's' : '') + ' · Haga clic en una fila para ver versiones por institución.</p>' +
     '</div>' +
@@ -448,7 +459,7 @@ function renderUnitPage(unitKey) {
       html +=
         '<div class="mod-row" id="modrow-' + idx + '">' +
           '<div class="mod-row-head" onclick="toggleModRow(' + idx + ', ' + hasVers + ')">' +
-            '<div class="mod-row-icon">' + m.icon + '</div>' +
+            '<div class="mod-row-icon" style="color:var(--azul-m)">' + (SVGS[m.icon]||m.icon) + '</div>' +
             '<div class="mod-row-name">' + esc(m.label) +
               '<small>' + (m.versiones ? m.versiones.length + ' institución' + (m.versiones.length !== 1 ? 'es' : '') : 'Global') + '</small>' +
             '</div>' +
