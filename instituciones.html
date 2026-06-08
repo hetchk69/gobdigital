@@ -23,23 +23,24 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
 /* GLOBAL STATS */
 .stats{display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
-.stat{background:var(--blanco);border-radius:12px;padding:.75rem 1.2rem;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(10,45,110,.07);flex:1;min-width:140px}
-.stat-num{font-size:1.9rem;font-weight:800;line-height:1}
-.stat.op .stat-num{color:var(--verde)}
-.stat.proc .stat-num{color:var(--ambar)}
-.stat.ni .stat-num{color:var(--rojo)}
-.stat.avg .stat-num{color:var(--azul-m);font-size:1.6rem}
-.stat-lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:1.3}
-.stat-bar{width:100%;height:6px;background:#e2e8f0;border-radius:3px;margin-top:4px;overflow:hidden}
+.stat{background:var(--blanco);border-radius:12px;padding:.85rem 1.25rem;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(10,45,110,.08);flex:1;min-width:130px;border-top:3px solid transparent}
+.stat.op{border-top-color:var(--verde)}
+.stat.proc{border-top-color:var(--ambar)}
+.stat.ni{border-top-color:var(--rojo)}
+.stat.avg{border-top-color:var(--azul-m)}
+.stat-num{font-size:1.65rem;font-weight:800;line-height:1;color:var(--texto)}
+.stat.avg .stat-num{font-size:1.55rem;color:var(--azul-m)}
+.stat-lbl{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;line-height:1.4}
+.stat-bar{width:100%;height:5px;background:#e2e8f0;border-radius:3px;margin-top:5px;overflow:hidden}
 .stat-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--azul-m),var(--verde));transition:width .5s}
 
 /* SELECTOR PANEL */
-.sel-panel{background:var(--blanco);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(10,45,110,.07)}
-.sel-panel-top{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem}
-.sel-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-.inst-select{flex:1;min-width:220px;max-width:400px;padding:10px 14px;border:1.5px solid var(--borde);border-radius:10px;font-size:14px;font-family:inherit;color:var(--texto);background:var(--blanco);outline:none;cursor:pointer;transition:border .2s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
-.inst-select:focus{border-color:var(--azul-m);box-shadow:0 0 0 3px rgba(20,85,164,.1)}
-.inst-info-bar{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
+.sel-panel{background:var(--blanco);border-radius:14px;padding:1rem 1.5rem;margin-bottom:1.25rem;box-shadow:0 1px 4px rgba(10,45,110,.08);border:1px solid var(--borde)}
+.sel-panel-top{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.65rem}
+.sel-label{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.inst-select{flex:1;min-width:220px;max-width:420px;padding:9px 14px;border:1.5px solid var(--borde);border-radius:9px;font-size:13.5px;font-family:inherit;color:var(--texto);background:var(--blanco);outline:none;cursor:pointer;transition:border .2s,box-shadow .2s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.inst-select:focus{border-color:var(--azul-m);box-shadow:0 0 0 3px rgba(20,85,164,.09)}
+.inst-info-bar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
 .info-chip{font-size:11px;font-weight:700;padding:4px 11px;border-radius:12px;display:inline-flex;align-items:center;gap:4px}
 .info-chip.aloj-diger{background:#dbeafe;color:#1d4ed8}
 .info-chip.aloj-propia,.info-chip.aloj-propio{background:#fef3c7;color:#b45309}
@@ -53,29 +54,32 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 @media(max-width:900px){.main-layout{grid-template-columns:1fr}}
 
 /* TRAMITES SIDE */
-.tramites-col{}
+.tramites-col{min-width:0}
 
 .section-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:2px solid var(--gris);display:flex;align-items:center;justify-content:space-between}
 .section-label span{font-size:10px;font-weight:600;color:var(--azul-m);background:var(--azul-c);padding:2px 9px;border-radius:10px}
 
 /* TRAMITE TABLE — lista compacta */
-#tramites-content{background:var(--blanco);border:1px solid var(--borde);border-radius:12px;overflow:hidden;box-shadow:0 1px 6px rgba(10,45,110,.06)}
-.tram-card{border-bottom:1px solid var(--borde);cursor:pointer;transition:background .1s;margin-bottom:0;border-radius:0;overflow:visible}
+#tramites-content{background:var(--blanco);border:1px solid var(--borde);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(10,45,110,.07)}
+.tram-card{border-bottom:1px solid var(--borde);cursor:pointer;transition:background .12s;margin-bottom:0;border-radius:0;border-left:3px solid transparent}
 .tram-card:last-child{border-bottom:none}
-.tram-card:hover{background:#f5f8ff;transform:none;box-shadow:none}
-.tram-head{display:flex;align-items:center;gap:11px;padding:.5rem 1rem;min-height:40px;user-select:none}
-.tram-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .2s}
+.tram-card:hover{background:#f4f7ff}
+.tram-card.s-op{border-left-color:var(--verde)}
+.tram-card.s-proc{border-left-color:var(--ambar)}
+.tram-card.s-ni{border-left-color:#dc2626}
+.tram-head{display:flex;align-items:center;gap:12px;padding:.6rem 1rem .6rem .85rem;min-height:46px;user-select:none}
+.tram-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;transition:background .2s}
 .tram-dot.op{background:var(--verde)}
 .tram-dot.proc{background:var(--ambar)}
 .tram-dot.ni{background:#dc2626}
-.tram-info{flex:1;min-width:0;display:flex;align-items:center;gap:9px}
-.tram-name{flex:1;font-size:12.5px;font-weight:600;color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
-.tram-inst-tag{font-size:10px;font-weight:700;color:var(--azul-m);background:var(--azul-c);padding:2px 8px;border-radius:5px;white-space:nowrap;flex-shrink:0;letter-spacing:.02em}
-.tram-pbar-wrap{display:flex;align-items:center;gap:7px;flex-shrink:0;width:130px}
-.tram-pbar-track{flex:1;height:4px;background:#dde4f0;border-radius:2px;overflow:hidden}
-.tram-pbar-fill{height:100%;border-radius:2px;background:var(--azul-m);transition:width .4s}
-.tram-pct{font-size:11px;font-weight:700;color:var(--muted);min-width:28px;text-align:right}
-.tram-arrow{font-size:15px;color:#c8d5e8;flex-shrink:0;transition:color .1s;line-height:1}
+.tram-info{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
+.tram-name{flex:1;min-width:0;font-size:13px;font-weight:600;color:#1e2a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;letter-spacing:-.01em}
+.tram-inst-tag{font-size:10px;font-weight:700;color:var(--azul-m);background:var(--azul-c);padding:2px 9px;border-radius:5px;white-space:nowrap;flex-shrink:0;letter-spacing:.03em}
+.tram-pbar-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0;width:130px}
+.tram-pbar-track{flex:1;height:5px;background:#e4eaf5;border-radius:3px;overflow:hidden}
+.tram-pbar-fill{height:100%;border-radius:3px;background:var(--azul-m);transition:width .4s}
+.tram-pct{font-size:11px;font-weight:700;color:#8a97aa;min-width:30px;text-align:right}
+.tram-arrow{font-size:14px;color:#c4d0e2;flex-shrink:0;transition:color .12s;line-height:1;font-weight:300}
 .tram-card:hover .tram-arrow{color:var(--azul-m)}
 
 /* Badge (solo modal) */
@@ -514,7 +518,7 @@ function renderTramite(r, showInst){
   const bcls=badgeCls(estado);
   const color=pctColor(pct);
 
-  return `<div class="tram-card" id="tc-${r.id}" onclick="openModal(${r.id})">
+  return `<div class="tram-card s-${bcls}" id="tc-${r.id}" onclick="openModal(${r.id})">
     <div class="tram-head">
       <div class="tram-dot ${bcls}" id="dot-${r.id}"></div>
       <div class="tram-info">
@@ -640,6 +644,8 @@ function toggleStage(id,idx){
   if(pctLbl){pctLbl.textContent=pctP+'%';}
   const dot=document.getElementById('dot-'+id);
   if(dot){dot.className='tram-dot '+bcls;}
+  const card=document.getElementById('tc-'+id);
+  if(card){card.className='tram-card s-'+bcls;}
 
   showSaved(id);
   refreshStats();
