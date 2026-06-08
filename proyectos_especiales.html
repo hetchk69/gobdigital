@@ -1295,48 +1295,251 @@ function buildTexto(){
 
 // ── PDF ───────────────────────────────────────────────────────
 async function descargarPDF(){
+  if(!currentId){ alert('Abra un evento primero.'); return; }
   var datos={}; try{ datos=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
-  var txt=window._lastTxt||buildTexto();
+  var cap=datos.cap||{};
   var foto1=_foto1_url||'', foto2=_foto2_url||'';
-  if(foto1 && !foto1.startsWith('data:')) foto1=(await urlToBase64(foto1))||'';
-  if(foto2 && !foto2.startsWith('data:')) foto2=(await urlToBase64(foto2))||'';
-  generarPDF(txt,gv('g-inst')||datos.institucion_beneficiaria||'',gv('g-fecha'),foto1,gv('f1-desc'),foto2,gv('f2-desc'));
+  if(foto1&&!foto1.startsWith('data:')) foto1=(await urlToBase64(foto1))||'';
+  if(foto2&&!foto2.startsWith('data:')) foto2=(await urlToBase64(foto2))||'';
+  var tipo=gv('g-tipo')||datos.tipo_cap||'';
+  if(tipo==='Otro') tipo=gv('g-tipo-otro')||datos.tipo_cap_otro||tipo;
+  var modal=gv('g-modalidad')||datos.modalidad||'';
+  if(modal==='Otro') modal=gv('g-modalidad-otro')||datos.modalidad_otro||modal;
+  generarPDFProfesional({
+    titulo:gv('g-titulo')||(currentReunion&&currentReunion.titulo)||'',
+    fecha:gv('g-fecha')||(currentReunion&&currentReunion.fecha)||'',
+    hora:gv('g-hora')||(currentReunion&&currentReunion.hora)||'',
+    lugar:gv('g-lugar')||(currentReunion&&currentReunion.lugar)||'',
+    duracion:gv('g-duracion')||cap.duracion||'',
+    inst:gv('g-inst')||datos.institucion_beneficiaria||'',
+    tipo:tipo, modalidad:modal,
+    memAgenda:gv('mem-agenda')||cap.mem_agenda||'',
+    memDesarrollo:gv('mem-desarrollo')||cap.mem_desarrollo||'',
+    acuerdos:getAcuerdos(), docs:gv('docs-recursos')||cap.docs_recursos||'',
+    esCap:getEsCap(), cap:cap, participantes:asisCache||[],
+    valDiger:gv('val-diger')||cap.val_diger||'',
+    valInst:gv('val-inst')||cap.val_inst||'',
+    foto1:foto1, foto1desc:gv('f1-desc')||cap.foto1_desc||'',
+    foto2:foto2, foto2desc:gv('f2-desc')||cap.foto2_desc||''
+  });
 }
 
 function normP(str){ return String(str||'').replace(/[ÁÀÄÂÃ]/g,'A').replace(/[áàäâã]/g,'a').replace(/[ÉÈËÊ]/g,'E').replace(/[éèëê]/g,'e').replace(/[ÍÌÏÎ]/g,'I').replace(/[íìïî]/g,'i').replace(/[ÓÒÖÔÕ]/g,'O').replace(/[óòöôõ]/g,'o').replace(/[ÚÙÜÛ]/g,'U').replace(/[úùüû]/g,'u').replace(/[Ñ]/g,'N').replace(/[ñ]/g,'n').replace(/[—–]/g,'-'); }
 
-function generarPDF(texto,inst,fecha,foto1,foto1desc,foto2,foto2desc){
+function generarPDFProfesional(d){
   var jsPDFLib=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
-  if(!jsPDFLib){ descTxt(texto,inst,fecha); return; }
+  if(!jsPDFLib){ alert('Error: jsPDF no disponible.'); return; }
   try{
     var doc=new jsPDFLib({orientation:'portrait',unit:'mm',format:'letter'});
-    var pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight(),mg=18,cw=pw-mg*2,y=0,pg=1;
-    function hdr(){ doc.setFillColor(10,45,110);doc.rect(0,0,pw,22,'F');doc.setFillColor(13,140,160);doc.rect(0,22,pw,3,'F');doc.setTextColor(255,255,255);doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text('GOBIERNO DE LA REPUBLICA DE HONDURAS',pw/2,8,{align:'center'});doc.setFontSize(7);doc.setFont('helvetica','normal');doc.text('Direccion de Gestion por Resultados (DIGER)',pw/2,14,{align:'center'});doc.setFontSize(6.5);doc.setTextColor(180,200,230);doc.text('Pag '+pg,pw-mg,ph-8,{align:'right'});doc.setTextColor(150,160,180);doc.text('DIGER - Registro de Capacitaciones',mg,ph-8);y=30; }
-    function ckPg(n){ if(y+n>ph-14){doc.addPage();pg++;hdr();} }
-    function secBar(t,rgb){ ckPg(10);doc.setFillColor(rgb[0],rgb[1],rgb[2]);doc.rect(mg,y,cw,7,'F');doc.setFillColor(13,140,160);doc.rect(mg,y,3,7,'F');doc.setTextColor(255,255,255);doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.text(normP(t),mg+5,y+5);y+=9;doc.setTextColor(30,30,30); }
-    function rLine(item){ var ls=doc.splitTextToSize(normP(item),cw-4),bh=ls.length*4.8+3;ckPg(bh+1);doc.setFillColor(248,251,255);doc.rect(mg,y,cw,bh,'F');doc.setDrawColor(210,220,238);doc.setLineWidth(0.15);doc.rect(mg,y,cw,bh,'S');doc.setFontSize(7.8);doc.setFont('helvetica','normal');doc.setTextColor(35,35,35);doc.text(ls,mg+3,y+4.2);y+=bh; }
-    hdr();
-    doc.setTextColor(10,45,110);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text('REGISTRO DE CAPACITACIONES - DIGER',pw/2,y,{align:'center'});y+=5;doc.setDrawColor(13,140,160);doc.setLineWidth(0.5);doc.line(mg,y,pw-mg,y);y+=7;
-    var SECS={'GENERALES':[10,45,110],'CAPACITACION':[20,85,164],'PARTICIPANTES':[13,140,160],'MEMORIAS':[80,30,120],'DOCUMENTOS':[60,100,160],'RESULTADOS':[16,100,60],'VALIDACION':[120,60,20]};
-    texto.split('\n').forEach(function(line){ if(!line.trim()||line.match(/^={5,}/)||line.match(/^-{5,}/))return; var nu=normP(line).trim().toUpperCase(),sk=Object.keys(SECS).find(function(k){return nu.indexOf(k)>=0&&nu.length<70;}); if(sk){y+=2;secBar(line,SECS[sk]);y+=1;}else{rLine(line);} });
-    ckPg(14);y+=5;doc.setDrawColor(200,213,238);doc.setLineWidth(0.3);doc.line(mg,y,pw-mg,y);y+=5;doc.setFontSize(7);doc.setFont('helvetica','italic');doc.setTextColor(150,160,180);doc.text('Generado por el Sistema DIGER - Plataforma SOL',pw/2,y,{align:'center'});
-    // Evidencia fotografica
-    if(foto1||foto2){
-      doc.addPage(); pg++; hdr();
-      y+=3; secBar('EVIDENCIA FOTOGRAFICA',[80,30,120]); y+=4;
-      var fW=Math.floor((cw-8)/2), fH=68;
-      function tryImg(src,desc,xp){
-        try{
-          var fmt=src.startsWith('data:image/png')?'PNG':'JPEG';
-          doc.addImage(src,fmt,xp,y,fW,fH);
-          if(desc){ doc.setFontSize(7);doc.setFont('helvetica','italic');doc.setTextColor(80,80,80);doc.text(normP(desc),xp+fW/2,y+fH+4,{align:'center'});doc.setTextColor(30,30,30); }
-        }catch(e){}
-      }
-      if(foto1) tryImg(foto1,foto1desc,mg);
-      if(foto2) tryImg(foto2,foto2desc,mg+fW+8);
+    var PW=215.9,PH=279.4,ML=20,MR=20,CW=PW-ML-MR;
+    var y=26,pg=1;
+    var CA=[10,45,110],CM=[20,85,164],CT=[13,140,160],CN=[26,26,26],CG=[100,116,139],CB=[210,220,238],CR=[248,250,252];
+
+    function pageBands(){
+      doc.setFillColor(CA[0],CA[1],CA[2]); doc.rect(0,0,PW,18,'F');
+      doc.setFillColor(CT[0],CT[1],CT[2]); doc.rect(0,18,PW,2.5,'F');
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+      doc.text('GOBIERNO DE LA REPUBLICA DE HONDURAS',PW/2,7.5,{align:'center'});
+      doc.setFontSize(7); doc.setFont('helvetica','normal');
+      doc.text('Direccion de Gestion por Resultados (DIGER)',PW/2,13.5,{align:'center'});
+      doc.setFontSize(6.5); doc.setFont('helvetica','italic'); doc.setTextColor(160,170,190);
+      doc.text('DIGER - Registro de Reunion',ML,PH-7);
+      doc.text('Pag '+pg,PW-MR,PH-7,{align:'right'});
+      y=26; doc.setTextColor(CN[0],CN[1],CN[2]);
     }
-    doc.save('Capacitacion_'+normP(inst||'cap').replace(/[\s\/]/g,'_').substring(0,28)+'_'+(fecha||new Date().toISOString().split('T')[0])+'.pdf');
-  }catch(e){ descTxt(texto,inst,fecha); }
+    function newPage(){ doc.addPage(); pg++; pageBands(); }
+    function ckPg(n){ if(y+n>PH-14) newPage(); }
+
+    pageBands();
+    y+=4;
+
+    // Title block
+    doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(CA[0],CA[1],CA[2]);
+    var tlines=doc.splitTextToSize(normP(d.titulo||'Registro de Reunion'),CW);
+    doc.text(tlines,PW/2,y,{align:'center'}); y+=tlines.length*6+2;
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(CG[0],CG[1],CG[2]);
+    var sub=normP(d.inst||'')+(d.fecha?'   ·   '+d.fecha:'')+(d.hora&&d.hora!=='—'?'   '+d.hora:'');
+    doc.text(sub,PW/2,y,{align:'center'}); y+=4;
+    doc.setDrawColor(CT[0],CT[1],CT[2]); doc.setLineWidth(0.7); doc.line(ML,y,PW-MR,y); y+=8;
+
+    // Section numbering
+    var sn=0;
+    function sec(title){
+      sn++; ckPg(14); y+=2;
+      doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(CM[0],CM[1],CM[2]);
+      var st=sn+'. '+normP(title);
+      doc.text(st,ML,y); y+=1.5;
+      doc.setDrawColor(CM[0],CM[1],CM[2]); doc.setLineWidth(0.25);
+      doc.line(ML,y,ML+doc.getTextWidth(st),y); y+=5;
+      doc.setTextColor(CN[0],CN[1],CN[2]);
+    }
+
+    // Paragraph (multi-paragraph aware)
+    function para(txt,xOff){
+      if(!txt||!txt.trim()||txt==='—') return;
+      var x=ML+(xOff||0),w=CW-(xOff||0);
+      normP(txt).split(/\n+/).forEach(function(p){
+        p=p.trim(); if(!p) return;
+        doc.splitTextToSize(p,w).forEach(function(l){
+          ckPg(5.5); doc.setFontSize(9.5); doc.setFont('helvetica','normal');
+          doc.setTextColor(CN[0],CN[1],CN[2]); doc.text(l,x,y); y+=4.8;
+        });
+        y+=1.5;
+      });
+    }
+
+    // Label: value
+    function lvRow(lbl,val){
+      if(!val||val==='—'||!String(val).trim()) return;
+      ckPg(6);
+      doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(CM[0],CM[1],CM[2]);
+      var lt=normP(lbl)+': '; var lw2=doc.getTextWidth(lt);
+      doc.text(lt,ML,y);
+      doc.setFont('helvetica','normal'); doc.setTextColor(CN[0],CN[1],CN[2]);
+      var vls=doc.splitTextToSize(normP(String(val)),CW-lw2-1);
+      doc.text(vls[0]||'',ML+lw2,y);
+      for(var vi=1;vi<vls.length;vi++){ y+=4.5; ckPg(5); doc.text(vls[vi],ML+lw2,y); }
+      y+=5;
+    }
+
+    // ── 1. Datos Generales ─────────────────────────────────────
+    sec('Datos Generales');
+    lvRow('Fecha',d.fecha+(d.hora&&d.hora!=='—'?'  ·  '+d.hora:''));
+    lvRow('Modalidad',d.modalidad+(d.duracion&&d.duracion.trim()&&d.duracion!=='—'?'  ·  Duracion: '+d.duracion:''));
+    lvRow('Lugar',d.lugar);
+    lvRow('Institucion',d.inst);
+    lvRow('Tipo de evento',d.tipo);
+    y+=2;
+
+    // ── 2. Participantes ───────────────────────────────────────
+    sec('Participantes');
+    if(d.participantes&&d.participantes.length>0){
+      d.participantes.forEach(function(p,i){
+        ckPg(7);
+        var row=normP(p.nombre||'')+(p.cargo&&p.cargo!=='—'?' - '+normP(p.cargo):'')+(p.institucion&&p.institucion!=='—'?'  ('+normP(p.institucion)+')':'');
+        var ls=doc.splitTextToSize(row,CW-9);
+        doc.setFontSize(9.5); doc.setFont('helvetica','bold'); doc.setTextColor(CM[0],CM[1],CM[2]);
+        doc.text((i+1)+'.',ML,y);
+        doc.setFont('helvetica','normal'); doc.setTextColor(CN[0],CN[1],CN[2]);
+        ls.forEach(function(l,li){ ckPg(5.5); doc.text(l,ML+7,y); y+=4.8; });
+      });
+    } else {
+      doc.setFontSize(9); doc.setFont('helvetica','italic'); doc.setTextColor(CG[0],CG[1],CG[2]);
+      doc.text('(Sin registros de asistencia capturados)',ML,y); y+=6;
+    }
+    y+=3;
+
+    // ── 3. Objetivo ────────────────────────────────────────────
+    if(d.memAgenda&&d.memAgenda.trim()){ sec('Objetivo de la Reunion'); para(d.memAgenda); y+=2; }
+
+    // ── 4. Desarrollo ──────────────────────────────────────────
+    if(d.memDesarrollo&&d.memDesarrollo.trim()){ sec('Desarrollo de la Reunion'); para(d.memDesarrollo); y+=2; }
+
+    // ── 5. Acuerdos y Compromisos (tabla) ─────────────────────
+    if(d.acuerdos&&d.acuerdos.length>0){
+      sec('Acuerdos y Compromisos');
+      var noW=12,compW=86,respW=44,plazoW=CW-noW-compW-respW;
+      ckPg(10);
+      doc.setFillColor(CA[0],CA[1],CA[2]); doc.rect(ML,y,CW,8,'F');
+      doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+      doc.text('No.',ML+noW/2,y+5.5,{align:'center'});
+      doc.text('Acuerdo / Compromiso',ML+noW+3,y+5.5);
+      doc.text('Responsable',ML+noW+compW+3,y+5.5);
+      doc.text('Plazo',ML+noW+compW+respW+3,y+5.5);
+      y+=8;
+      d.acuerdos.forEach(function(a,ai){
+        var cL=doc.splitTextToSize(normP(a.compromiso||'—'),compW-5);
+        var rL=doc.splitTextToSize(normP(a.responsable||'—'),respW-5);
+        var pL=doc.splitTextToSize(normP(a.plazo||'—'),plazoW-4);
+        var maxL=Math.max(cL.length,rL.length,pL.length,1);
+        var rH=maxL*4.5+5;
+        ckPg(rH+2);
+        if(ai%2===0){ doc.setFillColor(CR[0],CR[1],CR[2]); doc.rect(ML,y,CW,rH,'F'); }
+        doc.setDrawColor(CB[0],CB[1],CB[2]); doc.setLineWidth(0.15);
+        doc.rect(ML,y,CW,rH,'S');
+        doc.line(ML+noW,y,ML+noW,y+rH);
+        doc.line(ML+noW+compW,y,ML+noW+compW,y+rH);
+        doc.line(ML+noW+compW+respW,y,ML+noW+compW+respW,y+rH);
+        doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(CA[0],CA[1],CA[2]);
+        doc.text(String(ai+1),ML+noW/2,y+rH/2+1.5,{align:'center'});
+        doc.setFont('helvetica','normal'); doc.setTextColor(CN[0],CN[1],CN[2]); doc.setFontSize(8.5);
+        cL.forEach(function(l,li){ doc.text(l,ML+noW+3,y+4.5+li*4.5); });
+        rL.forEach(function(l,li){ doc.text(l,ML+noW+compW+3,y+4.5+li*4.5); });
+        pL.forEach(function(l,li){ doc.text(l,ML+noW+compW+respW+3,y+4.5+li*4.5); });
+        y+=rH;
+      });
+      y+=6;
+    }
+
+    // ── 6. Documentos ──────────────────────────────────────────
+    if(d.docs&&d.docs.trim()&&d.docs!=='—'){ sec('Documentos y Recursos'); para(d.docs); y+=2; }
+
+    // ── 7. Resultados (solo cap. plataforma) ───────────────────
+    if(d.esCap&&d.cap){
+      var c=d.cap;
+      sec('Resultados de la Capacitacion');
+      var stats=[['Convocados',c.r_convocados],['Asistentes',c.r_asistentes],['% Asistencia',c.r_pct],['Satisfaccion',c.r_satisfaccion?c.r_satisfaccion+'%':null]].filter(function(r){ return r[1]&&r[1]!=='—'&&String(r[1]).trim(); });
+      stats.forEach(function(r,ri){
+        ckPg(7); if(ri%2===0){ doc.setFillColor(CR[0],CR[1],CR[2]); doc.rect(ML,y,CW,6,'F'); }
+        doc.setDrawColor(CB[0],CB[1],CB[2]); doc.setLineWidth(0.15); doc.rect(ML,y,CW,6,'S');
+        doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(CM[0],CM[1],CM[2]); doc.text(normP(r[0]),ML+3,y+4.2);
+        doc.setFont('helvetica','normal'); doc.setTextColor(CN[0],CN[1],CN[2]); doc.text(normP(String(r[1])),ML+CW/2,y+4.2); y+=6;
+      });
+      y+=3;
+      var coms=(c.compromisos||[]).filter(function(x){ return x&&x.trim(); });
+      if(coms.length){
+        doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(CM[0],CM[1],CM[2]);
+        doc.text('Compromisos / Proximos pasos:',ML,y); y+=5;
+        coms.forEach(function(co,ci){
+          ckPg(6); doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(CN[0],CN[1],CN[2]);
+          doc.splitTextToSize((ci+1)+'.  '+normP(co),CW-8).forEach(function(l){ ckPg(5.5); doc.text(l,ML+5,y); y+=4.8; });
+        });
+        y+=3;
+      }
+    }
+
+    // ── 8. Evidencia Fotografica ───────────────────────────────
+    if(d.foto1||d.foto2){
+      sec('Evidencia Fotografica');
+      var fW=(CW-8)/2,fH=Math.round(fW*0.65);
+      ckPg(fH+14);
+      if(d.foto1){ try{ doc.addImage(d.foto1,d.foto1.startsWith('data:image/png')?'PNG':'JPEG',ML,y,fW,fH); }catch(e){} if(d.foto1desc){ doc.setFontSize(7.5);doc.setFont('helvetica','italic');doc.setTextColor(CG[0],CG[1],CG[2]);doc.text(normP(d.foto1desc),ML+fW/2,y+fH+4,{align:'center'}); } }
+      if(d.foto2){ try{ doc.addImage(d.foto2,d.foto2.startsWith('data:image/png')?'PNG':'JPEG',ML+fW+8,y,fW,fH); }catch(e){} if(d.foto2desc){ doc.setFontSize(7.5);doc.setFont('helvetica','italic');doc.setTextColor(CG[0],CG[1],CG[2]);doc.text(normP(d.foto2desc),ML+fW+8+fW/2,y+fH+4,{align:'center'}); } }
+      y+=fH+(d.foto1desc||d.foto2desc?10:6)+4;
+    }
+
+    // ── 9. Validacion ──────────────────────────────────────────
+    if(d.valDiger||d.valInst){
+      sec('Validacion y Aprobacion');
+      ckPg(38);
+      var bW=(CW-8)/2,bH=32,y0=y;
+      doc.setFillColor(CA[0],CA[1],CA[2]); doc.rect(ML,y0,bW,8,'F');
+      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+      doc.text('Responsable DIGER',ML+bW/2,y0+5.5,{align:'center'});
+      doc.setDrawColor(CB[0],CB[1],CB[2]); doc.setLineWidth(0.25); doc.rect(ML,y0,bW,bH,'S');
+      if(d.valDiger){ doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(CN[0],CN[1],CN[2]); var vdL=doc.splitTextToSize(normP(d.valDiger),bW-6); vdL.forEach(function(l,li){ doc.text(l,ML+3,y0+13+li*4.5); }); }
+      doc.setDrawColor(180,190,210); doc.setLineWidth(0.2); doc.line(ML+6,y0+26,ML+bW-6,y0+26);
+      doc.setFontSize(6.5); doc.setFont('helvetica','italic'); doc.setTextColor(CG[0],CG[1],CG[2]); doc.text('Firma y sello',ML+bW/2,y0+30,{align:'center'});
+      var xr=ML+bW+8;
+      doc.setFillColor(CT[0],CT[1],CT[2]); doc.rect(xr,y0,bW,8,'F');
+      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+      doc.text('Representante Institucional',xr+bW/2,y0+5.5,{align:'center'});
+      doc.setDrawColor(CB[0],CB[1],CB[2]); doc.setLineWidth(0.25); doc.rect(xr,y0,bW,bH,'S');
+      if(d.valInst){ doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(CN[0],CN[1],CN[2]); var viL=doc.splitTextToSize(normP(d.valInst),bW-6); viL.forEach(function(l,li){ doc.text(l,xr+3,y0+13+li*4.5); }); }
+      doc.setDrawColor(180,190,210); doc.setLineWidth(0.2); doc.line(xr+6,y0+26,xr+bW-6,y0+26);
+      doc.setFontSize(6.5); doc.setFont('helvetica','italic'); doc.setTextColor(CG[0],CG[1],CG[2]); doc.text('Firma y sello',xr+bW/2,y0+30,{align:'center'});
+      y=y0+bH+8;
+    }
+
+    // Footer line
+    ckPg(14); y+=5;
+    doc.setDrawColor(CT[0],CT[1],CT[2]); doc.setLineWidth(0.4); doc.line(ML,y,PW-MR,y); y+=5;
+    doc.setFontSize(7.5); doc.setFont('helvetica','italic'); doc.setTextColor(CG[0],CG[1],CG[2]);
+    doc.text('Generado por el Sistema DIGER - Plataforma SOL',PW/2,y,{align:'center'});
+
+    doc.save('Registro_'+normP(d.inst||'DIGER').replace(/[\s\/]/g,'_').substring(0,22)+'_'+(d.fecha||new Date().toISOString().split('T')[0])+'.pdf');
+  }catch(e){ console.error('PDF error:',e); alert('Error al generar PDF. Verifique la consola.'); }
 }
 
 function descTxt(txt,inst,fecha){ var a=document.createElement('a'); a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt); a.download='Capacitacion_'+((inst||'cap').replace(/[\s\/]/g,'_').substring(0,28))+'_'+(fecha||'')+'.txt'; a.click(); }
