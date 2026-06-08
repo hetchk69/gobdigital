@@ -273,6 +273,8 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
 .hist-badge.proc{background:#fef3c7;color:#b45309}
 .hist-badge.ni{background:#fee2e2;color:#b91c1c}
 .hist-arrow{font-size:18px;color:#c8d5ee;flex-shrink:0}
+.hist-del{padding:6px 10px;background:#fff;border:1.5px solid #e2e8f0;color:#9aadcc;border-radius:8px;font-size:13px;cursor:pointer;flex-shrink:0;transition:all .2s;line-height:1}
+.hist-del:hover{border-color:#dc2626;color:#dc2626;background:#fff5f5}
 .hist-empty{text-align:center;padding:3rem 1rem;color:#9aadcc}
 .hist-empty .ico{font-size:40px;margin-bottom:.75rem}
 .hist-empty p{font-size:14px}
@@ -1097,6 +1099,7 @@ function renderHistorial(){
           '<span>'+fecha+'</span>'+
         '</div>'+
       '</div>'+
+      '<button class="hist-del" onclick="eliminarLevantamiento(event,\''+h.id+'\')">✕</button>'+
       '<div class="hist-arrow">›</div>'+
     '</div>';
   }).join('');
@@ -1111,6 +1114,14 @@ function mostrarFormulario(){
 function verHistorial(){
   document.getElementById('form-view').style.display = 'none';
   document.getElementById('hist-view').style.display = 'block';
+  renderHistorial();
+}
+
+function eliminarLevantamiento(ev, id){
+  ev.stopPropagation();
+  if(!confirm('¿Eliminar este levantamiento? Esta acción no se puede deshacer.')) return;
+  var hist = loadHist().filter(function(h){ return h.id !== id; });
+  saveHist(hist);
   renderHistorial();
 }
 
