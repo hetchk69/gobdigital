@@ -543,7 +543,8 @@ input[type=file].hidden{display:none}
           <tr>
             <th style="width:36px">N°</th>
             <th>Compromiso</th>
-            <th style="width:175px">Responsable</th>
+            <th style="width:155px">Responsable</th>
+            <th style="width:120px">Fecha / Plazo</th>
             <th style="width:32px"></th>
           </tr>
         </thead>
@@ -1160,17 +1161,17 @@ async function urlToBase64(url){
 
 // ── ACUERDOS ──────────────────────────────────────────────────
 var acuerdoIdx = 0;
-function addAcuerdo(compromiso, responsable){
+function addAcuerdo(compromiso, responsable, plazo){
   acuerdoIdx++;
-  var id = acuerdoIdx;
   var tbody = document.getElementById('acuerdos-tbody');
   var num = tbody.rows.length + 1;
   var tr = document.createElement('tr');
-  tr.setAttribute('data-acid', id);
+  tr.setAttribute('data-acid', acuerdoIdx);
   tr.innerHTML =
     '<td class="ac-num">' + num + '</td>' +
     '<td><input data-field="comp" placeholder="Descripción del compromiso" value="' + esc(compromiso||'') + '"></td>' +
     '<td><input data-field="resp" placeholder="Nombre del responsable" value="' + esc(responsable||'') + '"></td>' +
+    '<td><input data-field="plazo" type="date" value="' + esc(plazo||'') + '" style="font-size:11.5px"></td>' +
     '<td style="text-align:center;padding:4px"><button class="btn-danger" style="padding:2px 7px;font-size:11px;line-height:1" onclick="removeAcuerdo(this)">×</button></td>';
   tbody.appendChild(tr);
 }
@@ -1185,7 +1186,8 @@ function getAcuerdos(){
   return Array.from(document.getElementById('acuerdos-tbody').rows).map(function(r){
     return {
       compromiso: (r.querySelector('[data-field="comp"]').value||'').trim(),
-      responsable: (r.querySelector('[data-field="resp"]').value||'').trim()
+      responsable: (r.querySelector('[data-field="resp"]').value||'').trim(),
+      plazo: (r.querySelector('[data-field="plazo"]').value||'').trim()
     };
   }).filter(function(a){ return a.compromiso || a.responsable; });
 }
@@ -1193,7 +1195,7 @@ function setAcuerdos(list){
   document.getElementById('acuerdos-tbody').innerHTML = '';
   acuerdoIdx = 0;
   var arr = Array.isArray(list) ? list : [];
-  arr.forEach(function(a){ addAcuerdo(a.compromiso, a.responsable); });
+  arr.forEach(function(a){ addAcuerdo(a.compromiso, a.responsable, a.plazo); });
   if(acuerdoIdx === 0) addAcuerdo();
 }
 
@@ -1260,7 +1262,7 @@ function buildTexto(){
   var esCap=getEsCap();
   var contLn=''; for(var j=1;j<=contN;j++){ var pt=gv('cont'+j); if(pt) contLn+='  '+j+'. '+pt+'\n'; }
   var acuerdosLn=''; var acs=getAcuerdos();
-  if(acs.length){ acs.forEach(function(a,i){ acuerdosLn+='  '+(i+1)+'. '+a.compromiso+(a.responsable?' (Responsable: '+a.responsable+')':'')+'\n'; }); }
+  if(acs.length){ acs.forEach(function(a,i){ acuerdosLn+='  '+(i+1)+'. '+a.compromiso+(a.responsable?' | Responsable: '+a.responsable:'')+(a.plazo?' | Plazo: '+a.plazo:'')+'\n'; }); }
   else { acuerdosLn='  —\n'; }
   var txt='REGISTRO INSTITUCIONAL - DIGER\n=============================================================\n\n';
   txt+='GENERALES\n-------------------------------------------------------------\n'+
