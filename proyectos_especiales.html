@@ -1412,20 +1412,46 @@ function generarPDFProfesional(d){
     // ── 2. Participantes ───────────────────────────────────────
     sec('Participantes');
     if(d.participantes&&d.participantes.length>0){
+      var pNoW=10,pNomW=50,pCrgW=38,pInstW=42,pCorW=CW-pNoW-pNomW-pCrgW-pInstW;
+      // Header row
+      ckPg(10);
+      doc.setFillColor(CA[0],CA[1],CA[2]); doc.rect(ML,y,CW,7,'F');
+      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+      doc.text('N°',ML+pNoW/2,y+4.8,{align:'center'});
+      doc.text('Nombre',ML+pNoW+2,y+4.8);
+      doc.text('Cargo',ML+pNoW+pNomW+2,y+4.8);
+      doc.text('Institucion',ML+pNoW+pNomW+pCrgW+2,y+4.8);
+      doc.text('Correo',ML+pNoW+pNomW+pCrgW+pInstW+2,y+4.8);
+      y+=7;
       d.participantes.forEach(function(p,i){
-        ckPg(7);
-        var row=normP(p.nombre||'')+(p.cargo&&p.cargo!=='—'?' - '+normP(p.cargo):'')+(p.institucion&&p.institucion!=='—'?'  ('+normP(p.institucion)+')':'');
-        var ls=doc.splitTextToSize(row,CW-9);
-        doc.setFontSize(9.5); doc.setFont('helvetica','bold'); doc.setTextColor(CM[0],CM[1],CM[2]);
-        doc.text((i+1)+'.',ML,y);
+        var nL=doc.splitTextToSize(normP(p.nombre||'—'),pNomW-3);
+        var cL=doc.splitTextToSize(normP(p.cargo||'—'),pCrgW-3);
+        var iL=doc.splitTextToSize(normP(p.institucion||'—'),pInstW-3);
+        var eL=doc.splitTextToSize(normP(p.correo||p.email||'—'),pCorW-3);
+        var maxL=Math.max(nL.length,cL.length,iL.length,eL.length,1);
+        var rH=maxL*4.3+4;
+        ckPg(rH+2);
+        if(i%2===0){ doc.setFillColor(CR[0],CR[1],CR[2]); doc.rect(ML,y,CW,rH,'F'); }
+        doc.setDrawColor(CB[0],CB[1],CB[2]); doc.setLineWidth(0.15);
+        doc.rect(ML,y,CW,rH,'S');
+        doc.line(ML+pNoW,y,ML+pNoW,y+rH);
+        doc.line(ML+pNoW+pNomW,y,ML+pNoW+pNomW,y+rH);
+        doc.line(ML+pNoW+pNomW+pCrgW,y,ML+pNoW+pNomW+pCrgW,y+rH);
+        doc.line(ML+pNoW+pNomW+pCrgW+pInstW,y,ML+pNoW+pNomW+pCrgW+pInstW,y+rH);
+        doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(CA[0],CA[1],CA[2]);
+        doc.text(String(i+1),ML+pNoW/2,y+rH/2+1.5,{align:'center'});
         doc.setFont('helvetica','normal'); doc.setTextColor(CN[0],CN[1],CN[2]);
-        ls.forEach(function(l,li){ ckPg(5.5); doc.text(l,ML+7,y); y+=4.8; });
+        nL.forEach(function(l,li){ doc.text(l,ML+pNoW+2,y+4+li*4.3); });
+        cL.forEach(function(l,li){ doc.text(l,ML+pNoW+pNomW+2,y+4+li*4.3); });
+        iL.forEach(function(l,li){ doc.text(l,ML+pNoW+pNomW+pCrgW+2,y+4+li*4.3); });
+        eL.forEach(function(l,li){ doc.setFontSize(7.5); doc.text(l,ML+pNoW+pNomW+pCrgW+pInstW+2,y+4+li*4.3); doc.setFontSize(8.5); });
+        y+=rH;
       });
     } else {
       doc.setFontSize(9); doc.setFont('helvetica','italic'); doc.setTextColor(CG[0],CG[1],CG[2]);
       doc.text('(Sin registros de asistencia capturados)',ML,y); y+=6;
     }
-    y+=3;
+    y+=4;
 
     // ── 3. Objetivo ────────────────────────────────────────────
     if(d.memAgenda&&d.memAgenda.trim()){ sec('Objetivo de la Reunion'); para(d.memAgenda); y+=2; }
