@@ -676,48 +676,6 @@ function goStep(n) {
   window.scrollTo(0,0);
 }
 
-function buildTexto() {
-  var inst = getVal('inst');
-  var tramites = DB[inst] || [];
-  var equipo = '';
-  for (var i = 1; i <= eqN; i++) {
-    var f = getVal('ef'+i), nm = getVal('en'+i), c = getVal('ec'+i);
-    if (f || nm || c) equipo += '  - ' + f + ' | ' + nm + ' | ' + c + '\n';
-  }
-  if (!equipo) equipo = '  (No registrado)\n';
-  var tTxt = '';
-  for (var i = 0; i < tramites.length; i++) {
-    tTxt += '- ' + tramites[i] + '\n';
-    tTxt += '  Acta: ' + checked('acta'+i) + ' | Mejoras: ' + checked('mej'+i) + ' | Instructivo: ' + checked('instr'+i) + ' | Socializacion: ' + checked('soc'+i) + '\n';
-    var ob = getVal('obs'+i);
-    if (ob) tTxt += '  Observaciones: ' + ob + '\n';
-    tTxt += '\n';
-  }
-  var fecha = new Date().toLocaleDateString('es-HN') + ' ' + new Date().toLocaleTimeString('es-HN');
-  return 'LEVANTAMIENTO DE TRAMITES - PLATAFORMA SOL\n' +
-    '==========================================\n\n' +
-    'HOJA 1 - INFORMACION GENERAL\n' +
-    '-----------------------------------------\n' +
-    'Institucion: ' + inst + '\n' +
-    'Encargado: ' + (getVal('enc')||'—') + '\n' +
-    'Correo: ' + (getVal('cor')||'—') + '\n' +
-    'Celular: ' + (getVal('cel')||'—') + '\n\n' +
-    'Estado actual de tramites: ' + getCheck('estado') + '\n' +
-    'SOL migrada a infraestructura: ' + getCheck('migrada') + '\n' +
-    'Personal tecnico capacitado: ' + getCheck('personal') + '\n' +
-    'Requiere acompanamiento: ' + getCheck('acomp') + '\n' +
-    'Habilidades requeridas: ' + (getVal('habilidades')||'—') + '\n\n' +
-    'Observaciones del estado actual:\n' + (getVal('obs-estado')||'—') + '\n\n' +
-    'Equipo institucional:\n' + equipo +
-    '==========================================\n\n' +
-    'HOJA 2 - CHECKLIST DE TRAMITES\n' +
-    '-----------------------------------------\n' +
-    tTxt +
-    '==========================================\n\n' +
-    'OBSERVACIONES GENERALES:\n' + (getVal('obs-gen')||'—') + '\n\n' +
-    'Enviado el ' + fecha;
-}
-
 function guardar() {
   var btn = document.getElementById('btnenviar');
   btn.textContent = 'Guardando...';
