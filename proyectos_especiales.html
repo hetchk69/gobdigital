@@ -807,6 +807,7 @@ async function renderLista(){
   var {data:counts} = await sb.from('asistencias').select('reunion_id');
   var cmap={};
   (counts||[]).forEach(function(r){ cmap[r.reunion_id]=(cmap[r.reunion_id]||0)+1; });
+  var _isAdm = _ses && _ses.role === 'admin';
   cont.innerHTML='<div class="reg-list">'+data.map(function(r){
     var datos={}; try{ datos=JSON.parse(r.tema||'{}'); }catch{}
     var tipoDisplay=datos.tipo_cap||''; if(tipoDisplay==='Otro'&&datos.tipo_cap_otro) tipoDisplay=datos.tipo_cap_otro;
@@ -815,6 +816,9 @@ async function renderLista(){
     if(r.fecha) metaParts.push('<span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'+esc(r.fecha)+(r.hora?' &nbsp;'+esc(r.hora):'')+'</span>');
     if(datos.institucion_beneficiaria) metaParts.push('<span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'+esc(datos.institucion_beneficiaria)+'</span>');
     if(modalDisplay) metaParts.push('<span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'+esc(modalDisplay)+'</span>');
+    var accionBtn = _isAdm
+      ? '<button class="btnp btn-sm" onclick="abrirEvento(\''+r.id+'\')">Abrir</button>'
+      : '<button class="btns btn-sm" id="pdf-btn-'+r.id+'" onclick="descargarPDFDirecto(\''+r.id+'\')">&#8595; Descargar PDF</button>';
     return '<div class="reg-item'+(r.activa?' activa':'')+'">'+
       '<div>'+
         '<div class="reg-badges">'+
@@ -824,9 +828,7 @@ async function renderLista(){
         '<div class="reg-titulo">'+esc(r.titulo)+'</div>'+
         '<div class="reg-meta">'+metaParts.join('<span class="sep">·</span>')+'</div>'+
       '</div>'+
-      '<div class="reg-actions">'+
-        '<button class="btnp btn-sm" onclick="abrirEvento(\''+r.id+'\')">Abrir</button>'+
-      '</div>'+
+      '<div class="reg-actions">'+accionBtn+'</div>'+
     '</div>';
   }).join('')+'</div>';
 }
@@ -1378,6 +1380,51 @@ async function descargarPDF(){
     foto2:foto2, foto2desc:gv('f2-desc')||cap.foto2_desc||'',
     logo:logo
   });
+}
+
+// ── PDF DIRECTO (sin abrir formulario — para usuarios institucionales) ──
+async function descargarPDFDirecto(id){
+  var btn=document.getElementById('pdf-btn-'+id);
+  if(btn){ btn.disabled=true; btn.textContent='Generando...'; }
+
+  var {data:r,error}=await sb.from('reuniones').select('*').eq('id',id).single();
+  if(error||!r){ alert('No se pudo cargar la reunión.'); if(btn){btn.disabled=false;btn.innerHTML='&#8595; Descargar PDF';} return; }
+
+  var {data:asis}=await sb.from('asistencias').select('*').eq('reunion_id',id);
+
+  var datos={}; try{ datos=JSON.parse(r.tema||'{}'); }catch{}
+  var cap=datos.cap||{};
+
+  var tipo=datos.tipo_cap||''; if(tipo==='Otro') tipo=datos.tipo_cap_otro||tipo;
+  var modal=datos.modalidad||''; if(modal==='Otro') modal=datos.modalidad_otro||modal;
+
+  var logo=await urlToBase64('logo_diger-14.png');
+  if(logo) logo=await comprimirParaPDF(logo,400,0.9);
+
+  var foto1=cap.foto1||'', foto2=cap.foto2||'';
+  if(foto1&&!foto1.startsWith('data:')) foto1=(await urlToBase64(foto1))||'';
+  if(foto2&&!foto2.startsWith('data:')) foto2=(await urlToBase64(foto2))||'';
+  if(foto1) foto1=await comprimirParaPDF(foto1,1200,0.80);
+  if(foto2) foto2=await comprimirParaPDF(foto2,1200,0.80);
+
+  generarPDFProfesional({
+    titulo:r.titulo||'',
+    fecha:r.fecha||'', hora:r.hora||'', lugar:r.lugar||'',
+    duracion:cap.duracion||'',
+    inst:datos.institucion_beneficiaria||'',
+    tipo:tipo, modalidad:modal,
+    memAgenda:cap.mem_agenda||'', memDesarrollo:cap.mem_desarrollo||'',
+    acuerdos:Array.isArray(cap.mem_acuerdos)?cap.mem_acuerdos:[],
+    docs:cap.docs_recursos||'',
+    esCap:!!cap.es_cap_plataforma, cap:cap,
+    participantes:asis||[],
+    valDiger:cap.val_diger||'', valInst:cap.val_inst||'',
+    foto1:foto1, foto1desc:cap.foto1_desc||'',
+    foto2:foto2, foto2desc:cap.foto2_desc||'',
+    logo:logo
+  });
+
+  if(btn){ btn.disabled=false; btn.innerHTML='&#8595; Descargar PDF'; }
 }
 
 function normP(str){ return String(str||'').replace(/[ÁÀÄÂÃ]/g,'A').replace(/[áàäâã]/g,'a').replace(/[ÉÈËÊ]/g,'E').replace(/[éèëê]/g,'e').replace(/[ÍÌÏÎ]/g,'I').replace(/[íìïî]/g,'i').replace(/[ÓÒÖÔÕ]/g,'O').replace(/[óòöôõ]/g,'o').replace(/[ÚÙÜÛ]/g,'U').replace(/[úùüû]/g,'u').replace(/[Ñ]/g,'N').replace(/[ñ]/g,'n').replace(/[—–]/g,'-'); }
