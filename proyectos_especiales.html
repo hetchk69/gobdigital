@@ -216,21 +216,21 @@ input[type=file].hidden{display:none}
 .pub-field input:focus{outline:none;border-color:#1455a4;background:#fff;box-shadow:0 0 0 3px rgba(20,85,164,.1)}
 
 /* ── PHONE INPUT ── */
-.tel-wrap{display:flex;gap:6px}
+.tel-wrap{display:flex;gap:6px;width:100%}
 .tel-cc{
-  padding:10px 8px;border:1.5px solid #e2e8f0;border-radius:9px;
+  padding:10px 4px 10px 8px;border:1.5px solid #e2e8f0;border-radius:9px;
   font-size:13px;font-family:inherit;background:#fafbfd;cursor:pointer;
-  min-width:108px;flex-shrink:0;outline:none;transition:border .2s;
+  width:88px;min-width:0;flex-shrink:0;outline:none;transition:border .2s;
 }
 .tel-cc:focus{border-color:#1455a4;background:#fff}
 .tel-num{
-  flex:1;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:9px;
+  flex:1;min-width:0;padding:10px 10px;border:1.5px solid #e2e8f0;border-radius:9px;
   font-size:14px;font-family:inherit;background:#fafbfd;outline:none;transition:border .2s;
 }
 .tel-num:focus{border-color:#1455a4;background:#fff;box-shadow:0 0 0 3px rgba(20,85,164,.1)}
 /* inside table cells */
-.tel-wrap.compact .tel-cc{padding:6px 7px;font-size:12px;min-width:96px}
-.tel-wrap.compact .tel-num{padding:6px 10px;font-size:12.5px}
+.tel-wrap.compact .tel-cc{padding:6px 2px 6px 6px;font-size:12px;width:80px}
+.tel-wrap.compact .tel-num{padding:6px 8px;font-size:12.5px}
 .pub-closed{background:#fff5f5;border:1.5px solid #fecaca;border-radius:12px;padding:1.5rem;text-align:center;color:#dc2626;font-weight:700}
 .pub-ok{text-align:center;padding:2rem 1rem}
 

@@ -109,15 +109,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   font-size:13px;font-family:inherit;outline:none;transition:border .2s;background:#f8fafd;
 }
 .mfield input:focus,.mfield select:focus{border-color:var(--azul-m);background:#fff}
-.tel-wrap{display:flex;gap:6px}
+.tel-wrap{display:flex;gap:6px;width:100%}
 .tel-cc{
-  padding:9px 8px;border:1.5px solid var(--borde);border-radius:9px;
+  padding:9px 4px 9px 8px;border:1.5px solid var(--borde);border-radius:9px;
   font-size:13px;font-family:inherit;background:#f8fafd;cursor:pointer;
-  min-width:108px;flex-shrink:0;outline:none;transition:border .2s;
+  width:88px;min-width:0;flex-shrink:0;outline:none;transition:border .2s;
 }
 .tel-cc:focus{border-color:var(--azul-m);background:#fff}
 .tel-num{
-  flex:1;padding:9px 12px;border:1.5px solid var(--borde);border-radius:9px;
+  flex:1;min-width:0;padding:9px 10px;border:1.5px solid var(--borde);border-radius:9px;
   font-size:13px;font-family:inherit;background:#f8fafd;outline:none;transition:border .2s;
 }
 .tel-num:focus{border-color:var(--azul-m);background:#fff}
