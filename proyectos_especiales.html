@@ -17,7 +17,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
 #view-list{display:block!important}
 #view-evento{position:fixed;inset:0;background:rgba(10,25,55,.55);z-index:300;overflow-y:auto;padding:20px 16px;display:none!important}
 #view-evento.active{display:block!important}
-.ev-modal-wrap{background:#fff;border-radius:14px;max-width:980px;width:100%;margin:0 auto 40px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.3)}
+.ev-modal-wrap{background:#fff;border-radius:14px;max-width:980px;width:100%;margin:0 auto 40px;box-shadow:0 24px 64px rgba(0,0,0,.3);overflow:clip}
+#view-evento .top-bar{background:linear-gradient(135deg,#0a2d6e,#1455a4);border-radius:14px 14px 0 0;padding:1rem 1.5rem;margin-bottom:0;gap:12px}
+#view-evento .top-bar .page-title{color:#fff;font-size:16px}
+#view-evento .top-bar .btns{color:#fff;border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.15)}
+#view-evento .top-bar .btns:hover{background:rgba(255,255,255,.28)}
+.ev-modal-footer{background:#f8fafd;border-top:1px solid #dde4f0;border-radius:0 0 14px 14px;padding:1rem 1.5rem;display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── LAYOUT ── */
@@ -612,11 +617,11 @@ input[type=file].hidden{display:none}
   <div class="err-msg" id="global-err" style="display:block"></div>
 
   <!-- BARRA FINAL DE ACCIONES -->
-  <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:.5rem;padding-bottom:2rem">
+  <div class="ev-modal-footer">
     <button class="btns" onclick="volverLista()">← Volver a lista</button>
-    <button class="btn-save-inline" onclick="guardarTodo()">💾 Guardar cambios</button>
-    <button class="btnp" onclick="descargarPDF()">⬇ PDF</button>
-    <button class="btn-success" id="btn-enviar2" onclick="enviarRegistro()">📤 Enviar registro</button>
+    <button class="btn-save-inline" onclick="guardarTodo()">Guardar cambios</button>
+    <button class="btnp" onclick="descargarPDF()">↓ PDF</button>
+    <button class="btn-success" id="btn-enviar2" onclick="enviarRegistro()">Enviar registro</button>
   </div>
 
 </div><!-- /ev-modal-wrap -->
