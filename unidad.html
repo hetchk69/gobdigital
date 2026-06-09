@@ -412,35 +412,23 @@ var UNITS = {
         desc:'Gestión de eventos, asistencia con QR, capacitaciones y memorias institucionales.',
         url:'proyectos_especiales.html',
         versiones: []
-      },
-      {
-        key:'estado_institucional',
-        label:'Estado Institucional',
-        icon:'clipboard',
-        tipo:'Seguimiento',
-        tipoCls:'levantamiento',
-        desc:'Avance de digitalización por etapas, checklists y notas de seguimiento.',
-        url:'instituciones.html',
-        versiones: []
-      },
-      {
-        key:'directorio_contactos',
-        label:'Directorio de Contactos',
-        icon:'users',
-        tipo:'Registro',
-        tipoCls:'registro',
-        desc:'Consolidado de contactos institucionales por institución, extraídos de reuniones y enlaces técnicos.',
-        url:'contactos.html',
-        versiones: []
       }
     ],
-    // Documentos fijos del sistema (aparecen en la pestaña Documentos)
+    // Documentos fijos del sistema (aparecen en la pestaña Documentos y en el portal institucional)
     documentosFijos: [
       {
         nombre:'Instituciones',
         tipo:'Control',
         desc:'Avance de digitalización por etapas, checklists editables y notas de seguimiento por institución.',
-        url:'instituciones.html'
+        url:'instituciones.html',
+        icon:'clipboard'
+      },
+      {
+        nombre:'Directorio de Contactos',
+        tipo:'Registro',
+        desc:'Consolidado de contactos institucionales por institución, extraídos de reuniones y enlaces técnicos.',
+        url:'contactos.html',
+        icon:'users'
       }
     ]
   }
@@ -1160,8 +1148,11 @@ function renderInstitucionPortal() {
   document.title = esc(inst) + ' — DIGER SOL';
 
   // Módulos automáticos para todos los usuarios institucionales
-  var AUTO_KEYS = ['estado_institucional', 'levantamiento_reunion'];
+  var AUTO_KEYS = ['levantamiento_reunion'];
   var accMods = ALL_MODULOS.filter(function(m){ return AUTO_KEYS.indexOf(m.key) !== -1; });
+
+  // Documentos fijos disponibles en el portal institucional
+  var docsInst = (UNITS.digitalizacion.documentosFijos || []);
 
   var INST_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
 
@@ -1177,9 +1168,9 @@ function renderInstitucionPortal() {
       '</div>' +
     '</div>';
 
-  if (accMods.length === 0) {
-    html += '<div class="card"><div class="empty" style="padding:2.5rem">Sin módulos habilitados. Contacte al administrador DIGER.</div></div>';
-  } else {
+  // Módulos (levantamiento de reunión, etc.)
+  if (accMods.length > 0) {
+    html += '<div class="sec-title" style="margin-top:1.5rem">Módulos</div>';
     html += '<div class="inst-mod-grid">';
     accMods.forEach(function(m) {
       var url = m.url + (inst ? '?inst=' + encodeURIComponent(inst) : '');
@@ -1194,6 +1185,29 @@ function renderInstitucionPortal() {
         '</a>';
     });
     html += '</div>';
+  }
+
+  // Documentos del sistema accesibles por la institución
+  if (docsInst.length > 0) {
+    html += '<div class="sec-title" style="margin-top:1.5rem">Documentos</div>';
+    html += '<div class="inst-mod-grid">';
+    docsInst.forEach(function(d) {
+      var url = d.url + (inst ? '?inst=' + encodeURIComponent(inst) : '');
+      html +=
+        '<a class="inst-mod-card" href="' + url + '">' +
+          '<div class="inst-mod-card-icon">' + (SVGS[d.icon]||DOC_ICO) + '</div>' +
+          '<div style="min-width:0">' +
+            '<div class="inst-mod-card-name">' + esc(d.nombre) + '</div>' +
+            '<div class="inst-mod-card-desc">' + esc(d.desc) + '</div>' +
+          '</div>' +
+          '<div class="inst-mod-card-arr">›</div>' +
+        '</a>';
+    });
+    html += '</div>';
+  }
+
+  if (accMods.length === 0 && docsInst.length === 0) {
+    html += '<div class="card"><div class="empty" style="padding:2.5rem">Sin módulos habilitados. Contacte al administrador DIGER.</div></div>';
   }
 
   // Coordinator sub-user panel
