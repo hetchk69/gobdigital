@@ -775,7 +775,33 @@ function eliminarNota(inst,fecha,timestamp,idx){
 
   buildDropdown();
   refreshStats();
-  seleccionar('__ALL__');
+
+  // Auto-select institution for non-admin users
+  var _ses = window.DIGER_SESSION;
+  var _instForzada = null;
+  if (_ses && _ses.role && _ses.role !== 'admin' && _ses.institucion) {
+    _instForzada = _ses.institucion;
+  }
+  // Also read ?inst= URL param (from institution portal link)
+  try {
+    var _qp = new URLSearchParams(window.location.search);
+    if (_qp.get('inst')) _instForzada = _qp.get('inst');
+  } catch(e) {}
+
+  if (_instForzada) {
+    // Lock: hide the selector bar, show institution name as header
+    var selBar = document.getElementById('instSelect');
+    if (selBar) {
+      selBar.style.display = 'none';
+      var lbl = document.createElement('div');
+      lbl.style.cssText = 'font-size:16px;font-weight:800;color:#0a2d6e;padding:6px 0';
+      lbl.textContent = _instForzada;
+      selBar.parentNode.insertBefore(lbl, selBar);
+    }
+    seleccionar(_instForzada);
+  } else {
+    seleccionar('__ALL__');
+  }
   document.getElementById('nota-fecha').value = new Date().toISOString().split('T')[0];
 
   // Tiempo real: cambios en trámites
