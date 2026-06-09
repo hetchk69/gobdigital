@@ -761,13 +761,19 @@ function initAdmin(){
     adminEmail = s.email;
     setAcuerdos([]);
     renderLista();
+  } else if(s && s.role && s.role !== 'admin') {
+    // Usuarios institucionales: acceso de solo lectura (reuniones cerradas)
+    var btnNuevo = document.querySelector('button[onclick="mostrarCrear()"]');
+    if(btnNuevo) btnNuevo.style.display = 'none';
+    setAcuerdos([]);
+    renderLista();
   } else {
     document.querySelector('.container').innerHTML =
       '<div style="display:flex;align-items:center;justify-content:center;min-height:60vh">' +
       '<div style="text-align:center;background:#fff;border-radius:16px;padding:2.5rem 2rem;box-shadow:0 12px 40px rgba(0,0,0,.1);max-width:380px">' +
       '<div style="font-size:40px;margin-bottom:1rem">🔒</div>' +
       '<h2 style="color:#0a2d6e;margin:0 0 .5rem">Acceso restringido</h2>' +
-      '<p style="color:#6b7fa3;font-size:13px;margin-bottom:1.5rem">Este módulo es exclusivo para administradores DIGER.</p>' +
+      '<p style="color:#6b7fa3;font-size:13px;margin-bottom:1.5rem">Inicie sesión para acceder a este módulo.</p>' +
       '<a href="unidad.html" style="display:inline-block;background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;padding:11px 24px;border-radius:9px;text-decoration:none;font-weight:700;font-size:14px">← Ir al portal</a>' +
       '</div></div>';
   }
@@ -779,14 +785,19 @@ async function renderLista(){
   cont.innerHTML = '<div class="loader"><div class="spinner"></div><br>Cargando eventos...</div>';
   var {data, error} = await sb.from('reuniones').select('*').order('created_at',{ascending:false});
   if(error){ cont.innerHTML='<div class="empty-state"><p style="color:#dc2626">Error al cargar. Verifique su conexión.</p></div>'; return; }
-  // Filter by institution for non-admin users
+  // Para no-admins: filtrar por institución Y mostrar solo reuniones cerradas
   var _ses=window.DIGER_SESSION;
-  if(_ses&&_ses.role&&_ses.role!=='admin'&&_ses.institucion){
-    var _inst=_ses.institucion;
-    data=(data||[]).filter(function(r){
-      var d={}; try{d=JSON.parse(r.tema||'{}')}catch{}
-      return !d.institucion_beneficiaria||d.institucion_beneficiaria===_inst;
-    });
+  if(_ses&&_ses.role&&_ses.role!=='admin'){
+    // Solo reuniones cerradas (activa === false)
+    data=(data||[]).filter(function(r){ return !r.activa; });
+    // Además filtrar por institución si está definida
+    if(_ses.institucion){
+      var _inst=_ses.institucion;
+      data=data.filter(function(r){
+        var d={}; try{d=JSON.parse(r.tema||'{}')}catch{}
+        return !d.institucion_beneficiaria||d.institucion_beneficiaria===_inst;
+      });
+    }
   }
   if(!data || data.length===0){
     cont.innerHTML='<div class="empty-state"><div class="es-icon">🎓</div>' +

@@ -976,15 +976,11 @@ function repoDel(id) {
 
 function abrirModalNuevoUsuario() {
   var instOpts = INST_LIST.map(function(i){ return '<option value="'+i+'">'+esc(i)+'</option>'; }).join('');
-  var modOpts  = ALL_MODULOS.map(function(m){
-    return '<label style="display:flex;align-items:center;gap:7px;margin-bottom:5px;font-size:13px">'+
-      '<input type="checkbox" id="nu-mod-'+m.key+'"> '+esc(m.label)+'</label>';
-  }).join('');
   abrirModal('Agregar usuario',
     '<div class="modal-field"><label>Correo electrónico</label>'+
     '<input class="access-inp" type="email" id="nu-email" placeholder="correo@institucion.gob.hn" style="width:100%"></div>'+
     '<div class="modal-field"><label>Rol</label>'+
-    '<select class="access-inp" id="nu-rol" onchange="toggleModulosModal()" style="width:100%">'+
+    '<select class="access-inp" id="nu-rol" style="width:100%">'+
       '<option value="coordinador">Coordinador — gestiona usuarios de su institución</option>'+
       '<option value="colaborador">Colaborador — puede crear y editar contenido</option>'+
       '<option value="lector">Lector — solo lectura</option>'+
@@ -993,20 +989,16 @@ function abrirModalNuevoUsuario() {
     '<select class="access-inp" id="nu-inst" style="width:100%">'+
       '<option value="">— Seleccione —</option>'+instOpts+
     '</select></div>'+
-    '<div id="nu-mods-wrap" class="modal-field"><label>Módulos habilitados</label>'+modOpts+'</div>'+
+    '<div style="font-size:12px;color:var(--muted);background:#f8fafd;border:1px solid var(--borde);border-radius:8px;padding:9px 12px;margin-bottom:8px">'+
+      '📌 Los módulos se asignan automáticamente según la institución: '+
+      '<strong>Estado Institucional</strong> y <strong>Reuniones cerradas</strong>.'+
+    '</div>'+
     '<div id="nu-err" style="font-size:12px;color:var(--rojo);margin-top:6px;display:none"></div>'+
     '<div class="modal-foot">'+
       '<button class="btn-ghost" onclick="cerrarModal()">Cancelar</button>'+
       '<button class="btnp" onclick="guardarNuevoUsuario()">Guardar</button>'+
     '</div>'
   );
-  toggleModulosModal();
-}
-
-function toggleModulosModal() {
-  var rol  = document.getElementById('nu-rol');
-  var wrap = document.getElementById('nu-mods-wrap');
-  if (rol && wrap) wrap.style.display = rol.value === 'coordinador' ? 'block' : 'none';
 }
 
 function guardarNuevoUsuario() {
@@ -1020,11 +1012,8 @@ function guardarNuevoUsuario() {
   if (getDomain(email) === 'diger.gob.hn') { err.textContent='Los correos @diger.gob.hn son administradores.'; err.style.display='block'; return; }
   var cfg = loadConfig();
   if (cfg[email]) { err.textContent='Este correo ya está registrado.'; err.style.display='block'; return; }
-  var perms = { role: rol, institucion: inst };
-  if (rol === 'coordinador') {
-    ALL_MODULOS.forEach(function(m){ var cb=document.getElementById('nu-mod-'+m.key); perms[m.key]=cb?cb.checked:false; });
-  }
-  cfg[email] = perms;
+  // Módulos automáticos — no se almacenan permisos manuales
+  cfg[email] = { role: rol, institucion: inst };
   saveConfig(cfg);
   cerrarModal();
   renderTablaAccesos();
@@ -1049,22 +1038,8 @@ function renderTablaAccesos() {
     var inst= u.institucion || '—';
     var tr  = document.createElement('tr');
 
-    // Módulos cell
-    var modCell = '';
-    if (rol === 'coordinador') {
-      modCell = ALL_MODULOS.map(function(m){
-        var on = !!u[m.key];
-        return '<label class="tog" title="'+esc(m.label)+'"><input type="checkbox"'+(on?' checked':'')+
-          ' onchange="togglePerm(\''+email+'\',\''+m.key+'\',this.checked)"><span class="tog-sl"></span></label>';
-      }).join(' ');
-    } else {
-      // Find coordinator for their institution
-      var coordKey = Object.keys(cfg).find(function(e){ return cfg[e].role==='coordinador'&&cfg[e].institucion===inst; });
-      var mods = coordKey ? ALL_MODULOS.filter(function(m){ return cfg[coordKey][m.key]; }).map(function(m){ return esc(m.label); }) : [];
-      modCell = mods.length
-        ? '<span style="font-size:11px;color:var(--muted)">Hereda: '+mods.join(', ')+'</span>'
-        : '<span style="font-size:11px;color:var(--muted)">—</span>';
-    }
+    // Módulos automáticos (mismos para todos los roles)
+    var modCell = '<span style="font-size:11px;color:var(--muted)">Estado Institucional · Reuniones cerradas</span>';
 
     tr.innerHTML =
       '<td class="email-cell">'+esc(email)+'</td>'+
@@ -1165,7 +1140,9 @@ function renderInstitucionPortal() {
   var acc  = ses.access || {};
   document.title = esc(inst) + ' — DIGER SOL';
 
-  var accMods = ALL_MODULOS.filter(function(m){ return acc[m.key]; });
+  // Módulos automáticos para todos los usuarios institucionales
+  var AUTO_KEYS = ['estado_institucional', 'levantamiento_reunion'];
+  var accMods = ALL_MODULOS.filter(function(m){ return AUTO_KEYS.indexOf(m.key) !== -1; });
 
   var INST_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
 
