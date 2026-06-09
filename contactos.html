@@ -290,6 +290,7 @@ var esAdmin      = false;
 var puedeEditar  = false;   // admin o coordinador
 var editandoContacto = null; // contacto en edición (null = modo agregar)
 var instPreselect = '';
+var instFiltro = new URLSearchParams(location.search).get('inst') || '';
 
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function normTel(val){
@@ -332,13 +333,23 @@ function normInst(val){
 
 // ── INIT ─────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function(){
+  // Si venimos del portal institucional con ?inst=, ajustar la barra de herramientas
+  if(instFiltro){
+    var titleEl = document.querySelector('.toolbar-title');
+    if(titleEl) titleEl.textContent = 'Directorio — ' + instFiltro;
+    var selInst = document.getElementById('filter-inst');
+    if(selInst) selInst.style.display = 'none'; // ocultar selector de institución
+  }
+
   var check = setInterval(function(){
     if(window.DIGER_SESSION !== undefined){
       clearInterval(check);
       var s = window.DIGER_SESSION;
       if(!s){ window.location.replace('index.html'); return; }
       esAdmin     = s.role === 'admin';
-      puedeEditar = s.role === 'admin' || s.role === 'coordinador';
+      // En vista institucional, solo el coordinador de ESA institución puede editar
+      var mismaInst = !instFiltro || s.institucion === instFiltro || s.role === 'admin';
+      puedeEditar = (s.role === 'admin' || s.role === 'coordinador') && mismaInst;
       if(puedeEditar) document.getElementById('btn-add-global').style.display = 'flex';
       cargar();
     }
@@ -418,6 +429,18 @@ async function cargar(){
   insts.forEach(function(i){
     var opt = document.createElement('option'); opt.value=i; opt.textContent=i; sel.appendChild(opt);
   });
+
+  // Si venimos con ?inst=, aplicar filtro automáticamente
+  if(instFiltro){
+    var listaFiltrada = todosContactos.filter(function(c){ return c.institucion === instFiltro; });
+    gruposAbiertos[instFiltro] = true;
+    document.getElementById('stat-total').textContent = listaFiltrada.length;
+    document.getElementById('stat-insts').textContent = listaFiltrada.length > 0 ? 1 : 0;
+    document.getElementById('stat-manuales').textContent = listaManuales.filter(function(c){ return c.institucion === instFiltro; }).length;
+    document.getElementById('stats-bar').style.display = 'flex';
+    renderContactos(listaFiltrada);
+    return;
+  }
 
   // Stats
   document.getElementById('stat-total').textContent = todosContactos.length;
@@ -500,7 +523,7 @@ function renderContactos(lista){
 // ── FILTROS ───────────────────────────────────────────────────────
 function filtrar(){
   var q    = (document.getElementById('search-inp').value||'').toLowerCase().trim();
-  var inst = document.getElementById('filter-inst').value;
+  var inst = instFiltro || document.getElementById('filter-inst').value;
   var lista = todosContactos.filter(function(c){
     var mi = !inst||c.institucion===inst;
     var mq = !q||c.nombre.toLowerCase().includes(q)||c.correo.toLowerCase().includes(q)||c.cargo.toLowerCase().includes(q);
@@ -534,7 +557,8 @@ function abrirModal(inst){
   document.getElementById('m-tel-num').value='';
   document.getElementById('m-tel-cc').value='HN';
   document.getElementById('m-notas').value='';
-  document.getElementById('m-inst').value = instPreselect||'';
+  document.getElementById('m-inst').value = instFiltro || instPreselect||'';
+  document.getElementById('m-inst').disabled = !!instFiltro;
   document.getElementById('modal-err').style.display='none';
   document.getElementById('btn-guardar').disabled=false;
   document.getElementById('modal-bg').classList.add('open');
@@ -551,6 +575,7 @@ function editarContacto(idx){
   document.getElementById('m-cargo').value  = c.cargo||'';
   document.getElementById('m-correo').value = c.correo||'';
   document.getElementById('m-inst').value   = c.institucion||'';
+  document.getElementById('m-inst').disabled = !!instFiltro;
   document.getElementById('m-notas').value  = c.notas||'';
   setTelValue('m-tel', c.telefono||'');
   document.getElementById('modal-err').style.display='none';
