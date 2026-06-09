@@ -292,6 +292,17 @@ var editandoContacto = null; // contacto en edición (null = modo agregar)
 var instPreselect = '';
 
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function normTel(val){
+  if(!val||val==='—') return '—';
+  var v = val.trim();
+  // Otro código de país (+502, +1, etc.) → dejar tal cual
+  if(/^\+(?!504)/.test(v)) return v;
+  // Extraer solo dígitos (quitar +504 y cualquier separador)
+  var digits = v.replace(/^\+504[\s-]?/,'').replace(/\D/g,'');
+  if(digits.length===8)
+    return '+504 '+digits.slice(0,4)+'-'+digits.slice(4);
+  return v; // fallback si no encaja
+}
 function fmtFecha(f){
   if(!f) return '—';
   try{
@@ -472,7 +483,7 @@ function renderContactos(lista){
                   return '<tr>'+
                     '<td>'+nombreCell+'</td>'+
                     '<td>'+(c.correo?'<a class="contact-email" href="mailto:'+esc(c.correo)+'">'+esc(c.correo)+'</a>':'<span style="color:var(--muted)">—</span>')+'</td>'+
-                    '<td style="color:var(--muted)">'+(c.telefono&&c.telefono!=='—'?esc(c.telefono):'—')+'</td>'+
+                    '<td style="color:var(--muted)">'+esc(normTel(c.telefono||''))+'</td>'+
                     '<td style="color:var(--muted);font-size:12px;white-space:nowrap">'+fmtFecha(c.fecha)+'</td>'+
                     (puedeEditar?'<td>'+acciones+'</td>':'')+
                   '</tr>';
