@@ -272,7 +272,20 @@ input[type=file].hidden{display:none}
       <div class="pub-field"><label>Nombre completo *</label><input type="text" id="pub-nombre" placeholder="Ingrese su nombre completo" autocomplete="name"></div>
       <div class="pub-field"><label>Correo electrónico *</label><input type="email" id="pub-correo" placeholder="correo@institución.gob.hn" autocomplete="email"></div>
       <div class="pub-field"><label>Cargo</label><input type="text" id="pub-cargo" placeholder="Cargo o función que desempeña"></div>
-      <div class="pub-field"><label>Institución</label><input type="text" id="pub-inst" placeholder="Nombre de su institución"></div>
+      <div class="pub-field"><label>Institución</label>
+        <select id="pub-inst" style="width:100%;padding:11px 13px;border:1.5px solid #cbd5e1;border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#fff;color:#1c2333;appearance:auto">
+          <option value="">— Seleccione su institución —</option>
+          <option>BANHPROVI</option><option>CANATURH / IHT</option><option>CNBS</option>
+          <option>CONATEL</option><option>CONSUCOOP</option><option>CONVIVIENDA</option>
+          <option>COPECO</option><option>IHCINE</option><option>IHADFA</option>
+          <option>IHTT</option><option>INPREMA</option><option>INPREUNAH</option>
+          <option>IP</option><option>SAG</option><option>SECAPPH</option>
+          <option>SEN</option><option>SGJD</option><option>SIT</option>
+          <option>SRECI</option><option>SERNA</option>
+          <option value="OTRA">Otra institución...</option>
+        </select>
+        <input type="text" id="pub-inst-otra" placeholder="Especifique la institución" style="width:100%;padding:10px 13px;border:1.5px solid #cbd5e1;border-radius:10px;font-size:14px;font-family:inherit;outline:none;margin-top:6px;display:none">
+      </div>
       <div class="pub-field"><label>Teléfono</label><input type="tel" id="pub-tel" placeholder="+504 ????-????"></div>
       <div class="err-msg" id="pub-err"></div>
       <button class="btnp" id="pub-btn" onclick="registrarAsistencia()" style="width:100%;margin-top:.5rem;justify-content:center">✔ Registrar mi asistencia</button>
@@ -379,7 +392,16 @@ input[type=file].hidden{display:none}
     <div class="row2">
       <div class="field">
         <label>Institución Beneficiaria *</label>
-        <input type="text" id="g-inst" placeholder="Nombre completo de la institución">
+        <select id="g-inst" style="width:100%;padding:9px 11px;border:1.5px solid var(--borde);border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:var(--texto)">
+          <option value="">— Seleccione —</option>
+          <option>BANHPROVI</option><option>CANATURH / IHT</option><option>CNBS</option>
+          <option>CONATEL</option><option>CONSUCOOP</option><option>CONVIVIENDA</option>
+          <option>COPECO</option><option>IHCINE</option><option>IHADFA</option>
+          <option>IHTT</option><option>INPREMA</option><option>INPREUNAH</option>
+          <option>IP</option><option>SAG</option><option>SECAPPH</option>
+          <option>SEN</option><option>SGJD</option><option>SIT</option>
+          <option>SRECI</option><option>SERNA</option>
+        </select>
       </div>
       <div class="field">
         <label>Tipo de Capacitación / Evento *</label>
@@ -684,6 +706,15 @@ var _foto1_file = null, _foto2_file = null;
 
 // ─────────────────────────────────────────────────────────────
 // MODO PÚBLICO
+// Toggle "Otra institución" en el formulario de registro
+document.addEventListener('DOMContentLoaded', function(){
+  var selInst = document.getElementById('pub-inst');
+  if(selInst) selInst.addEventListener('change', function(){
+    var otra = document.getElementById('pub-inst-otra');
+    if(otra) otra.style.display = this.value === 'OTRA' ? 'block' : 'none';
+  });
+});
+
 // ─────────────────────────────────────────────────────────────
 (async function initPublic(){
   if(!window._PUBLIC_MODE) return;
@@ -722,7 +753,10 @@ async function registrarAsistencia(){
   var nombre = (document.getElementById('pub-nombre').value||'').trim();
   var correo = (document.getElementById('pub-correo').value||'').trim();
   var cargo  = (document.getElementById('pub-cargo').value||'').trim();
-  var inst   = (document.getElementById('pub-inst').value||'').trim();
+  var instSel = document.getElementById('pub-inst').value||'';
+  var inst   = instSel === 'OTRA'
+    ? (document.getElementById('pub-inst-otra').value||'').trim()
+    : instSel.trim();
   var tel    = (document.getElementById('pub-tel').value||'').trim();
   var err    = document.getElementById('pub-err');
   var btn    = document.getElementById('pub-btn');

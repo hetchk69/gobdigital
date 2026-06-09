@@ -161,6 +161,36 @@ var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var todosContactos = []; // { nombre, cargo, correo, telefono, institucion, fuente }
 var gruposAbiertos = {};
 
+// ── NORMALIZACIÓN DE INSTITUCIÓN ────────────────────────────────
+// Mapeo alias → nombre canónico
+var INST_NORM = {
+  // IHADFA
+  'ihadfa': 'IHADFA',
+  // CONSUCOOP (typo frecuente)
+  'conscucoop': 'CONSUCOOP', 'consucoop': 'CONSUCOOP',
+  // IP / Instituto de la Propiedad
+  'instituto de la propiedad': 'IP', 'instituto propiedad': 'IP',
+  'ip': 'IP',
+  // CANATURH
+  'canaturh/iht': 'CANATURH / IHT', 'canaturh': 'CANATURH / IHT',
+  // Resto (normalización de mayúsculas)
+  'banhprovi':'BANHPROVI','cnbs':'CNBS','conatel':'CONATEL',
+  'convivienda':'CONVIVIENDA','copeco':'COPECO','ihcine':'IHCINE',
+  'ihtt':'IHTT','inprema':'INPREMA','inpreunah':'INPREUNAH',
+  'sag':'SAG','secapph':'SECAPPH','sen':'SEN','sgjd':'SGJD',
+  'sit':'SIT','sreci':'SRECI','serna':'SERNA',
+  'canaturh / iht':'CANATURH / IHT'
+};
+
+function normInst(val) {
+  if (!val || val === '—') return val || '(Sin institución)';
+  var v = val.trim();
+  // "IP/..." o "IP/algo" → IP
+  if (/^IP\b/i.test(v) && v.length <= 20) return 'IP';
+  var lower = v.toLowerCase().replace(/\s+/g,' ');
+  return INST_NORM[lower] || v;
+}
+
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // ── CARGA ────────────────────────────────────────────────────────
@@ -211,7 +241,7 @@ async function cargar(){
         cargo:     (a.cargo||'').trim(),
         correo:    (a.correo||'').trim().toLowerCase(),
         telefono:  (a.telefono||'').trim(),
-        institucion: (a.institucion||'').trim() || '(Sin institución)',
+        institucion: normInst((a.institucion||'').trim()),
         fuente:    rmap[a.reunion_id] || ''
       });
     }
