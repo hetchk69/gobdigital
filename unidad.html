@@ -152,6 +152,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .breadcrumb a:hover{text-decoration:underline}
 .breadcrumb span{color:var(--muted)}
 
+/* ── ROLE BADGES ── */
+.role-badge{display:inline-flex;align-items:center;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.03em}
+.role-coordinador{background:#e8f0ff;color:#1455a4;border:1px solid #c0d0f0}
+.role-colaborador{background:#e6f7f8;color:#0a7282;border:1px solid #b2e4e8}
+.role-lector{background:#f1f5f9;color:#64748b;border:1px solid #dde4f0}
+.role-admin{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.inst-badge{display:inline-flex;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;background:#f5f0ff;color:#6d28d9;border:1px solid #ddd6fe}
 /* ── ADMIN PANEL ── */
 .access-form{display:flex;gap:8px;margin-bottom:1rem}
 .access-inp{
@@ -404,6 +411,9 @@ var UNITS = {
   }
 };
 
+var ROL_LABELS = { admin:'Administrador', coordinador:'Coordinador', colaborador:'Colaborador', lector:'Lector' };
+var ROL_ORDER  = ['coordinador','colaborador','lector'];
+
 // All module keys (for admin access table)
 var ALL_MODULOS = [];
 ['digitalizacion'].forEach(function(u) {
@@ -479,28 +489,40 @@ function renderSelector() {
   // Admin panel
   if (isAdmin) {
     html += '<div class="card" id="admin-panel">' +
-      '<div class="sec-title">🔑 Gestión de accesos de funcionarios</div>' +
-      '<div class="access-form">' +
-        '<input class="access-inp" type="email" id="new-email" placeholder="correo@institucion.gob.hn">' +
-        '<button class="btn-add" onclick="agregarFuncionario()">+ Agregar</button>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
+        '<div class="sec-title" style="margin:0;border:none;padding:0">Gestión de usuarios</div>' +
+        '<button class="btn-add" onclick="abrirModalNuevoUsuario()">+ Agregar usuario</button>' +
       '</div>' +
-      '<div id="access-err" style="font-size:12px;color:var(--rojo);margin-bottom:.75rem;display:none"></div>' +
       '<div id="access-table-wrap">' +
         '<table class="access-table">' +
-          '<thead><tr>' +
-            '<th>Correo</th>' +
-            ALL_MODULOS.map(function(m){return '<th style="font-size:10px">' + m.label + '</th>';}).join('') +
-            '<th></th>' +
-          '</tr></thead>' +
+          '<thead><tr><th>Correo</th><th>Rol</th><th>Institución</th><th>Módulos</th><th></th></tr></thead>' +
           '<tbody id="access-tbody"></tbody>' +
         '</table>' +
-        '<div class="empty" id="access-empty">No hay funcionarios registrados. Agregue uno arriba.</div>' +
+        '<div class="empty" id="access-empty">No hay usuarios registrados. Haga clic en + Agregar usuario.</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // Coordinator panel
+  if (ses.role === 'coordinador') {
+    html += '<div class="card" id="coord-panel">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
+        '<div class="sec-title" style="margin:0;border:none;padding:0">Usuarios de ' + esc(ses.institucion||'mi institución') + '</div>' +
+        '<button class="btn-add" onclick="abrirModalSubusuario()">+ Agregar usuario</button>' +
+      '</div>' +
+      '<div id="coord-table-wrap">' +
+        '<table class="access-table">' +
+          '<thead><tr><th>Correo</th><th>Rol</th><th></th></tr></thead>' +
+          '<tbody id="coord-tbody"></tbody>' +
+        '</table>' +
+        '<div class="empty" id="coord-empty">No hay usuarios registrados para esta institución.</div>' +
       '</div>' +
     '</div>';
   }
 
   app.innerHTML = html;
   if (isAdmin) renderTablaAccesos();
+  if (ses.role === 'coordinador') renderTablaCoord();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -953,114 +975,186 @@ function repoDel(id) {
 // ════════════════════════════════════════════════════════════════
 // ADMIN — ACCESS MANAGEMENT
 // ════════════════════════════════════════════════════════════════
-function agregarFuncionario() {
-  var inp = document.getElementById('new-email');
-  var err = document.getElementById('access-err');
-  err.style.display = 'none';
-  var email = inp.value.trim().toLowerCase();
 
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    err.textContent = 'Ingrese un correo válido.'; err.style.display = 'block'; return;
-  }
-  if (getDomain(email) === 'diger.gob.hn') {
-    err.textContent = 'Los correos @diger.gob.hn ya tienen acceso como administradores.';
-    err.style.display = 'block'; return;
-  }
+function abrirModalNuevoUsuario() {
+  var instOpts = INST_LIST.map(function(i){ return '<option value="'+i+'">'+esc(i)+'</option>'; }).join('');
+  var modOpts  = ALL_MODULOS.map(function(m){
+    return '<label style="display:flex;align-items:center;gap:7px;margin-bottom:5px;font-size:13px">'+
+      '<input type="checkbox" id="nu-mod-'+m.key+'"> '+esc(m.label)+'</label>';
+  }).join('');
+  abrirModal('Agregar usuario',
+    '<div class="modal-field"><label>Correo electrónico</label>'+
+    '<input class="access-inp" type="email" id="nu-email" placeholder="correo@institucion.gob.hn" style="width:100%"></div>'+
+    '<div class="modal-field"><label>Rol</label>'+
+    '<select class="access-inp" id="nu-rol" onchange="toggleModulosModal()" style="width:100%">'+
+      '<option value="coordinador">Coordinador — gestiona usuarios de su institución</option>'+
+      '<option value="colaborador">Colaborador — puede crear y editar contenido</option>'+
+      '<option value="lector">Lector — solo lectura</option>'+
+    '</select></div>'+
+    '<div class="modal-field"><label>Institución</label>'+
+    '<select class="access-inp" id="nu-inst" style="width:100%">'+
+      '<option value="">— Seleccione —</option>'+instOpts+
+    '</select></div>'+
+    '<div id="nu-mods-wrap" class="modal-field"><label>Módulos habilitados</label>'+modOpts+'</div>'+
+    '<div id="nu-err" style="font-size:12px;color:var(--rojo);margin-top:6px;display:none"></div>'+
+    '<div class="modal-foot">'+
+      '<button class="btn-ghost" onclick="cerrarModal()">Cancelar</button>'+
+      '<button class="btnp" onclick="guardarNuevoUsuario()">Guardar</button>'+
+    '</div>'
+  );
+  toggleModulosModal();
+}
+
+function toggleModulosModal() {
+  var rol  = document.getElementById('nu-rol');
+  var wrap = document.getElementById('nu-mods-wrap');
+  if (rol && wrap) wrap.style.display = rol.value === 'coordinador' ? 'block' : 'none';
+}
+
+function guardarNuevoUsuario() {
+  var email = (document.getElementById('nu-email').value||'').trim().toLowerCase();
+  var rol   = document.getElementById('nu-rol').value;
+  var inst  = document.getElementById('nu-inst').value;
+  var err   = document.getElementById('nu-err');
+  err.style.display = 'none';
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent='Ingrese un correo válido.'; err.style.display='block'; return; }
+  if (!inst) { err.textContent='Seleccione una institución.'; err.style.display='block'; return; }
+  if (getDomain(email) === 'diger.gob.hn') { err.textContent='Los correos @diger.gob.hn son administradores.'; err.style.display='block'; return; }
   var cfg = loadConfig();
-  if (cfg[email]) {
-    err.textContent = 'Este correo ya está registrado.'; err.style.display = 'block'; return;
+  if (cfg[email]) { err.textContent='Este correo ya está registrado.'; err.style.display='block'; return; }
+  var perms = { role: rol, institucion: inst };
+  if (rol === 'coordinador') {
+    ALL_MODULOS.forEach(function(m){ var cb=document.getElementById('nu-mod-'+m.key); perms[m.key]=cb?cb.checked:false; });
   }
-  // Initialize all module keys to false
-  var perms = {};
-  ALL_MODULOS.forEach(function(m) { perms[m.key] = false; });
   cfg[email] = perms;
   saveConfig(cfg);
-  inp.value = '';
+  cerrarModal();
   renderTablaAccesos();
 }
 
 function renderTablaAccesos() {
-  var cfg    = loadConfig();
-  var tbody  = document.getElementById('access-tbody');
-  var empty  = document.getElementById('access-empty');
-  var emails = Object.keys(cfg);
+  var cfg   = loadConfig();
+  var tbody = document.getElementById('access-tbody');
+  var empty = document.getElementById('access-empty');
+  if (!tbody) return;
+  var emails = Object.keys(cfg).sort(function(a,b){
+    var ra=ROL_ORDER.indexOf(cfg[a].role||'colaborador'), rb=ROL_ORDER.indexOf(cfg[b].role||'colaborador');
+    return ra-rb || a.localeCompare(b);
+  });
   tbody.innerHTML = '';
-
-  if (emails.length === 0) { empty.style.display = 'block'; return; }
+  if (emails.length === 0) { empty.style.display='block'; return; }
   empty.style.display = 'none';
 
   emails.forEach(function(email) {
-    var perms = cfg[email];
-    var tr = document.createElement('tr');
+    var u   = cfg[email];
+    var rol = u.role || 'colaborador';
+    var inst= u.institucion || '—';
+    var tr  = document.createElement('tr');
 
-    var permCells = ALL_MODULOS.map(function(m) {
-      var checked = perms[m.key] ? 'checked' : '';
-      return '<td>' +
-        '<label class="perm-cell">' +
-          '<label class="tog"><input type="checkbox" ' + checked +
-            ' onchange="togglePerm(\'' + email + '\',\'' + m.key + '\',this.checked)">' +
-            '<span class="tog-sl"></span></label>' +
-          '<span class="perm-lbl">' + (perms[m.key] ? 'Sí' : 'No') + '</span>' +
-        '</label>' +
-      '</td>';
-    }).join('');
+    // Módulos cell
+    var modCell = '';
+    if (rol === 'coordinador') {
+      modCell = ALL_MODULOS.map(function(m){
+        var on = !!u[m.key];
+        return '<label class="tog" title="'+esc(m.label)+'"><input type="checkbox"'+(on?' checked':'')+
+          ' onchange="togglePerm(\''+email+'\',\''+m.key+'\',this.checked)"><span class="tog-sl"></span></label>';
+      }).join(' ');
+    } else {
+      // Find coordinator for their institution
+      var coordKey = Object.keys(cfg).find(function(e){ return cfg[e].role==='coordinador'&&cfg[e].institucion===inst; });
+      var mods = coordKey ? ALL_MODULOS.filter(function(m){ return cfg[coordKey][m.key]; }).map(function(m){ return esc(m.label); }) : [];
+      modCell = mods.length
+        ? '<span style="font-size:11px;color:var(--muted)">Hereda: '+mods.join(', ')+'</span>'
+        : '<span style="font-size:11px;color:var(--muted)">—</span>';
+    }
 
     tr.innerHTML =
-      '<td class="email-cell">' + esc(email) + '</td>' +
-      permCells +
-      '<td><button class="btn-rm" onclick="eliminarFuncionario(\'' + email + '\')">Eliminar</button></td>';
+      '<td class="email-cell">'+esc(email)+'</td>'+
+      '<td><span class="role-badge role-'+rol+'">'+esc(ROL_LABELS[rol]||rol)+'</span></td>'+
+      '<td><span class="inst-badge">'+esc(inst)+'</span></td>'+
+      '<td>'+modCell+'</td>'+
+      '<td><button class="btn-rm" onclick="eliminarFuncionario(\''+email+'\')">Eliminar</button></td>';
     tbody.appendChild(tr);
-
-    // Tramites Estado config sub-row (only if that module is enabled)
-    if (perms.tramites_estado) {
-      var trCfg = document.createElement('tr');
-      var instOpts = INST_LIST.map(function(i) {
-        return '<option value="' + i + '"' + (perms.te_inst === i ? ' selected' : '') + '>' + i + '</option>';
-      }).join('');
-      trCfg.innerHTML =
-        '<td colspan="' + (ALL_MODULOS.length + 2) + '" class="inst-cfg">' +
-          '<div class="inst-cfg-inner">' +
-            '<div class="inst-cfg-title">⚙ Institución y contacto — Trámites Estado</div>' +
-            '<div class="inst-cfg-grid">' +
-              '<div><label class="inst-lbl">Institución</label>' +
-                '<select class="inst-inp" onchange="saveTeConfig(\'' + email + '\',\'te_inst\',this.value)">' +
-                  '<option value="">— Seleccione —</option>' + instOpts +
-                '</select></div>' +
-              '<div><label class="inst-lbl">Encargado</label>' +
-                '<input class="inst-inp" type="text" value="' + esc(perms.te_enc||'') + '" onchange="saveTeConfig(\'' + email + '\',\'te_enc\',this.value)" placeholder="Nombre completo"></div>' +
-              '<div><label class="inst-lbl">Correo institucional</label>' +
-                '<input class="inst-inp" type="email" value="' + esc(perms.te_cor||'') + '" onchange="saveTeConfig(\'' + email + '\',\'te_cor\',this.value)" placeholder="nombre@inst.gob.hn"></div>' +
-              '<div><label class="inst-lbl">Celular</label>' +
-                '<input class="inst-inp" type="text" value="' + esc(perms.te_cel||'') + '" onchange="saveTeConfig(\'' + email + '\',\'te_cel\',this.value)" placeholder="+504 9999-9999"></div>' +
-            '</div>' +
-          '</div>' +
-        '</td>';
-      tbody.appendChild(trCfg);
-    }
   });
 }
 
 function togglePerm(email, modulo, val) {
-  var cfg = loadConfig();
-  if (!cfg[email]) return;
-  cfg[email][modulo] = val;
-  saveConfig(cfg);
-  renderTablaAccesos();
+  var cfg = loadConfig(); if (!cfg[email]) return;
+  cfg[email][modulo] = val; saveConfig(cfg); renderTablaAccesos();
 }
 
 function eliminarFuncionario(email) {
   if (!confirm('¿Eliminar el acceso de ' + email + '?')) return;
-  var cfg = loadConfig();
-  delete cfg[email];
-  saveConfig(cfg);
-  renderTablaAccesos();
+  var cfg = loadConfig(); delete cfg[email]; saveConfig(cfg); renderTablaAccesos();
 }
 
 function saveTeConfig(email, field, val) {
+  var cfg = loadConfig(); if (!cfg[email]) return; cfg[email][field] = val; saveConfig(cfg);
+}
+
+// ════════════════════════════════════════════════════════════════
+// COORDINADOR — SUB-USER MANAGEMENT
+// ════════════════════════════════════════════════════════════════
+
+function renderTablaCoord() {
+  var cfg   = loadConfig();
+  var inst  = ses.institucion || '';
+  var tbody = document.getElementById('coord-tbody');
+  var empty = document.getElementById('coord-empty');
+  if (!tbody) return;
+  var subusers = Object.keys(cfg).filter(function(e){
+    return cfg[e].institucion === inst && cfg[e].role !== 'coordinador';
+  });
+  tbody.innerHTML = '';
+  if (subusers.length === 0) { empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  subusers.forEach(function(email) {
+    var u = cfg[email]; var rol = u.role || 'colaborador';
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="email-cell">'+esc(email)+'</td>'+
+      '<td><span class="role-badge role-'+rol+'">'+esc(ROL_LABELS[rol]||rol)+'</span></td>'+
+      '<td><button class="btn-rm" onclick="eliminarSubusuario(\''+email+'\')">Eliminar</button></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function abrirModalSubusuario() {
+  abrirModal('Agregar usuario — '+esc(ses.institucion||''),
+    '<div class="modal-field"><label>Correo electrónico</label>'+
+    '<input class="access-inp" type="email" id="su-email" placeholder="correo@institucion.gob.hn" style="width:100%"></div>'+
+    '<div class="modal-field"><label>Rol</label>'+
+    '<select class="access-inp" id="su-rol" style="width:100%">'+
+      '<option value="colaborador">Colaborador — puede crear y editar contenido</option>'+
+      '<option value="lector">Lector — solo lectura</option>'+
+    '</select></div>'+
+    '<div id="su-err" style="font-size:12px;color:var(--rojo);margin-top:6px;display:none"></div>'+
+    '<div class="modal-foot">'+
+      '<button class="btn-ghost" onclick="cerrarModal()">Cancelar</button>'+
+      '<button class="btnp" onclick="guardarSubusuario()">Guardar</button>'+
+    '</div>'
+  );
+}
+
+function guardarSubusuario() {
+  var email = (document.getElementById('su-email').value||'').trim().toLowerCase();
+  var rol   = document.getElementById('su-rol').value;
+  var err   = document.getElementById('su-err');
+  var inst  = ses.institucion || '';
+  err.style.display = 'none';
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent='Ingrese un correo válido.'; err.style.display='block'; return; }
+  if (getDomain(email) === 'diger.gob.hn') { err.textContent='Los correos @diger.gob.hn son administradores.'; err.style.display='block'; return; }
   var cfg = loadConfig();
-  if (!cfg[email]) return;
-  cfg[email][field] = val;
+  if (cfg[email]) { err.textContent='Este correo ya está registrado.'; err.style.display='block'; return; }
+  cfg[email] = { role: rol, institucion: inst };
   saveConfig(cfg);
+  cerrarModal();
+  renderTablaCoord();
+}
+
+function eliminarSubusuario(email) {
+  if (!confirm('¿Eliminar el acceso de ' + email + '?')) return;
+  var cfg = loadConfig(); delete cfg[email]; saveConfig(cfg); renderTablaCoord();
 }
 </script>
 </body>

@@ -122,10 +122,29 @@ function iniciarSesion() {
     return;
   }
 
-  // ── Funcionario ──
+  // ── Usuario registrado ──
   var cfg = loadConfig();
   if (cfg[email]) {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ email: email, role: 'funcionario', access: cfg[email] }));
+    var u = cfg[email];
+    var rol = u.role || 'colaborador';
+    var inst = u.institucion || '';
+    var access = {};
+    if (rol === 'coordinador') {
+      // Sus propios módulos
+      Object.keys(u).forEach(function(k){ if(k!=='role'&&k!=='institucion'&&typeof u[k]==='boolean') access[k]=u[k]; });
+    } else {
+      // Hereda módulos del coordinador de su institución
+      Object.keys(cfg).some(function(e){
+        var c=cfg[e];
+        if(c.role==='coordinador'&&c.institucion===inst){
+          Object.keys(c).forEach(function(k){ if(k!=='role'&&k!=='institucion'&&typeof c[k]==='boolean') access[k]=c[k]; });
+          return true;
+        }
+      });
+      // Backward compat: si no tiene role asignado, usar permisos directos
+      if(!u.role) access = u;
+    }
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ email:email, role:rol, institucion:inst, access:access }));
     window.location.href = 'unidad.html';
     return;
   }
