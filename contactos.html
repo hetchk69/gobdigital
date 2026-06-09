@@ -104,16 +104,16 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .modal-box h3{font-size:16px;font-weight:800;color:var(--azul);margin-bottom:1.25rem}
 .mfield{margin-bottom:.9rem}
 .mfield label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
-.mfield input,.mfield select{
+.mfield input:not(.tel-num),.mfield select:not(.tel-cc){
   width:100%;padding:9px 12px;border:1.5px solid var(--borde);border-radius:9px;
   font-size:13px;font-family:inherit;outline:none;transition:border .2s;background:#f8fafd;
 }
-.mfield input:focus,.mfield select:focus{border-color:var(--azul-m);background:#fff}
+.mfield input:not(.tel-num):focus,.mfield select:not(.tel-cc):focus{border-color:var(--azul-m);background:#fff}
 .tel-wrap{display:flex;gap:6px;width:100%}
 .tel-cc{
+  width:76px;flex-shrink:0;min-width:0;
   padding:9px 4px 9px 8px;border:1.5px solid var(--borde);border-radius:9px;
-  font-size:13px;font-family:inherit;background:#f8fafd;cursor:pointer;
-  width:76px;min-width:0;flex-shrink:0;outline:none;transition:border .2s;
+  font-size:13px;font-family:inherit;background:#f8fafd;cursor:pointer;outline:none;transition:border .2s;
 }
 .tel-cc:focus{border-color:var(--azul-m);background:#fff}
 .tel-num{
