@@ -779,6 +779,15 @@ async function renderLista(){
   cont.innerHTML = '<div class="loader"><div class="spinner"></div><br>Cargando eventos...</div>';
   var {data, error} = await sb.from('reuniones').select('*').order('created_at',{ascending:false});
   if(error){ cont.innerHTML='<div class="empty-state"><p style="color:#dc2626">Error al cargar. Verifique su conexión.</p></div>'; return; }
+  // Filter by institution for non-admin users
+  var _ses=window.DIGER_SESSION;
+  if(_ses&&_ses.role&&_ses.role!=='admin'&&_ses.institucion){
+    var _inst=_ses.institucion;
+    data=(data||[]).filter(function(r){
+      var d={}; try{d=JSON.parse(r.tema||'{}')}catch{}
+      return !d.institucion_beneficiaria||d.institucion_beneficiaria===_inst;
+    });
+  }
   if(!data || data.length===0){
     cont.innerHTML='<div class="empty-state"><div class="es-icon">🎓</div>' +
       '<p>No hay eventos creados aún.<br>Haga clic en <strong>+ Nuevo evento</strong> para comenzar.</p></div>';

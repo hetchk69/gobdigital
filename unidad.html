@@ -199,6 +199,19 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 }
 .btn-rm:hover{border-color:var(--rojo);color:var(--rojo);background:#fff5f5}
 .empty{padding:1.5rem;text-align:center;color:var(--muted);font-size:13px}
+/* ── INSTITUTION PORTAL ── */
+.inst-header{background:linear-gradient(135deg,var(--azul),var(--azul-m));color:#fff;border-radius:14px;padding:1.4rem 1.8rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1rem}
+.inst-header-icon{width:52px;height:52px;background:rgba(255,255,255,.18);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.inst-header-icon svg{color:#fff}
+.inst-header-name{font-size:22px;font-weight:800;margin-bottom:3px}
+.inst-header-sub{font-size:13px;opacity:.82}
+.inst-mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:1.25rem}
+.inst-mod-card{background:#fff;border:1.5px solid var(--borde);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;transition:box-shadow .18s,border-color .18s;cursor:pointer}
+.inst-mod-card:hover{border-color:var(--azul-m);box-shadow:0 4px 18px rgba(10,45,110,.11)}
+.inst-mod-card-icon{width:40px;height:40px;background:var(--azul-c);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--azul-m)}
+.inst-mod-card-name{font-size:13.5px;font-weight:700;color:var(--azul);margin-bottom:2px}
+.inst-mod-card-desc{font-size:11.5px;color:var(--muted);line-height:1.4}
+.inst-mod-card-arr{margin-left:auto;color:var(--azul-m);font-size:18px;font-weight:300;flex-shrink:0}
 
 /* ── INST CONFIG ROW ── */
 .inst-cfg{
@@ -455,12 +468,12 @@ if (unitParam && UNITS[unitParam]) {
 // UNIT SELECTOR (home page)
 // ════════════════════════════════════════════════════════════════
 function renderSelector() {
-  document.title = 'Selección de Unidad — DIGER';
-  var isAdmin = ses.role === 'admin';
-  var badge   = isAdmin ? '⚙️ Administrador' : 'Funcionario';
+  // Non-admin → institution portal
+  if (ses.role !== 'admin') { renderInstitucionPortal(); return; }
 
+  document.title = 'Selección de Unidad — DIGER';
   var html = '<div class="welcome">' +
-    '<div class="badge">' + badge + '</div>' +
+    '<div class="badge">Administrador</div>' +
     '<h2>Seleccione una unidad</h2>' +
     '<p>Acceda a los módulos habilitados según su unidad de trabajo.</p>' +
     '</div>';
@@ -468,14 +481,7 @@ function renderSelector() {
   html += '<div class="unit-grid">';
   ['proyectos','digitalizacion'].forEach(function(key) {
     var u = UNITS[key];
-    // For funcionarios, check if they have at least one module in this unit
-    var hasAccess = isAdmin;
-    if (!isAdmin) {
-      var acc = ses.access || {};
-      hasAccess = u.modulos.some(function(m) { return acc[m.key]; });
-    }
-    var disabled = hasAccess ? '' : ' style="opacity:.45;pointer-events:none;filter:grayscale(.5)"';
-    html += '<a class="unit-card ' + key + '" href="unidad.html?u=' + key + '"' + disabled + '>' +
+    html += '<a class="unit-card ' + key + '" href="unidad.html?u=' + key + '">' +
       '<div class="unit-icon ' + u.color + '">' + (SVGS[u.icon]||u.icon) + '</div>' +
       '<div>' +
         '<div class="unit-name">' + u.label + '</div>' +
@@ -1155,6 +1161,72 @@ function guardarSubusuario() {
 function eliminarSubusuario(email) {
   if (!confirm('¿Eliminar el acceso de ' + email + '?')) return;
   var cfg = loadConfig(); delete cfg[email]; saveConfig(cfg); renderTablaCoord();
+}
+
+// ════════════════════════════════════════════════════════════════
+// INSTITUTION PORTAL (non-admin users)
+// ════════════════════════════════════════════════════════════════
+function renderInstitucionPortal() {
+  var inst = ses.institucion || '';
+  var rol  = ses.role || 'colaborador';
+  var acc  = ses.access || {};
+  document.title = esc(inst) + ' — DIGER SOL';
+
+  var accMods = ALL_MODULOS.filter(function(m){ return acc[m.key]; });
+
+  var INST_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+
+  var html =
+    '<div class="inst-header">' +
+      '<div class="inst-header-icon">' + INST_SVG + '</div>' +
+      '<div>' +
+        '<div class="inst-header-name">' + esc(inst||'Portal Institucional') + '</div>' +
+        '<div class="inst-header-sub">' +
+          '<span class="role-badge role-'+rol+'" style="background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.3)">'+esc(ROL_LABELS[rol]||rol)+'</span>' +
+          '&nbsp; DIGER — Gobierno Digital Honduras' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  if (accMods.length === 0) {
+    html += '<div class="card"><div class="empty" style="padding:2.5rem">Sin módulos habilitados. Contacte al administrador DIGER.</div></div>';
+  } else {
+    html += '<div class="inst-mod-grid">';
+    accMods.forEach(function(m) {
+      var url = m.url + (inst ? '?inst=' + encodeURIComponent(inst) : '');
+      html +=
+        '<a class="inst-mod-card" href="' + url + '">' +
+          '<div class="inst-mod-card-icon">' + (SVGS[m.icon]||'') + '</div>' +
+          '<div style="min-width:0">' +
+            '<div class="inst-mod-card-name">' + esc(m.label) + '</div>' +
+            '<div class="inst-mod-card-desc">' + esc(m.desc) + '</div>' +
+          '</div>' +
+          '<div class="inst-mod-card-arr">›</div>' +
+        '</a>';
+    });
+    html += '</div>';
+  }
+
+  // Coordinator sub-user panel
+  if (rol === 'coordinador') {
+    html +=
+      '<div class="card" id="coord-panel">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
+          '<div class="sec-title" style="margin:0;border:none;padding:0">Usuarios de ' + esc(inst) + '</div>' +
+          '<button class="btn-add" onclick="abrirModalSubusuario()">+ Agregar usuario</button>' +
+        '</div>' +
+        '<div id="coord-table-wrap">' +
+          '<table class="access-table">' +
+            '<thead><tr><th>Correo</th><th>Rol</th><th></th></tr></thead>' +
+            '<tbody id="coord-tbody"></tbody>' +
+          '</table>' +
+          '<div class="empty" id="coord-empty">No hay usuarios registrados para esta institución.</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  app.innerHTML = html;
+  if (rol === 'coordinador') renderTablaCoord();
 }
 </script>
 </body>
