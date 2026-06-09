@@ -478,8 +478,10 @@ if (unitParam && UNITS[unitParam]) {
 // UNIT SELECTOR (home page)
 // ════════════════════════════════════════════════════════════════
 function renderSelector() {
+  var rol = ses ? ses.role : null;
+
   // Non-admin → institution portal
-  if (ses.role !== 'admin') { renderInstitucionPortal(); return; }
+  if (rol !== 'admin') { renderInstitucionPortal(); return; }
 
   document.title = 'Selección de Unidad — DIGER';
   var html = '<div class="welcome">' +
@@ -502,43 +504,23 @@ function renderSelector() {
   });
   html += '</div>';
 
-  // Admin panel
-  if (isAdmin) {
-    html += '<div class="card" id="admin-panel">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
-        '<div class="sec-title" style="margin:0;border:none;padding:0">Gestión de usuarios</div>' +
-        '<button class="btn-add" onclick="abrirModalNuevoUsuario()">+ Agregar usuario</button>' +
-      '</div>' +
-      '<div id="access-table-wrap">' +
-        '<table class="access-table">' +
-          '<thead><tr><th>Correo</th><th>Rol</th><th>Institución</th><th>Módulos</th><th></th></tr></thead>' +
-          '<tbody id="access-tbody"></tbody>' +
-        '</table>' +
-        '<div class="empty" id="access-empty">No hay usuarios registrados. Haga clic en + Agregar usuario.</div>' +
-      '</div>' +
-    '</div>';
-  }
-
-  // Coordinator panel
-  if (ses.role === 'coordinador') {
-    html += '<div class="card" id="coord-panel">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
-        '<div class="sec-title" style="margin:0;border:none;padding:0">Usuarios de ' + esc(ses.institucion||'mi institución') + '</div>' +
-        '<button class="btn-add" onclick="abrirModalSubusuario()">+ Agregar usuario</button>' +
-      '</div>' +
-      '<div id="coord-table-wrap">' +
-        '<table class="access-table">' +
-          '<thead><tr><th>Correo</th><th>Rol</th><th></th></tr></thead>' +
-          '<tbody id="coord-tbody"></tbody>' +
-        '</table>' +
-        '<div class="empty" id="coord-empty">No hay usuarios registrados para esta institución.</div>' +
-      '</div>' +
-    '</div>';
-  }
+  // Admin panel — siempre visible para role === 'admin'
+  html += '<div class="card" id="admin-panel">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
+      '<div class="sec-title" style="margin:0;border:none;padding:0">Gestión de usuarios</div>' +
+      '<button class="btn-add" onclick="abrirModalNuevoUsuario()">+ Agregar usuario</button>' +
+    '</div>' +
+    '<div id="access-table-wrap">' +
+      '<table class="access-table">' +
+        '<thead><tr><th>Correo</th><th>Rol</th><th>Institución</th><th>Módulos</th><th></th></tr></thead>' +
+        '<tbody id="access-tbody"></tbody>' +
+      '</table>' +
+      '<div class="empty" id="access-empty">No hay usuarios registrados. Haga clic en + Agregar usuario.</div>' +
+    '</div>' +
+  '</div>';
 
   app.innerHTML = html;
-  if (isAdmin) renderTablaAccesos();
-  if (ses.role === 'coordinador') renderTablaCoord();
+  renderTablaAccesos();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1177,6 +1159,7 @@ function eliminarSubusuario(email) {
 // INSTITUTION PORTAL (non-admin users)
 // ════════════════════════════════════════════════════════════════
 function renderInstitucionPortal() {
+  if (!ses) { window.location.replace('index.html'); return; }
   var inst = ses.institucion || '';
   var rol  = ses.role || 'colaborador';
   var acc  = ses.access || {};
