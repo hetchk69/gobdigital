@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio de Contactos — DIGER</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --azul:#0a2d6e;--azul-m:#1455a4;--azul-c:#e8f0ff;
+  --gris:#eef1f7;--borde:#dde4f0;--texto:#1c2333;--muted:#64748b;
+  --verde:#16a34a;--rojo:#dc2626;--blanco:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--texto);background:var(--gris);min-height:100vh}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1rem 3rem}
+
+/* ── TOOLBAR ── */
+.toolbar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--blanco);border:1px solid var(--borde);border-radius:12px;
+  padding:12px 16px;margin-bottom:1.5rem;
+  box-shadow:0 2px 8px rgba(10,45,110,.05);
+  flex-wrap:wrap;
+}
+.toolbar-title{font-size:15px;font-weight:800;color:var(--azul);margin-right:auto}
+.search-wrap{position:relative;flex:1;min-width:180px;max-width:320px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.search-inp{
+  width:100%;padding:8px 12px 8px 34px;
+  border:1.5px solid var(--borde);border-radius:9px;
+  font-size:13px;font-family:inherit;outline:none;
+  transition:border .2s;background:#f8fafd;
+}
+.search-inp:focus{border-color:var(--azul-m);background:#fff}
+.filter-sel{
+  padding:8px 12px;border:1.5px solid var(--borde);border-radius:9px;
+  font-size:13px;font-family:inherit;outline:none;color:var(--texto);
+  background:#f8fafd;cursor:pointer;min-width:160px;
+}
+.filter-sel:focus{border-color:var(--azul-m)}
+.btn-export{
+  padding:8px 16px;background:linear-gradient(135deg,var(--azul-m),var(--azul));
+  color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;
+  cursor:pointer;white-space:nowrap;transition:opacity .2s;display:flex;align-items:center;gap:6px;
+}
+.btn-export:hover{opacity:.88}
+
+/* ── STATS BAR ── */
+.stats-bar{
+  display:flex;gap:14px;margin-bottom:1.5rem;flex-wrap:wrap;
+}
+.stat-card{
+  background:var(--blanco);border:1px solid var(--borde);border-radius:10px;
+  padding:.75rem 1.2rem;flex:1;min-width:140px;
+  box-shadow:0 2px 6px rgba(10,45,110,.04);
+}
+.stat-card .num{font-size:24px;font-weight:800;color:var(--azul-m)}
+.stat-card .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
+
+/* ── INSTITUTION GROUP ── */
+.inst-group{
+  background:var(--blanco);border:1px solid var(--borde);border-radius:14px;
+  margin-bottom:1.1rem;overflow:hidden;
+  box-shadow:0 2px 8px rgba(10,45,110,.05);
+}
+.inst-group-head{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 18px;background:linear-gradient(90deg,#f0f5ff,#f8fafd);
+  border-bottom:1px solid var(--borde);cursor:pointer;user-select:none;
+  transition:background .15s;
+}
+.inst-group-head:hover{background:linear-gradient(90deg,#e4ecff,#f0f5ff)}
+.inst-name{font-size:14px;font-weight:800;color:var(--azul)}
+.inst-count{
+  font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;
+  background:var(--azul-c);color:var(--azul-m);border:1px solid #c0d0f0;
+  margin-left:4px;
+}
+.inst-chevron{margin-left:auto;font-size:14px;color:var(--muted);transition:transform .22s}
+.inst-chevron.open{transform:rotate(180deg)}
+
+/* ── CONTACTS TABLE ── */
+.contacts-wrap{overflow-x:auto}
+.contacts-table{width:100%;border-collapse:collapse;font-size:13px}
+.contacts-table th{
+  background:#f8fafd;color:var(--muted);
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  padding:8px 14px;text-align:left;border-bottom:1px solid var(--borde);
+}
+.contacts-table td{padding:10px 14px;border-bottom:1px solid #f0f4fa;vertical-align:middle}
+.contacts-table tr:last-child td{border-bottom:none}
+.contacts-table tr:hover td{background:#f8fbff}
+.contact-name{font-weight:600;color:var(--texto)}
+.contact-cargo{font-size:12px;color:var(--muted);margin-top:1px}
+.contact-email{color:var(--azul-m);text-decoration:none;font-size:13px}
+.contact-email:hover{text-decoration:underline}
+.contact-tel{font-size:13px;color:var(--muted)}
+.source-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;padding:2px 8px;border-radius:20px;
+  background:#f0f5ff;color:var(--azul-m);border:1px solid #d0dff8;
+  white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* ── ESTADOS ── */
+.loader{text-align:center;padding:3rem;color:var(--muted)}
+.spinner{width:28px;height:28px;border:3px solid var(--borde);border-top-color:var(--azul-m);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:3rem;color:var(--muted);font-size:14px}
+.no-results{text-align:center;padding:2rem;color:var(--muted);font-size:13px;font-style:italic}
+
+@media(max-width:600px){
+  .toolbar{gap:8px}
+  .search-wrap{max-width:100%;flex:1 1 100%}
+  .contacts-table th:nth-child(4),.contacts-table td:nth-child(4){display:none}
+}
+</style>
+</head>
+<body>
+<script src="header.js"></script>
+
+<div class="container">
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <span class="toolbar-title">Directorio de Contactos</span>
+    <div class="search-wrap">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-inp" type="text" id="search-inp" placeholder="Buscar nombre, correo, cargo..." oninput="filtrar()">
+    </div>
+    <select class="filter-sel" id="filter-inst" onchange="filtrar()">
+      <option value="">Todas las instituciones</option>
+    </select>
+    <button class="btn-export" onclick="exportarCSV()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar CSV
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar" id="stats-bar" style="display:none">
+    <div class="stat-card"><div class="num" id="stat-total">0</div><div class="lbl">Contactos únicos</div></div>
+    <div class="stat-card"><div class="num" id="stat-insts">0</div><div class="lbl">Instituciones</div></div>
+    <div class="stat-card"><div class="num" id="stat-reuniones">0</div><div class="lbl">Reuniones con registros</div></div>
+  </div>
+
+  <!-- Content -->
+  <div id="content">
+    <div class="loader"><div class="spinner"></div>Cargando contactos...</div>
+  </div>
+
+</div>
+
+<script>
+var SUPABASE_URL = 'https://gnpvqiyantdtksfvqtqk.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Datos cargados
+var todosContactos = []; // { nombre, cargo, correo, telefono, institucion, fuente }
+var gruposAbiertos = {};
+
+function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── CARGA ────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function(){
+  var check = setInterval(function(){
+    if(window.DIGER_SESSION !== undefined){
+      clearInterval(check);
+      cargar();
+    }
+  }, 50);
+});
+
+async function cargar(){
+  var s = window.DIGER_SESSION;
+  if(!s){ window.location.replace('index.html'); return; }
+
+  // Cargar asistencias con título de la reunión
+  var {data: asis, error: e1} = await sb
+    .from('asistencias')
+    .select('nombre, correo, cargo, institucion, telefono, reunion_id');
+
+  // Cargar títulos de reuniones para mostrar la fuente
+  var {data: reuniones} = await sb
+    .from('reuniones')
+    .select('id, titulo');
+
+  if(e1 || !asis){
+    document.getElementById('content').innerHTML =
+      '<div class="empty-state">Error al cargar contactos. Verifique su conexión.</div>';
+    return;
+  }
+
+  // Mapa reunion_id → título
+  var rmap = {};
+  (reuniones||[]).forEach(function(r){ rmap[r.id] = r.titulo; });
+
+  // Deduplicar por correo (lowercase); si no hay correo, por nombre+institución
+  var seen = {};
+  todosContactos = [];
+  asis.forEach(function(a){
+    var key = (a.correo||'').trim().toLowerCase() ||
+              ((a.nombre||'')+'|'+(a.institucion||'')).toLowerCase();
+    if(!key) return;
+    if(!seen[key]){
+      seen[key] = true;
+      todosContactos.push({
+        nombre:    (a.nombre||'').trim(),
+        cargo:     (a.cargo||'').trim(),
+        correo:    (a.correo||'').trim().toLowerCase(),
+        telefono:  (a.telefono||'').trim(),
+        institucion: (a.institucion||'').trim() || '(Sin institución)',
+        fuente:    rmap[a.reunion_id] || ''
+      });
+    }
+  });
+
+  // Ordenar por institución → nombre
+  todosContactos.sort(function(a,b){
+    return a.institucion.localeCompare(b.institucion) || a.nombre.localeCompare(b.nombre);
+  });
+
+  // Poblar filtro de instituciones
+  var insts = [...new Set(todosContactos.map(function(c){ return c.institucion; }))].sort();
+  var sel = document.getElementById('filter-inst');
+  insts.forEach(function(i){
+    var opt = document.createElement('option');
+    opt.value = i; opt.textContent = i;
+    sel.appendChild(opt);
+  });
+
+  // Stats
+  var reunionesUnicas = new Set(asis.map(function(a){ return a.reunion_id; })).size;
+  document.getElementById('stat-total').textContent = todosContactos.length;
+  document.getElementById('stat-insts').textContent = insts.length;
+  document.getElementById('stat-reuniones').textContent = reunionesUnicas;
+  document.getElementById('stats-bar').style.display = 'flex';
+
+  // Abrir primera institución por defecto
+  if(insts.length > 0) gruposAbiertos[insts[0]] = true;
+
+  renderContactos(todosContactos);
+}
+
+// ── RENDER ───────────────────────────────────────────────────────
+function renderContactos(lista){
+  var cont = document.getElementById('content');
+  if(lista.length === 0){
+    cont.innerHTML = '<div class="empty-state">No se encontraron contactos que coincidan con la búsqueda.</div>';
+    return;
+  }
+
+  // Agrupar por institución
+  var grupos = {};
+  lista.forEach(function(c){
+    if(!grupos[c.institucion]) grupos[c.institucion] = [];
+    grupos[c.institucion].push(c);
+  });
+
+  var html = '';
+  Object.keys(grupos).sort().forEach(function(inst){
+    var contactos = grupos[inst];
+    var abierto = gruposAbiertos[inst] !== false; // abierto por defecto
+    html +=
+      '<div class="inst-group" id="grp-'+esc(inst)+'">' +
+        '<div class="inst-group-head" onclick="toggleGrupo(\''+esc(inst)+'\')">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--azul-m);flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' +
+          '<span class="inst-name">'+esc(inst)+'</span>' +
+          '<span class="inst-count">'+contactos.length+' contacto'+(contactos.length!==1?'s':'')+'</span>' +
+          '<span class="inst-chevron'+(abierto?' open':'')+'">▾</span>' +
+        '</div>' +
+        '<div id="grp-body-'+esc(inst)+'" style="display:'+(abierto?'block':'none')+'">' +
+          '<div class="contacts-wrap">' +
+            '<table class="contacts-table">' +
+              '<thead><tr>' +
+                '<th>Nombre / Cargo</th>' +
+                '<th>Correo</th>' +
+                '<th>Teléfono</th>' +
+                '<th>Fuente</th>' +
+              '</tr></thead>' +
+              '<tbody>' +
+                contactos.map(function(c){
+                  return '<tr>' +
+                    '<td><div class="contact-name">'+esc(c.nombre||'—')+'</div>'+
+                         (c.cargo?'<div class="contact-cargo">'+esc(c.cargo)+'</div>':'') +
+                    '</td>' +
+                    '<td>'+(c.correo?'<a class="contact-email" href="mailto:'+esc(c.correo)+'">'+esc(c.correo)+'</a>':'<span style="color:var(--muted)">—</span>')+'</td>' +
+                    '<td><span class="contact-tel">'+(c.telefono||'—')+'</span></td>' +
+                    '<td>'+(c.fuente?'<span class="source-chip" title="'+esc(c.fuente)+'">'+esc(c.fuente)+'</span>':'<span style="color:var(--muted);font-size:12px">—</span>')+'</td>' +
+                  '</tr>';
+                }).join('') +
+              '</tbody>' +
+            '</table>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  });
+
+  cont.innerHTML = html;
+}
+
+// ── INTERACCIÓN ──────────────────────────────────────────────────
+function toggleGrupo(inst){
+  var body = document.getElementById('grp-body-'+inst);
+  var chev = document.querySelector('#grp-'+inst+' .inst-chevron');
+  if(!body) return;
+  var abierto = body.style.display !== 'none';
+  body.style.display = abierto ? 'none' : 'block';
+  gruposAbiertos[inst] = !abierto;
+  if(chev) chev.classList.toggle('open', !abierto);
+}
+
+function filtrar(){
+  var q     = (document.getElementById('search-inp').value||'').toLowerCase().trim();
+  var inst  = document.getElementById('filter-inst').value;
+
+  var lista = todosContactos.filter(function(c){
+    var matchInst = !inst || c.institucion === inst;
+    var matchQ    = !q ||
+      c.nombre.toLowerCase().includes(q) ||
+      c.correo.toLowerCase().includes(q) ||
+      c.cargo.toLowerCase().includes(q) ||
+      c.fuente.toLowerCase().includes(q);
+    return matchInst && matchQ;
+  });
+
+  // Al filtrar, abrir todos los grupos que tengan resultados
+  if(q || inst){
+    var instsFiltradas = new Set(lista.map(function(c){ return c.institucion; }));
+    instsFiltradas.forEach(function(i){ gruposAbiertos[i] = true; });
+  }
+
+  renderContactos(lista);
+  document.getElementById('stat-total').textContent = lista.length;
+}
+
+// ── EXPORT CSV ───────────────────────────────────────────────────
+function exportarCSV(){
+  var q    = (document.getElementById('search-inp').value||'').toLowerCase().trim();
+  var inst = document.getElementById('filter-inst').value;
+  var lista = todosContactos.filter(function(c){
+    var matchInst = !inst || c.institucion === inst;
+    var matchQ    = !q || c.nombre.toLowerCase().includes(q) || c.correo.toLowerCase().includes(q) || c.cargo.toLowerCase().includes(q);
+    return matchInst && matchQ;
+  });
+
+  var rows = [['Institución','Nombre','Cargo','Correo','Teléfono','Fuente']];
+  lista.forEach(function(c){
+    rows.push([c.institucion, c.nombre, c.cargo, c.correo, c.telefono, c.fuente]);
+  });
+
+  var csv = rows.map(function(r){
+    return r.map(function(v){ return '"'+String(v||'').replace(/"/g,'""')+'"'; }).join(',');
+  }).join('\r\n');
+
+  var blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url;
+  a.download = 'directorio_contactos_diger_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
