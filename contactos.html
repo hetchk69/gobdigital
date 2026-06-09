@@ -91,8 +91,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .contact-email:hover{text-decoration:underline}
 .source-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:20px;background:#f0f5ff;color:var(--azul-m);border:1px solid #d0dff8;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
 .source-manual{background:#f0fdf4;color:#16a34a;border-color:#bbf7d0}
-.btn-del-contact{background:none;border:none;cursor:pointer;color:#94a3b8;font-size:16px;padding:2px 6px;border-radius:6px;transition:color .15s}
-.btn-del-contact:hover{color:var(--rojo)}
+.row-actions{display:flex;gap:3px;align-items:center}
+.btn-row-act{background:none;border:1.5px solid transparent;cursor:pointer;font-size:13px;padding:3px 7px;border-radius:7px;transition:all .15s;color:#94a3b8;line-height:1}
+.btn-row-edit:hover{color:var(--azul-m);border-color:#c0d0f0;background:var(--azul-c)}
+.btn-del-contact,.btn-row-del{background:none;border:1.5px solid transparent;cursor:pointer;color:#94a3b8;font-size:13px;padding:3px 7px;border-radius:7px;transition:all .15s;line-height:1}
+.btn-del-contact:hover,.btn-row-del:hover{color:var(--rojo);border-color:#fecaca;background:#fff5f5}
 
 /* ── MODAL ── */
 .modal-bg{position:fixed;inset:0;background:rgba(10,25,55,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;display:none}
@@ -175,10 +178,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   </div>
 </div>
 
-<!-- Modal agregar contacto -->
+<!-- Modal agregar / editar contacto -->
 <div class="modal-bg" id="modal-bg" onclick="cerrarModalSi(event)">
   <div class="modal-box">
-    <h3>Agregar contacto</h3>
+    <h3 id="modal-title">Agregar contacto</h3>
     <div class="mfield">
       <label>Nombre completo *</label>
       <input type="text" id="m-nombre" placeholder="Nombre del contacto">
@@ -194,11 +197,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
           <option value="">— Seleccione —</option>
           <option>BANHPROVI</option><option>CANATURH / IHT</option><option>CNBS</option>
           <option>CONATEL</option><option>CONSUCOOP</option><option>CONVIVIENDA</option>
-          <option>COPECO</option><option>IHCINE</option><option>IHADFA</option>
+          <option>COPECO</option><option>IHADFA</option><option>IHCINE</option>
           <option>IHTT</option><option>INPREMA</option><option>INPREUNAH</option>
           <option>IP</option><option>SAG</option><option>SECAPPH</option>
-          <option>SEN</option><option>SGJD</option><option>SIT</option>
-          <option>SRECI</option><option>SERNA</option>
+          <option>SEN</option><option>SERNA</option><option>SGJD</option>
+          <option>SIT</option><option>SRECI</option>
         </select>
       </div>
     </div>
@@ -232,7 +235,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
     <div class="modal-err" id="modal-err"></div>
     <div class="modal-foot">
       <button class="btn-ghost" onclick="cerrarModal()">Cancelar</button>
-      <button class="btnp" id="btn-guardar" onclick="guardarContacto()">Guardar</button>
+      <button class="btnp" id="btn-guardar" onclick="guardarContacto()">Guardar contacto</button>
     </div>
   </div>
 </div>
@@ -275,8 +278,10 @@ var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 var todosContactos = [];
 var gruposAbiertos = {};
-var esAdmin = false;
-var instPreselect = ''; // para el botón + por institución
+var esAdmin      = false;
+var puedeEditar  = false;   // admin o coordinador
+var editandoContacto = null; // contacto en edición (null = modo agregar)
+var instPreselect = '';
 
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -306,8 +311,9 @@ window.addEventListener('DOMContentLoaded', function(){
       clearInterval(check);
       var s = window.DIGER_SESSION;
       if(!s){ window.location.replace('index.html'); return; }
-      esAdmin = s.role === 'admin';
-      if(esAdmin) document.getElementById('btn-add-global').style.display = 'flex';
+      esAdmin     = s.role === 'admin';
+      puedeEditar = s.role === 'admin' || s.role === 'coordinador';
+      if(puedeEditar) document.getElementById('btn-add-global').style.display = 'flex';
       cargar();
     }
   }, 50);
@@ -348,8 +354,12 @@ async function cargar(){
     });
   });
 
-  // Contactos manuales
-  var listaManuales = (resManuales.data||[]).map(function(m){
+  // Contactos manuales — separar ocultos
+  var rawManuales   = resManuales.data || [];
+  var ocultosEmails = new Set(rawManuales.filter(function(m){ return m.oculto; }).map(function(m){ return (m.correo||'').trim().toLowerCase(); }).filter(Boolean));
+  var ocultosKeys   = new Set(rawManuales.filter(function(m){ return m.oculto; }).map(function(m){ return ((m.nombre||'')+'|'+(m.institucion||'')).toLowerCase(); }));
+
+  var listaManuales = rawManuales.filter(function(m){ return !m.oculto; }).map(function(m){
     return {
       id: m.id, tipo:'manual',
       nombre:(m.nombre||'').trim(),
@@ -362,9 +372,13 @@ async function cargar(){
     };
   });
 
-  // Combinar — si mismo correo aparece en ambas, el manual tiene prioridad (tiene id para eliminar)
+  // Combinar — manual tiene prioridad; oculto suprime de asistencias
   var manualEmails = new Set(listaManuales.map(function(m){ return m.correo; }).filter(Boolean));
-  var asisNodup = listaAsis.filter(function(a){ return !a.correo || !manualEmails.has(a.correo); });
+  var asisNodup = listaAsis.filter(function(a){
+    if(a.correo && (manualEmails.has(a.correo) || ocultosEmails.has(a.correo))) return false;
+    if(!a.correo && ocultosKeys.has((a.nombre+'|'+a.institucion).toLowerCase())) return false;
+    return true;
+  });
 
   todosContactos = listaManuales.concat(asisNodup);
   todosContactos.sort(function(a,b){
@@ -391,18 +405,25 @@ async function cargar(){
 
 // ── RENDER ────────────────────────────────────────────────────────
 function renderContactos(lista){
+  window._dirList = lista; // índice para editar/borrar por posición
   var cont = document.getElementById('content');
   if(lista.length===0){
     cont.innerHTML='<div class="empty-state">No se encontraron contactos.</div>'; return;
   }
   var grupos = {};
-  lista.forEach(function(c){
+  lista.forEach(function(c, idx){
+    c._idx = idx; // adjuntar índice para los botones
     if(!grupos[c.institucion]) grupos[c.institucion]=[];
     grupos[c.institucion].push(c);
   });
 
+  // Ordenar contactos dentro de cada grupo por nombre
+  Object.keys(grupos).forEach(function(inst){
+    grupos[inst].sort(function(a,b){ return a.nombre.localeCompare(b.nombre,'es'); });
+  });
+
   var html='';
-  Object.keys(grupos).sort().forEach(function(inst){
+  Object.keys(grupos).sort(function(a,b){ return a.localeCompare(b,'es'); }).forEach(function(inst){
     var cs = grupos[inst];
     var abierto = gruposAbiertos[inst]!==false;
     var instId = inst.replace(/[^a-zA-Z0-9]/g,'_');
@@ -412,7 +433,7 @@ function renderContactos(lista){
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--azul-m);flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'+
           '<span class="inst-name">'+esc(inst)+'</span>'+
           '<span class="inst-count">'+cs.length+' contacto'+(cs.length!==1?'s':'')+'</span>'+
-          (esAdmin?'<button class="btn-add-inst" onclick="event.stopPropagation();abrirModal(\''+esc(inst)+'\')">+ Agregar</button>':'')+
+          (puedeEditar?'<button class="btn-add-inst" onclick="event.stopPropagation();abrirModal(\''+esc(inst)+'\')">+ Agregar</button>':'')+
           '<span class="inst-chevron'+(abierto?' open':'')+'">▾</span>'+
         '</div>'+
         '<div id="grp-body-'+instId+'" style="display:'+(abierto?'block':'none')+'">'+
@@ -420,22 +441,25 @@ function renderContactos(lista){
             '<table class="contacts-table">'+
               '<thead><tr>'+
                 '<th>Nombre / Cargo</th><th>Correo</th><th>Teléfono</th><th>Fuente / Notas</th>'+
-                (esAdmin?'<th></th>':'')+
+                (puedeEditar?'<th style="width:72px"></th>':'')+
               '</tr></thead>'+
               '<tbody>'+
                 cs.map(function(c){
                   var fuenteCell = c.tipo==='manual'
                     ? '<span class="source-chip source-manual">✎ Manual'+(c.notas?' — '+esc(c.notas):'')+'</span>'
                     : (c.fuente?'<span class="source-chip" title="'+esc(c.fuente)+'">'+esc(c.fuente)+'</span>':'<span style="color:var(--muted);font-size:12px">—</span>');
-                  var delBtn = (esAdmin&&c.id)
-                    ? '<button class="btn-del-contact" title="Eliminar" onclick="eliminarContacto(\''+c.id+'\')">×</button>'
+                  var acciones = puedeEditar
+                    ? '<div class="row-actions">'+
+                        '<button class="btn-row-act btn-row-edit" title="Editar" onclick="editarContacto('+c._idx+')">✎</button>'+
+                        '<button class="btn-row-act btn-row-del" title="Eliminar" onclick="confirmarEliminar('+c._idx+')">×</button>'+
+                      '</div>'
                     : '';
                   return '<tr>'+
                     '<td><div class="contact-name">'+esc(c.nombre||'—')+'</div>'+(c.cargo?'<div class="contact-cargo">'+esc(c.cargo)+'</div>':'')+'</td>'+
                     '<td>'+(c.correo?'<a class="contact-email" href="mailto:'+esc(c.correo)+'">'+esc(c.correo)+'</a>':'<span style="color:var(--muted)">—</span>')+'</td>'+
                     '<td style="color:var(--muted)">'+(c.telefono&&c.telefono!=='—'?esc(c.telefono):'—')+'</td>'+
                     '<td>'+fuenteCell+'</td>'+
-                    (esAdmin?'<td>'+delBtn+'</td>':'')+
+                    (puedeEditar?'<td>'+acciones+'</td>':'')+
                   '</tr>';
                 }).join('')+
               '</tbody>'+
@@ -474,7 +498,10 @@ function toggleGrupo(instId){
 
 // ── MODAL ─────────────────────────────────────────────────────────
 function abrirModal(inst){
+  editandoContacto = null;
   instPreselect = inst||'';
+  document.getElementById('modal-title').textContent = 'Agregar contacto';
+  document.getElementById('btn-guardar').textContent = 'Guardar contacto';
   document.getElementById('m-nombre').value='';
   document.getElementById('m-cargo').value='';
   document.getElementById('m-correo').value='';
@@ -487,10 +514,50 @@ function abrirModal(inst){
   document.getElementById('modal-bg').classList.add('open');
   setTimeout(function(){ document.getElementById('m-nombre').focus(); },80);
 }
-function cerrarModal(){ document.getElementById('modal-bg').classList.remove('open'); }
+
+function editarContacto(idx){
+  var c = (window._dirList||[])[idx];
+  if(!c) return;
+  editandoContacto = c;
+  document.getElementById('modal-title').textContent = 'Editar contacto';
+  document.getElementById('btn-guardar').textContent = 'Actualizar contacto';
+  document.getElementById('m-nombre').value = c.nombre||'';
+  document.getElementById('m-cargo').value  = c.cargo||'';
+  document.getElementById('m-correo').value = c.correo||'';
+  document.getElementById('m-inst').value   = c.institucion||'';
+  document.getElementById('m-notas').value  = c.notas||'';
+  setTelValue('m-tel', c.telefono||'');
+  document.getElementById('modal-err').style.display='none';
+  document.getElementById('btn-guardar').disabled=false;
+  document.getElementById('modal-bg').classList.add('open');
+  setTimeout(function(){ document.getElementById('m-nombre').focus(); },80);
+}
+
+function setTelValue(baseId, full){
+  var cc  = document.getElementById(baseId+'-cc');
+  var inp = document.getElementById(baseId+'-num');
+  if(!cc||!inp){ return; }
+  if(!full){ inp.value=''; cc.value='HN'; return; }
+  var opts = Array.from(cc.options).sort(function(a,b){ return b.getAttribute('data-code').length - a.getAttribute('data-code').length; });
+  var matched = false;
+  for(var i=0;i<opts.length;i++){
+    var code = opts[i].getAttribute('data-code');
+    if(full.startsWith(code)){
+      cc.value = opts[i].value;
+      inp.value = full.replace(code,'').trim();
+      matched = true; break;
+    }
+  }
+  if(!matched){ cc.value='HN'; inp.value=full.replace('+504','').trim(); }
+}
+
+function cerrarModal(){
+  document.getElementById('modal-bg').classList.remove('open');
+  editandoContacto = null;
+}
 function cerrarModalSi(e){ if(e.target===document.getElementById('modal-bg')) cerrarModal(); }
 
-// ── GUARDAR CONTACTO MANUAL ───────────────────────────────────────
+// ── GUARDAR / ACTUALIZAR CONTACTO ────────────────────────────────
 async function guardarContacto(){
   var nombre = (document.getElementById('m-nombre').value||'').trim();
   var cargo  = (document.getElementById('m-cargo').value||'').trim();
@@ -505,26 +572,52 @@ async function guardarContacto(){
   if(!nombre){ errEl.textContent='El nombre es obligatorio.'; errEl.style.display='block'; return; }
   if(!inst)  { errEl.textContent='Seleccione una institución.'; errEl.style.display='block'; return; }
 
-  btn.disabled=true; btn.textContent='Guardando...';
+  var txtGuardando = editandoContacto ? 'Actualizando...' : 'Guardando...';
+  btn.disabled=true; btn.textContent=txtGuardando;
 
-  var {error} = await sb.from('contactos_manuales').insert({
-    nombre, cargo, institucion: inst, correo: correo||null,
-    telefono: tel||null, notas: notas||null
-  });
+  var payload = { nombre, cargo, institucion: inst, correo: correo||null, telefono: tel||null, notas: notas||null };
+  var error;
 
-  btn.disabled=false; btn.textContent='Guardar';
-
-  if(error){
-    errEl.textContent='Error al guardar: '+error.message; errEl.style.display='block'; return;
+  if(editandoContacto && editandoContacto.id){
+    // Actualizar registro manual existente
+    var res = await sb.from('contactos_manuales').update(payload).eq('id', editandoContacto.id);
+    error = res.error;
+  } else {
+    // Crear nuevo (sea agregar desde cero o crear override de un contacto de reunión)
+    var res = await sb.from('contactos_manuales').insert(payload);
+    error = res.error;
   }
+
+  btn.disabled=false;
+  btn.textContent = editandoContacto ? 'Actualizar contacto' : 'Guardar contacto';
+
+  if(error){ errEl.textContent='Error: '+error.message; errEl.style.display='block'; return; }
   cerrarModal();
-  cargar(); // recargar todo
+  cargar();
 }
 
-// ── ELIMINAR CONTACTO MANUAL ──────────────────────────────────────
-async function eliminarContacto(id){
-  if(!confirm('¿Eliminar este contacto del directorio?')) return;
-  await sb.from('contactos_manuales').delete().eq('id',id);
+// ── ELIMINAR CONTACTO ─────────────────────────────────────────────
+async function confirmarEliminar(idx){
+  var c = (window._dirList||[])[idx];
+  if(!c) return;
+  var confirmMsg = '¿Eliminar este contacto del directorio?\n\n'
+    + '  Nombre:      ' + c.nombre + '\n'
+    + '  Institución: ' + c.institucion;
+  if(!confirm(confirmMsg)) return;
+
+  if(c.id){
+    // Contacto manual → eliminar directamente
+    await sb.from('contactos_manuales').delete().eq('id', c.id);
+  } else {
+    // Contacto de reunión → crear registro oculto para suprimirlo
+    await sb.from('contactos_manuales').insert({
+      nombre:      c.nombre,
+      correo:      c.correo||null,
+      institucion: c.institucion,
+      oculto:      true,
+      cargo: null, telefono: null, notas: null
+    });
+  }
   cargar();
 }
 
