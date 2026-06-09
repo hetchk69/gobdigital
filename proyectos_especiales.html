@@ -220,7 +220,7 @@ input[type=file].hidden{display:none}
 .tel-cc{
   padding:10px 4px 10px 8px;border:1.5px solid #e2e8f0;border-radius:9px;
   font-size:13px;font-family:inherit;background:#fafbfd;cursor:pointer;
-  width:88px;min-width:0;flex-shrink:0;outline:none;transition:border .2s;
+  width:76px;min-width:0;flex-shrink:0;outline:none;transition:border .2s;
 }
 .tel-cc:focus{border-color:#1455a4;background:#fff}
 .tel-num{
@@ -306,15 +306,15 @@ input[type=file].hidden{display:none}
       <div class="pub-field"><label>Teléfono</label>
         <div class="tel-wrap">
           <select class="tel-cc" id="pub-tel-cc" onchange="telCountryChange('pub-tel')">
-            <option value="HN" data-code="+504" data-mask="XXXX-XXXX"     data-len="8"  selected>🇭🇳 +504</option>
-            <option value="GT" data-code="+502" data-mask="XXXX-XXXX"     data-len="8"         >🇬🇹 +502</option>
-            <option value="SV" data-code="+503" data-mask="XXXX-XXXX"     data-len="8"         >🇸🇻 +503</option>
-            <option value="NI" data-code="+505" data-mask="XXXX-XXXX"     data-len="8"         >🇳🇮 +505</option>
-            <option value="CR" data-code="+506" data-mask="XXXX-XXXX"     data-len="8"         >🇨🇷 +506</option>
-            <option value="PA" data-code="+507" data-mask="XXXX-XXXX"     data-len="8"         >🇵🇦 +507</option>
-            <option value="MX" data-code="+52"  data-mask="XX XXXX-XXXX"  data-len="10"        >🇲🇽 +52</option>
-            <option value="US" data-code="+1"   data-mask="(XXX) XXX-XXXX" data-len="10"       >🇺🇸 +1</option>
-            <option value="ES" data-code="+34"  data-mask="XXX XXX XXX"   data-len="9"         >🇪🇸 +34</option>
+            <option value="HN" data-code="+504" data-mask="XXXX-XXXX"      data-len="8"  selected>HN +504</option>
+            <option value="GT" data-code="+502" data-mask="XXXX-XXXX"      data-len="8"        >GT +502</option>
+            <option value="SV" data-code="+503" data-mask="XXXX-XXXX"      data-len="8"        >SV +503</option>
+            <option value="NI" data-code="+505" data-mask="XXXX-XXXX"      data-len="8"        >NI +505</option>
+            <option value="CR" data-code="+506" data-mask="XXXX-XXXX"      data-len="8"        >CR +506</option>
+            <option value="PA" data-code="+507" data-mask="XXXX-XXXX"      data-len="8"        >PA +507</option>
+            <option value="MX" data-code="+52"  data-mask="XX XXXX-XXXX"   data-len="10"       >MX +52</option>
+            <option value="US" data-code="+1"   data-mask="(XXX) XXX-XXXX" data-len="10"       >US +1</option>
+            <option value="ES" data-code="+34"  data-mask="XXX XXX XXX"    data-len="9"        >ES +34</option>
           </select>
           <input type="tel" class="tel-num" id="pub-tel-num" placeholder="XXXX-XXXX" maxlength="15" oninput="telMask(this,'pub-tel')">
         </div>
