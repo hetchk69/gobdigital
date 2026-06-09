@@ -214,6 +214,23 @@ input[type=file].hidden{display:none}
 .pub-field label{display:block;font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:5px}
 .pub-field input{width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:14px;font-family:inherit;background:#fafbfd;transition:border .2s}
 .pub-field input:focus{outline:none;border-color:#1455a4;background:#fff;box-shadow:0 0 0 3px rgba(20,85,164,.1)}
+
+/* ── PHONE INPUT ── */
+.tel-wrap{display:flex;gap:6px}
+.tel-cc{
+  padding:10px 8px;border:1.5px solid #e2e8f0;border-radius:9px;
+  font-size:13px;font-family:inherit;background:#fafbfd;cursor:pointer;
+  min-width:108px;flex-shrink:0;outline:none;transition:border .2s;
+}
+.tel-cc:focus{border-color:#1455a4;background:#fff}
+.tel-num{
+  flex:1;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:9px;
+  font-size:14px;font-family:inherit;background:#fafbfd;outline:none;transition:border .2s;
+}
+.tel-num:focus{border-color:#1455a4;background:#fff;box-shadow:0 0 0 3px rgba(20,85,164,.1)}
+/* inside table cells */
+.tel-wrap.compact .tel-cc{padding:6px 7px;font-size:12px;min-width:96px}
+.tel-wrap.compact .tel-num{padding:6px 10px;font-size:12.5px}
 .pub-closed{background:#fff5f5;border:1.5px solid #fecaca;border-radius:12px;padding:1.5rem;text-align:center;color:#dc2626;font-weight:700}
 .pub-ok{text-align:center;padding:2rem 1rem}
 
@@ -286,7 +303,22 @@ input[type=file].hidden{display:none}
         </select>
         <input type="text" id="pub-inst-otra" placeholder="Especifique la institución" style="width:100%;padding:10px 13px;border:1.5px solid #cbd5e1;border-radius:10px;font-size:14px;font-family:inherit;outline:none;margin-top:6px;display:none">
       </div>
-      <div class="pub-field"><label>Teléfono</label><input type="tel" id="pub-tel" placeholder="+504 ????-????"></div>
+      <div class="pub-field"><label>Teléfono</label>
+        <div class="tel-wrap">
+          <select class="tel-cc" id="pub-tel-cc" onchange="telCountryChange('pub-tel')">
+            <option value="HN" data-code="+504" data-mask="XXXX-XXXX"     data-len="8"  selected>🇭🇳 +504</option>
+            <option value="GT" data-code="+502" data-mask="XXXX-XXXX"     data-len="8"         >🇬🇹 +502</option>
+            <option value="SV" data-code="+503" data-mask="XXXX-XXXX"     data-len="8"         >🇸🇻 +503</option>
+            <option value="NI" data-code="+505" data-mask="XXXX-XXXX"     data-len="8"         >🇳🇮 +505</option>
+            <option value="CR" data-code="+506" data-mask="XXXX-XXXX"     data-len="8"         >🇨🇷 +506</option>
+            <option value="PA" data-code="+507" data-mask="XXXX-XXXX"     data-len="8"         >🇵🇦 +507</option>
+            <option value="MX" data-code="+52"  data-mask="XX XXXX-XXXX"  data-len="10"        >🇲🇽 +52</option>
+            <option value="US" data-code="+1"   data-mask="(XXX) XXX-XXXX" data-len="10"       >🇺🇸 +1</option>
+            <option value="ES" data-code="+34"  data-mask="XXX XXX XXX"   data-len="9"         >🇪🇸 +34</option>
+          </select>
+          <input type="tel" class="tel-num" id="pub-tel-num" placeholder="XXXX-XXXX" maxlength="15" oninput="telMask(this,'pub-tel')">
+        </div>
+      </div>
       <div class="err-msg" id="pub-err"></div>
       <button class="btnp" id="pub-btn" onclick="registrarAsistencia()" style="width:100%;margin-top:.5rem;justify-content:center">✔ Registrar mi asistencia</button>
     </div>
@@ -516,7 +548,22 @@ input[type=file].hidden{display:none}
       <tr><td class="lbl2">- Nombre:</td><td><input type="text" id="ep-nombre" placeholder="Nombre completo"></td></tr>
       <tr><td class="lbl2">- Cargo:</td><td><input type="text" id="ep-cargo" placeholder="Cargo / función"></td></tr>
       <tr><td class="lbl2">- Correo:</td><td><input type="email" id="ep-correo" placeholder="correo@inst.gob.hn"></td></tr>
-      <tr><td class="lbl2">- Teléfono:</td><td><input type="text" id="ep-tel" placeholder="+504 9999-9999"></td></tr>
+      <tr><td class="lbl2">- Teléfono:</td><td>
+        <div class="tel-wrap compact">
+          <select class="tel-cc" id="ep-tel-cc" onchange="telCountryChange('ep-tel')">
+            <option value="HN" data-code="+504" data-mask="XXXX-XXXX"      data-len="8"  selected>🇭🇳 +504</option>
+            <option value="GT" data-code="+502" data-mask="XXXX-XXXX"      data-len="8"         >🇬🇹 +502</option>
+            <option value="SV" data-code="+503" data-mask="XXXX-XXXX"      data-len="8"         >🇸🇻 +503</option>
+            <option value="NI" data-code="+505" data-mask="XXXX-XXXX"      data-len="8"         >🇳🇮 +505</option>
+            <option value="CR" data-code="+506" data-mask="XXXX-XXXX"      data-len="8"         >🇨🇷 +506</option>
+            <option value="PA" data-code="+507" data-mask="XXXX-XXXX"      data-len="8"         >🇵🇦 +507</option>
+            <option value="MX" data-code="+52"  data-mask="XX XXXX-XXXX"   data-len="10"        >🇲🇽 +52</option>
+            <option value="US" data-code="+1"   data-mask="(XXX) XXX-XXXX" data-len="10"        >🇺🇸 +1</option>
+            <option value="ES" data-code="+34"  data-mask="XXX XXX XXX"    data-len="9"         >🇪🇸 +34</option>
+          </select>
+          <input type="tel" class="tel-num" id="ep-tel-num" placeholder="XXXX-XXXX" maxlength="15" oninput="telMask(this,'ep-tel')">
+        </div>
+      </td></tr>
       <tr><td class="lbl" colspan="4" style="background:linear-gradient(135deg,#0d8ca0,#0a6070)">Facilitador (Impartido por DIGER):</td></tr>
       <tr><td class="lbl2">- Nombre:</td><td><input type="text" id="fac-nombre" placeholder="Nombre completo"></td></tr>
       <tr><td class="lbl2">- Cargo:</td><td><input type="text" id="fac-cargo" placeholder="Cargo / función"></td></tr>
@@ -690,6 +737,55 @@ input[type=file].hidden{display:none}
 })();
 
 // ── SUPABASE ──────────────────────────────────────────────────
+// ── PHONE HELPERS ─────────────────────────────────────────────────
+function telMask(input, baseId) {
+  var cc  = document.getElementById(baseId + '-cc');
+  var opt = cc.options[cc.selectedIndex];
+  var mask   = opt.getAttribute('data-mask');
+  var maxLen = parseInt(opt.getAttribute('data-len'));
+  var digits = input.value.replace(/\D/g,'').slice(0, maxLen);
+  var result = ''; var di = 0;
+  for (var i = 0; i < mask.length && di < digits.length; i++) {
+    if (mask[i] === 'X') { result += digits[di++]; }
+    else if (di > 0)     { result += mask[i]; }
+  }
+  input.value = result;
+}
+function telCountryChange(baseId) {
+  var cc  = document.getElementById(baseId + '-cc');
+  var opt = cc.options[cc.selectedIndex];
+  var inp = document.getElementById(baseId + '-num');
+  inp.placeholder = opt.getAttribute('data-mask').replace(/X/g,'0');
+  inp.value = '';
+}
+function getTelValue(baseId) {
+  var cc  = document.getElementById(baseId + '-cc');
+  if (!cc) return (document.getElementById(baseId)||{value:''}).value.trim();
+  var opt  = cc.options[cc.selectedIndex];
+  var code = opt.getAttribute('data-code');
+  var num  = (document.getElementById(baseId + '-num').value || '').trim();
+  return num ? code + ' ' + num : '';
+}
+function setTelValue(baseId, full) {
+  var cc  = document.getElementById(baseId + '-cc');
+  var inp = document.getElementById(baseId + '-num');
+  if (!cc || !inp) return;
+  if (!full) { inp.value = ''; return; }
+  var opts = cc.options; var matched = false;
+  // Try longest code first (avoids +1 matching +52 prefix)
+  var sorted = Array.from(opts).sort(function(a,b){ return b.getAttribute('data-code').length - a.getAttribute('data-code').length; });
+  for (var i = 0; i < sorted.length; i++) {
+    var code = sorted[i].getAttribute('data-code');
+    if (full.startsWith(code)) {
+      cc.value = sorted[i].value;
+      inp.value = full.replace(code,'').trim();
+      matched = true; break;
+    }
+  }
+  if (!matched) { cc.value = 'HN'; inp.value = full.replace('+504','').trim(); }
+}
+// ─────────────────────────────────────────────────────────────────
+
 var SUPABASE_URL = 'https://gnpvqiyantdtksfvqtqk.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw';
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -757,7 +853,7 @@ async function registrarAsistencia(){
   var inst   = instSel === 'OTRA'
     ? (document.getElementById('pub-inst-otra').value||'').trim()
     : instSel.trim();
-  var tel    = (document.getElementById('pub-tel').value||'').trim();
+  var tel    = getTelValue('pub-tel');
   var err    = document.getElementById('pub-err');
   var btn    = document.getElementById('pub-btn');
   err.style.display = 'none';
@@ -1115,7 +1211,7 @@ function colectarDatosCap(){
   return {
     es_cap_plataforma: getEsCap(),
     tema:gv('cap-tema'),objetivo:gv('cap-objetivo'),contenido:cont,
-    ep_nombre:gv('ep-nombre'),ep_cargo:gv('ep-cargo'),ep_correo:gv('ep-correo'),ep_tel:gv('ep-tel'),
+    ep_nombre:gv('ep-nombre'),ep_cargo:gv('ep-cargo'),ep_correo:gv('ep-correo'),ep_tel:getTelValue('ep-tel'),
     fac_nombre:gv('fac-nombre'),fac_cargo:gv('fac-cargo'),fac_correo:gv('fac-correo'),
     participantes:[],docs_recursos:gv('docs-recursos'),
     mem_agenda:gv('mem-agenda'),mem_desarrollo:gv('mem-desarrollo'),mem_acuerdos:getAcuerdos(),
@@ -1140,7 +1236,7 @@ function cargarDatosCap(cap){
   toggleCapacitacion();
   sv('cap-tema',cap.tema||''); sv('cap-objetivo',cap.objetivo||'');
   sv('ep-nombre',cap.ep_nombre||''); sv('ep-cargo',cap.ep_cargo||'');
-  sv('ep-correo',cap.ep_correo||''); sv('ep-tel',cap.ep_tel||'');
+  sv('ep-correo',cap.ep_correo||''); setTelValue('ep-tel',cap.ep_tel||'');
   sv('fac-nombre',cap.fac_nombre||''); sv('fac-cargo',cap.fac_cargo||''); sv('fac-correo',cap.fac_correo||'');
   sv('docs-recursos',cap.docs_recursos||'');
   sv('mem-agenda',cap.mem_agenda||''); sv('mem-desarrollo',cap.mem_desarrollo||'');

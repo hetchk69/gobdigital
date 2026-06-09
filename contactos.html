@@ -106,6 +106,18 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   font-size:13px;font-family:inherit;outline:none;transition:border .2s;background:#f8fafd;
 }
 .mfield input:focus,.mfield select:focus{border-color:var(--azul-m);background:#fff}
+.tel-wrap{display:flex;gap:6px}
+.tel-cc{
+  padding:9px 8px;border:1.5px solid var(--borde);border-radius:9px;
+  font-size:13px;font-family:inherit;background:#f8fafd;cursor:pointer;
+  min-width:108px;flex-shrink:0;outline:none;transition:border .2s;
+}
+.tel-cc:focus{border-color:var(--azul-m);background:#fff}
+.tel-num{
+  flex:1;padding:9px 12px;border:1.5px solid var(--borde);border-radius:9px;
+  font-size:13px;font-family:inherit;background:#f8fafd;outline:none;transition:border .2s;
+}
+.tel-num:focus{border-color:var(--azul-m);background:#fff}
 .mfield-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .modal-err{font-size:12px;color:var(--rojo);background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:7px 11px;margin-bottom:.75rem;display:none}
 .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:1.25rem}
@@ -197,7 +209,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
       </div>
       <div class="mfield">
         <label>Teléfono</label>
-        <input type="tel" id="m-tel" placeholder="+504 ????-????">
+        <div class="tel-wrap">
+          <select class="tel-cc" id="m-tel-cc" onchange="telCountryChange('m-tel')">
+            <option value="HN" data-code="+504" data-mask="XXXX-XXXX"      data-len="8"  selected>🇭🇳 +504</option>
+            <option value="GT" data-code="+502" data-mask="XXXX-XXXX"      data-len="8"         >🇬🇹 +502</option>
+            <option value="SV" data-code="+503" data-mask="XXXX-XXXX"      data-len="8"         >🇸🇻 +503</option>
+            <option value="NI" data-code="+505" data-mask="XXXX-XXXX"      data-len="8"         >🇳🇮 +505</option>
+            <option value="CR" data-code="+506" data-mask="XXXX-XXXX"      data-len="8"         >🇨🇷 +506</option>
+            <option value="PA" data-code="+507" data-mask="XXXX-XXXX"      data-len="8"         >🇵🇦 +507</option>
+            <option value="MX" data-code="+52"  data-mask="XX XXXX-XXXX"   data-len="10"        >🇲🇽 +52</option>
+            <option value="US" data-code="+1"   data-mask="(XXX) XXX-XXXX" data-len="10"        >🇺🇸 +1</option>
+            <option value="ES" data-code="+34"  data-mask="XXX XXX XXX"    data-len="9"         >🇪🇸 +34</option>
+          </select>
+          <input type="tel" class="tel-num" id="m-tel-num" placeholder="XXXX-XXXX" maxlength="15" oninput="telMask(this,'m-tel')">
+        </div>
       </div>
     </div>
     <div class="mfield">
@@ -213,6 +238,37 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 </div>
 
 <script>
+// ── PHONE HELPERS ─────────────────────────────────────────────────
+function telMask(input, baseId) {
+  var cc  = document.getElementById(baseId + '-cc');
+  var opt = cc.options[cc.selectedIndex];
+  var mask   = opt.getAttribute('data-mask');
+  var maxLen = parseInt(opt.getAttribute('data-len'));
+  var digits = input.value.replace(/\D/g,'').slice(0, maxLen);
+  var result = ''; var di = 0;
+  for (var i = 0; i < mask.length && di < digits.length; i++) {
+    if (mask[i] === 'X') { result += digits[di++]; }
+    else if (di > 0)     { result += mask[i]; }
+  }
+  input.value = result;
+}
+function telCountryChange(baseId) {
+  var cc  = document.getElementById(baseId + '-cc');
+  var opt = cc.options[cc.selectedIndex];
+  var inp = document.getElementById(baseId + '-num');
+  inp.placeholder = opt.getAttribute('data-mask').replace(/X/g,'0');
+  inp.value = '';
+}
+function getTelValue(baseId) {
+  var cc = document.getElementById(baseId + '-cc');
+  if (!cc) return '';
+  var opt  = cc.options[cc.selectedIndex];
+  var code = opt.getAttribute('data-code');
+  var num  = (document.getElementById(baseId + '-num').value || '').trim();
+  return num ? code + ' ' + num : '';
+}
+// ─────────────────────────────────────────────────────────────────
+
 var SUPABASE_URL = 'https://gnpvqiyantdtksfvqtqk.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw';
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -422,7 +478,8 @@ function abrirModal(inst){
   document.getElementById('m-nombre').value='';
   document.getElementById('m-cargo').value='';
   document.getElementById('m-correo').value='';
-  document.getElementById('m-tel').value='';
+  document.getElementById('m-tel-num').value='';
+  document.getElementById('m-tel-cc').value='HN';
   document.getElementById('m-notas').value='';
   document.getElementById('m-inst').value = instPreselect||'';
   document.getElementById('modal-err').style.display='none';
@@ -439,7 +496,7 @@ async function guardarContacto(){
   var cargo  = (document.getElementById('m-cargo').value||'').trim();
   var inst   = document.getElementById('m-inst').value;
   var correo = (document.getElementById('m-correo').value||'').trim().toLowerCase();
-  var tel    = (document.getElementById('m-tel').value||'').trim();
+  var tel    = getTelValue('m-tel');
   var notas  = (document.getElementById('m-notas').value||'').trim();
   var errEl  = document.getElementById('modal-err');
   var btn    = document.getElementById('btn-guardar');
