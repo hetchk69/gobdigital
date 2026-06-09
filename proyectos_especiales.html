@@ -851,6 +851,9 @@ function mostrarCrear(){
 
 // ── ABRIR EVENTO EXISTENTE ────────────────────────────────────
 async function abrirEvento(id){
+  // No-admins nunca deben llegar al formulario editable
+  var _s=window.DIGER_SESSION;
+  if(_s && _s.role !== 'admin'){ descargarPDFDirecto(id); return; }
   currentId=id;
   cambiarVista('view-evento');
   document.getElementById('ev-titulo-bar').textContent='Cargando...';

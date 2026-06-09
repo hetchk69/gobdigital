@@ -325,6 +325,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 </head>
 <body>
 <!-- header.js will prepend the header -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="header.js"></script>
 
 <div class="container" id="app"></div>
@@ -443,11 +444,28 @@ var ALL_MODULOS = [];
   UNITS[u].modulos.forEach(function(m) { ALL_MODULOS.push(m); });
 });
 
+// ── SUPABASE ─────────────────────────────────────────────────────
+var SUPABASE_URL = 'https://gnpvqiyantdtksfvqtqk.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // ── UTILS ────────────────────────────────────────────────────────
-function loadConfig() {
-  try { return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {}; } catch { return {}; }
+// Carga todos los usuarios desde Supabase como objeto { email: {role, institucion} }
+async function loadConfig() {
+  var { data, error } = await sb.from('usuarios_sol').select('*');
+  if (error || !data) return {};
+  var cfg = {};
+  data.forEach(function(u){ cfg[u.email] = { role: u.role, institucion: u.institucion }; });
+  return cfg;
 }
-function saveConfig(cfg) { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); }
+// Guarda/actualiza un usuario en Supabase
+async function upsertUser(email, role, institucion) {
+  return await sb.from('usuarios_sol').upsert({ email: email, role: role, institucion: institucion });
+}
+// Elimina un usuario de Supabase
+async function deleteUser(email) {
+  return await sb.from('usuarios_sol').delete().eq('email', email);
+}
 function getDomain(email) { return (email.split('@')[1] || '').toLowerCase(); }
 function esc(v) {
   return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1001,7 +1019,7 @@ function abrirModalNuevoUsuario() {
   );
 }
 
-function guardarNuevoUsuario() {
+async function guardarNuevoUsuario() {
   var email = (document.getElementById('nu-email').value||'').trim().toLowerCase();
   var rol   = document.getElementById('nu-rol').value;
   var inst  = document.getElementById('nu-inst').value;
@@ -1010,20 +1028,21 @@ function guardarNuevoUsuario() {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent='Ingrese un correo válido.'; err.style.display='block'; return; }
   if (!inst) { err.textContent='Seleccione una institución.'; err.style.display='block'; return; }
   if (getDomain(email) === 'diger.gob.hn') { err.textContent='Los correos @diger.gob.hn son administradores.'; err.style.display='block'; return; }
-  var cfg = loadConfig();
-  if (cfg[email]) { err.textContent='Este correo ya está registrado.'; err.style.display='block'; return; }
-  // Módulos automáticos — no se almacenan permisos manuales
-  cfg[email] = { role: rol, institucion: inst };
-  saveConfig(cfg);
+  // Verificar si ya existe
+  var { data: existe } = await sb.from('usuarios_sol').select('email').eq('email', email).single();
+  if (existe) { err.textContent='Este correo ya está registrado.'; err.style.display='block'; return; }
+  var { error } = await upsertUser(email, rol, inst);
+  if (error) { err.textContent='Error al guardar. Intente de nuevo.'; err.style.display='block'; return; }
   cerrarModal();
   renderTablaAccesos();
 }
 
-function renderTablaAccesos() {
-  var cfg   = loadConfig();
+async function renderTablaAccesos() {
   var tbody = document.getElementById('access-tbody');
   var empty = document.getElementById('access-empty');
   if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1rem">Cargando...</td></tr>';
+  var cfg = await loadConfig();
   var emails = Object.keys(cfg).sort(function(a,b){
     var ra=ROL_ORDER.indexOf(cfg[a].role||'colaborador'), rb=ROL_ORDER.indexOf(cfg[b].role||'colaborador');
     return ra-rb || a.localeCompare(b);
@@ -1031,50 +1050,38 @@ function renderTablaAccesos() {
   tbody.innerHTML = '';
   if (emails.length === 0) { empty.style.display='block'; return; }
   empty.style.display = 'none';
-
   emails.forEach(function(email) {
     var u   = cfg[email];
     var rol = u.role || 'colaborador';
     var inst= u.institucion || '—';
     var tr  = document.createElement('tr');
-
-    // Módulos automáticos (mismos para todos los roles)
-    var modCell = '<span style="font-size:11px;color:var(--muted)">Estado Institucional · Reuniones cerradas</span>';
-
     tr.innerHTML =
       '<td class="email-cell">'+esc(email)+'</td>'+
       '<td><span class="role-badge role-'+rol+'">'+esc(ROL_LABELS[rol]||rol)+'</span></td>'+
       '<td><span class="inst-badge">'+esc(inst)+'</span></td>'+
-      '<td>'+modCell+'</td>'+
+      '<td><span style="font-size:11px;color:var(--muted)">Estado Institucional · Reuniones cerradas</span></td>'+
       '<td><button class="btn-rm" onclick="eliminarFuncionario(\''+email+'\')">Eliminar</button></td>';
     tbody.appendChild(tr);
   });
 }
 
-function togglePerm(email, modulo, val) {
-  var cfg = loadConfig(); if (!cfg[email]) return;
-  cfg[email][modulo] = val; saveConfig(cfg); renderTablaAccesos();
-}
-
-function eliminarFuncionario(email) {
+async function eliminarFuncionario(email) {
   if (!confirm('¿Eliminar el acceso de ' + email + '?')) return;
-  var cfg = loadConfig(); delete cfg[email]; saveConfig(cfg); renderTablaAccesos();
-}
-
-function saveTeConfig(email, field, val) {
-  var cfg = loadConfig(); if (!cfg[email]) return; cfg[email][field] = val; saveConfig(cfg);
+  await deleteUser(email);
+  renderTablaAccesos();
 }
 
 // ════════════════════════════════════════════════════════════════
 // COORDINADOR — SUB-USER MANAGEMENT
 // ════════════════════════════════════════════════════════════════
 
-function renderTablaCoord() {
-  var cfg   = loadConfig();
+async function renderTablaCoord() {
   var inst  = ses.institucion || '';
   var tbody = document.getElementById('coord-tbody');
   var empty = document.getElementById('coord-empty');
   if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:1rem">Cargando...</td></tr>';
+  var cfg = await loadConfig();
   var subusers = Object.keys(cfg).filter(function(e){
     return cfg[e].institucion === inst && cfg[e].role !== 'coordinador';
   });
@@ -1109,7 +1116,7 @@ function abrirModalSubusuario() {
   );
 }
 
-function guardarSubusuario() {
+async function guardarSubusuario() {
   var email = (document.getElementById('su-email').value||'').trim().toLowerCase();
   var rol   = document.getElementById('su-rol').value;
   var err   = document.getElementById('su-err');
@@ -1117,17 +1124,18 @@ function guardarSubusuario() {
   err.style.display = 'none';
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent='Ingrese un correo válido.'; err.style.display='block'; return; }
   if (getDomain(email) === 'diger.gob.hn') { err.textContent='Los correos @diger.gob.hn son administradores.'; err.style.display='block'; return; }
-  var cfg = loadConfig();
-  if (cfg[email]) { err.textContent='Este correo ya está registrado.'; err.style.display='block'; return; }
-  cfg[email] = { role: rol, institucion: inst };
-  saveConfig(cfg);
+  var { data: existe } = await sb.from('usuarios_sol').select('email').eq('email', email).single();
+  if (existe) { err.textContent='Este correo ya está registrado.'; err.style.display='block'; return; }
+  var { error } = await upsertUser(email, rol, inst);
+  if (error) { err.textContent='Error al guardar. Intente de nuevo.'; err.style.display='block'; return; }
   cerrarModal();
   renderTablaCoord();
 }
 
-function eliminarSubusuario(email) {
+async function eliminarSubusuario(email) {
   if (!confirm('¿Eliminar el acceso de ' + email + '?')) return;
-  var cfg = loadConfig(); delete cfg[email]; saveConfig(cfg); renderTablaCoord();
+  await deleteUser(email);
+  renderTablaCoord();
 }
 
 // ════════════════════════════════════════════════════════════════

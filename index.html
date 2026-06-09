@@ -69,6 +69,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   .screen-login{padding:1.5rem .75rem}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -93,17 +94,16 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────
-var ADMIN_DOMAIN = 'diger.gob.hn';
-var CONFIG_KEY   = 'diger_sol_config';
-var SESSION_KEY  = 'diger_sol_session';
+var ADMIN_DOMAIN  = 'diger.gob.hn';
+var SESSION_KEY   = 'diger_sol_session';
+var SUPABASE_URL  = 'https://gnpvqiyantdtksfvqtqk.supabase.co';
+var SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function loadConfig() {
-  try { return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {}; } catch { return {}; }
-}
 function getDomain(email) { return (email.split('@')[1] || '').toLowerCase(); }
 
 // ── LOGIN ────────────────────────────────────────────────────────
-function iniciarSesion() {
+async function iniciarSesion() {
   var email = document.getElementById('login-email').value.trim().toLowerCase();
   var err   = document.getElementById('login-err');
   err.style.display = 'none';
@@ -115,41 +115,30 @@ function iniciarSesion() {
 
   var domain = getDomain(email);
 
-  // ── Admin ──
+  // ── Admin (dominio diger.gob.hn) ──
   if (domain === ADMIN_DOMAIN) {
     sessionStorage.setItem(SESSION_KEY, JSON.stringify({ email: email, role: 'admin' }));
     window.location.href = 'unidad.html';
     return;
   }
 
-  // ── Usuario registrado ──
-  var cfg = loadConfig();
-  if (cfg[email]) {
-    var u = cfg[email];
-    var rol = u.role || 'colaborador';
-    var inst = u.institucion || '';
-    var access = {};
-    if (rol === 'coordinador') {
-      // Sus propios módulos
-      Object.keys(u).forEach(function(k){ if(k!=='role'&&k!=='institucion'&&typeof u[k]==='boolean') access[k]=u[k]; });
-    } else {
-      // Hereda módulos del coordinador de su institución
-      Object.keys(cfg).some(function(e){
-        var c=cfg[e];
-        if(c.role==='coordinador'&&c.institucion===inst){
-          Object.keys(c).forEach(function(k){ if(k!=='role'&&k!=='institucion'&&typeof c[k]==='boolean') access[k]=c[k]; });
-          return true;
-        }
-      });
-      // Backward compat: si no tiene role asignado, usar permisos directos
-      if(!u.role) access = u;
-    }
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ email:email, role:rol, institucion:inst, access:access }));
-    window.location.href = 'unidad.html';
+  // ── Usuario registrado en Supabase ──
+  var btn = document.querySelector('.login-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
+
+  var { data: u, error } = await sb.from('usuarios_sol').select('*').eq('email', email).single();
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Ingresar →'; }
+
+  if (error || !u) {
+    showErr('Acceso no autorizado. Consulte con el administrador DIGER.');
     return;
   }
 
-  showErr('Acceso no autorizado. Consulte con el administrador DIGER.');
+  var rol  = u.role || 'colaborador';
+  var inst = u.institucion || '';
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ email: email, role: rol, institucion: inst, access: {} }));
+  window.location.href = 'unidad.html';
 }
 
 function showErr(msg) {
