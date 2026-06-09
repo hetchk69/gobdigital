@@ -190,6 +190,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .placeholder .ico{font-size:48px;margin-bottom:1rem;opacity:.4}
 .placeholder p{font-size:14px}
 
+/* TRAM ACTION BUTTONS (edit/delete per row) */
+.tram-act-btn{background:none;border:1.5px solid transparent;cursor:pointer;font-size:13px;padding:2px 7px;border-radius:7px;transition:all .15s;color:#c4cfde;line-height:1;flex-shrink:0}
+.tram-act-btn:hover{color:var(--azul-m);border-color:#c0d0f0;background:var(--azul-c)}
+.tram-del-btn:hover{color:var(--rojo);border-color:#fecaca;background:#fff5f5}
+.tram-acts{display:flex;gap:3px;flex-shrink:0;margin-left:4px}
+
+/* TRAM FORM MODAL */
+.tf-lbl{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.tf-inp,.tf-sel{width:100%;padding:10px 13px;border:1.5px solid var(--borde);border-radius:9px;font-size:13.5px;font-family:inherit;outline:none;transition:border .2s;background:#fafbfd}
+.tf-inp:focus,.tf-sel:focus{border-color:var(--azul-m);background:#fff;box-shadow:0 0 0 3px rgba(20,85,164,.1)}
+.tf-err{font-size:12px;color:var(--rojo);background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:7px 11px;margin-bottom:.75rem;display:none}
+.btn-nuevo-tram{padding:6px 14px;background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s;display:none}
+.btn-nuevo-tram:hover{opacity:.88}
+
 /* MOBILE */
 @media(max-width:600px){
   .wrap{padding:1rem .75rem 3rem}
@@ -222,6 +236,42 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
       <button class="modal-close" onclick="closeModal()" title="Cerrar">✕</button>
     </div>
     <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Modal crear / editar trámite -->
+<div class="modal-overlay" id="tram-form-modal" onclick="if(event.target===this)cerrarModalTramite()">
+  <div class="modal-panel" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title">
+        <div><div class="modal-name" id="tf-title">Nuevo trámite</div></div>
+      </div>
+      <button class="modal-close" onclick="cerrarModalTramite()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:1.25rem 1.5rem">
+      <div style="margin-bottom:.9rem">
+        <label class="tf-lbl">Nombre del trámite *</label>
+        <input class="tf-inp" type="text" id="tf-nombre" placeholder="Nombre completo del trámite">
+      </div>
+      <div style="margin-bottom:.9rem">
+        <label class="tf-lbl">Institución *</label>
+        <select class="tf-sel" id="tf-inst">
+          <option value="">— Seleccione —</option>
+          <option>BANHPROVI</option><option>CANATURH / IHT</option><option>CNBS</option>
+          <option>CONATEL</option><option>CONSUCOOP</option><option>CONVIVIENDA</option>
+          <option>COPECO</option><option>IHADFA</option><option>IHCINE</option>
+          <option>IHTT</option><option>INPREMA</option><option>INPREUNAH</option>
+          <option>IP</option><option>SAG</option><option>SECAPPH</option>
+          <option>SEN</option><option>SERNA</option><option>SGJD</option>
+          <option>SIT</option><option>SRECI</option>
+        </select>
+      </div>
+      <div class="tf-err" id="tf-err"></div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:1.25rem">
+        <button onclick="cerrarModalTramite()" style="padding:9px 18px;background:#f1f5f9;color:var(--muted);border:1px solid var(--borde);border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">Cancelar</button>
+        <button onclick="guardarTramite()" id="btn-guardar-tram" style="padding:9px 22px;background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">Guardar</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -269,6 +319,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
           <span class="leg-item"><i class="leg-dot proc"></i>En proceso</span>
           <span class="leg-item"><i class="leg-dot ni"></i>No iniciado</span>
         </span>
+        <button class="btn-nuevo-tram" id="btn-nuevo-tram" onclick="abrirModalTramite()">+ Nuevo trámite</button>
       </div>
       <div id="tramites-content"></div>
     </div>
@@ -410,6 +461,8 @@ let tramCache = {};
 let notasCache = {};
 let _pendingTramSave = false;
 let _pendingNotasSave = false;
+let puedeEditar = false;
+let _editandoTram = undefined; // undefined=nuevo, id=editar
 
 function loadTram(){ return tramCache; }
 function saveTram(s){
@@ -418,12 +471,38 @@ function saveTram(s){
   sb.from('diger_tram').upsert({key:'tram', value:s, updated_at:new Date().toISOString()})
     .then(()=>{ setTimeout(()=>{ _pendingTramSave=false; }, 1000); });
 }
-function getRecord(id){ const s=loadTram(); const def=DEFAULT_DATA.find(d=>d.id===id); return Object.assign({},def,s[id]||{}); }
+const EMPTY_REC = {tramite:'',inst:'',etapas:[0,0,0,0,0,0,0,0,0,0,0,0],acta:'',activo:'',aloj:'',pdi:'',obs:''};
+function getRecord(id){
+  const s=loadTram();
+  const def=DEFAULT_DATA.find(d=>d.id===id) || Object.assign({id},EMPTY_REC);
+  const patch=s[id]||{};
+  return Object.assign({},def,patch);
+}
 function patchRecord(id,patch){
   const s=loadTram();
   const meta={updatedAt:new Date().toISOString(), updatedBy:(window.DIGER_SESSION?.email||'—')};
   s[id]=Object.assign({},s[id]||{},patch,meta);
   saveTram(s);
+}
+
+// ── DATOS EFECTIVOS (DEFAULT + nuevos + sin borrados) ─────────────
+function effectiveData(){
+  const s=loadTram();
+  // Tramites base — aplicar patches, filtrar borrados
+  const base=DEFAULT_DATA.map(d=>{
+    const p=s[d.id]||{};
+    if(p._deleted) return null;
+    return Object.assign({},d,p);
+  }).filter(Boolean);
+  // Tramites nuevos en caché
+  Object.keys(s).forEach(k=>{
+    const rec=s[k];
+    if(rec&&rec._new&&!rec._deleted)
+      base.push(Object.assign({id:k},rec));
+  });
+  // Ordenar por institución → nombre de trámite
+  base.sort((a,b)=>a.inst.localeCompare(b.inst,'es')||a.tramite.localeCompare(b.tramite,'es'));
+  return base;
 }
 
 function loadNotas(){ return notasCache; }
@@ -440,13 +519,13 @@ function calcPct(etapas){ return ETAPAS.reduce((s,e,i)=>s+(etapas[i]?e.peso:0),0
 function estadoFromPct(pct){ if(pct===0)return'No iniciado'; if(pct>=1)return'En operación'; return'En proceso'; }
 function badgeCls(estado){ if(estado==='En operación')return'op'; if(estado==='No iniciado')return'ni'; return'proc'; }
 function pctColor(pct){ if(pct>=1)return'var(--verde)'; if(pct>=0.6)return'var(--ambar)'; return'var(--rojo)'; }
-function uniqueInsts(){ return [...new Set(DEFAULT_DATA.map(d=>d.inst))]; }
+function uniqueInsts(){ return [...new Set(effectiveData().map(d=>d.inst))].sort((a,b)=>a.localeCompare(b,'es')); }
 function fmtFecha(iso){ if(!iso)return''; try{ const [y,m,d]=iso.split('-'); return d+'/'+m+'/'+y; }catch{return iso;} }
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // ── STATS GLOBALES ────────────────────────────────────────────────
 function refreshStats(){
-  const all=DEFAULT_DATA.filter(d=>!d.tramite.startsWith('(')).map(d=>getRecord(d.id));
+  const all=effectiveData().filter(d=>!d.tramite.startsWith('('));
   const op=all.filter(r=>calcPct(r.etapas)>=1).length;
   const ni=all.filter(r=>calcPct(r.etapas)===0).length;
   const proc=all.length-op-ni;
@@ -461,11 +540,12 @@ function refreshStats(){
 // ── DROPDOWN ─────────────────────────────────────────────────────
 function buildDropdown(){
   const sel=document.getElementById('instSelect');
+  const allData=effectiveData();
   const insts=uniqueInsts();
-  const totalTram=DEFAULT_DATA.length;
+  const totalTram=allData.length;
   sel.innerHTML=`<option value="__ALL__">🌐 Todas las instituciones (${totalTram} trámites)</option>`+
     insts.map(inst=>{
-      const rows=DEFAULT_DATA.filter(d=>d.inst===inst).map(d=>getRecord(d.id));
+      const rows=allData.filter(d=>d.inst===inst);
       const avg=rows.reduce((s,r)=>s+calcPct(r.etapas),0)/rows.length;
       const pct=Math.round(avg*100);
       return `<option value="${esc(inst)}">${inst} — ${pct}% avance (${rows.length} trámites)</option>`;
@@ -501,7 +581,7 @@ function renderInfoBar(inst){
     document.getElementById('instInfoBar').innerHTML='';
     return;
   }
-  const rows=DEFAULT_DATA.filter(d=>d.inst===inst).map(d=>getRecord(d.id));
+  const rows=effectiveData().filter(d=>d.inst===inst);
   const avg=rows.reduce((s,r)=>s+calcPct(r.etapas),0)/rows.length;
   const pct=Math.round(avg*100);
   const estado=estadoFromPct(avg);
@@ -518,9 +598,10 @@ function renderInfoBar(inst){
 // ── TRAMITES ─────────────────────────────────────────────────────
 function renderTramites(inst){
   const isAll=inst==='__ALL__';
+  const allData=effectiveData();
   const rows=isAll
-    ? DEFAULT_DATA.filter(d=>!d.tramite.startsWith('(')).map(d=>getRecord(d.id))
-    : DEFAULT_DATA.filter(d=>d.inst===inst).map(d=>getRecord(d.id));
+    ? allData.filter(d=>!d.tramite.startsWith('('))
+    : allData.filter(d=>d.inst===inst);
   document.getElementById('tram-count').textContent=rows.length;
   document.getElementById('tramites-content').innerHTML=
     renderTramHeader(isAll)+rows.map(r=>renderTramite(r,isAll)).join('');
@@ -548,7 +629,13 @@ function renderTramite(r, showInst){
     : '—';
   const byDisplay=r.updatedBy||'—';
 
-  return `<div class="tram-card s-${bcls}" id="tc-${r.id}" onclick="openModal(${r.id})">
+  const actsBtns = puedeEditar
+    ? `<div class="tram-acts">
+        <button class="tram-act-btn" title="Editar" onclick="event.stopPropagation();abrirModalTramite(${JSON.stringify(r.id)})">✎</button>
+        <button class="tram-act-btn tram-del-btn" title="Eliminar" onclick="event.stopPropagation();eliminarTramite(${JSON.stringify(r.id)})">×</button>
+      </div>`
+    : '';
+  return `<div class="tram-card s-${bcls}" id="tc-${r.id}" onclick="openModal(${JSON.stringify(r.id)})">
     <div class="tram-head">
       <div class="tram-dot ${bcls}" id="dot-${r.id}"></div>
       <div class="tram-name" title="${esc(r.tramite)}">${esc(r.tramite)}</div>
@@ -559,6 +646,7 @@ function renderTramite(r, showInst){
       </div>
       <div class="tram-updated">${esc(updatedAt)}</div>
       <div class="tram-by" title="${esc(byDisplay)}">${esc(byDisplay)}</div>
+      ${actsBtns}
       <div class="tram-arrow">›</div>
     </div>
   </div>`;
@@ -758,6 +846,60 @@ function eliminarNota(inst,fecha,timestamp,idx){
   renderNotas(inst);
 }
 
+// ── CRUD TRÁMITES ─────────────────────────────────────────────────
+function abrirModalTramite(id){
+  _editandoTram = id;
+  const esNuevo = id === undefined;
+  const r = esNuevo ? null : getRecord(id);
+  document.getElementById('tf-title').textContent = esNuevo ? 'Nuevo trámite' : 'Editar trámite';
+  document.getElementById('btn-guardar-tram').textContent = esNuevo ? 'Guardar trámite' : 'Actualizar trámite';
+  document.getElementById('tf-nombre').value = r ? (r.tramite||'') : '';
+  document.getElementById('tf-inst').value   = r ? (r.inst||'') : '';
+  document.getElementById('tf-err').style.display = 'none';
+  document.getElementById('tram-form-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('tf-nombre').focus(), 80);
+}
+function cerrarModalTramite(){
+  document.getElementById('tram-form-modal').classList.remove('open');
+  _editandoTram = undefined;
+}
+function guardarTramite(){
+  const nombre = document.getElementById('tf-nombre').value.trim();
+  const inst   = document.getElementById('tf-inst').value;
+  const errEl  = document.getElementById('tf-err');
+  errEl.style.display = 'none';
+  if(!nombre){ errEl.textContent='El nombre del trámite es obligatorio.'; errEl.style.display='block'; return; }
+  if(!inst)  { errEl.textContent='Seleccione una institución.'; errEl.style.display='block'; return; }
+  const meta = {updatedAt:new Date().toISOString(), updatedBy:(window.DIGER_SESSION?.email||'—')};
+  if(_editandoTram !== undefined){
+    // Editar tramite existente (solo nombre e institución)
+    patchRecord(_editandoTram, {tramite:nombre, inst:inst});
+  } else {
+    // Nuevo tramite — ID basado en timestamp
+    const newId = 'n'+Date.now();
+    const s = loadTram();
+    s[newId] = Object.assign({_new:true,tramite:nombre,inst:inst,etapas:[0,0,0,0,0,0,0,0,0,0,0,0],acta:'',activo:'',aloj:'',pdi:'',obs:''},meta);
+    saveTram(s);
+  }
+  cerrarModalTramite();
+  refreshStats();
+  buildDropdown();
+  if(activeInst){ renderTramites(activeInst); renderInfoBar(activeInst); }
+  document.getElementById('instSelect').value = activeInst||'__ALL__';
+}
+function eliminarTramite(id){
+  const r = getRecord(id);
+  if(!confirm('¿Eliminar este trámite?\n\n"'+r.tramite+'" — '+r.inst+'\n\nEsta acción no se puede deshacer.')) return;
+  const s = loadTram();
+  s[id] = Object.assign({},s[id]||{},{_deleted:true});
+  saveTram(s);
+  closeModal();
+  refreshStats();
+  buildDropdown();
+  if(activeInst){ renderTramites(activeInst); renderInfoBar(activeInst); }
+  document.getElementById('instSelect').value = activeInst||'__ALL__';
+}
+
 // ── INIT ─────────────────────────────────────────────────────────
 (async function init(){
   // Cargar tramites desde Supabase
@@ -775,6 +917,14 @@ function eliminarNota(inst,fecha,timestamp,idx){
 
   buildDropdown();
   refreshStats();
+
+  // Rol: mostrar controles de edición a admin y coordinador
+  var _sesRole = window.DIGER_SESSION?.role || '';
+  puedeEditar = _sesRole === 'admin' || _sesRole === 'coordinador';
+  if(puedeEditar){
+    var btnNuevo = document.getElementById('btn-nuevo-tram');
+    if(btnNuevo) btnNuevo.style.display = 'inline-flex';
+  }
 
   // Auto-select institution for non-admin users
   var _ses = window.DIGER_SESSION;
