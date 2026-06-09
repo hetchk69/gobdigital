@@ -284,6 +284,13 @@ var editandoContacto = null; // contacto en edición (null = modo agregar)
 var instPreselect = '';
 
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtFecha(f){
+  if(!f) return '—';
+  try{
+    var d = new Date(f);
+    return d.toLocaleDateString('es-HN',{day:'2-digit',month:'2-digit',year:'numeric'});
+  }catch(e){ return f; }
+}
 
 // ── NORMALIZACIÓN ────────────────────────────────────────────────
 var INST_NORM = {
@@ -328,11 +335,11 @@ async function cargar(){
   var [resAsis, resManuales, resReuniones] = await Promise.all([
     sb.from('asistencias').select('nombre,correo,cargo,institucion,telefono,reunion_id'),
     sb.from('contactos_manuales').select('*').order('created_at',{ascending:false}),
-    sb.from('reuniones').select('id,titulo')
+    sb.from('reuniones').select('id,fecha')
   ]);
 
   var rmap = {};
-  (resReuniones.data||[]).forEach(function(r){ rmap[r.id] = r.titulo; });
+  (resReuniones.data||[]).forEach(function(r){ rmap[r.id] = r.fecha||''; });
 
   // Deduplicar asistencias por correo (o nombre+inst)
   var seen = {};
@@ -349,7 +356,7 @@ async function cargar(){
       correo:(a.correo||'').trim().toLowerCase(),
       telefono:(a.telefono||'').trim(),
       institucion: normInst((a.institucion||'').trim()),
-      fuente: rmap[a.reunion_id]||'',
+      fecha: rmap[a.reunion_id]||'',
       notas:''
     });
   });
@@ -367,7 +374,7 @@ async function cargar(){
       correo:(m.correo||'').trim().toLowerCase(),
       telefono:(m.telefono||'').trim(),
       institucion: normInst((m.institucion||'').trim()),
-      fuente:'',
+      fecha: m.updated_at||m.created_at||'',
       notas:(m.notas||'').trim()
     };
   });
@@ -440,14 +447,14 @@ function renderContactos(lista){
           '<div class="contacts-wrap">'+
             '<table class="contacts-table">'+
               '<thead><tr>'+
-                '<th>Nombre / Cargo</th><th>Correo</th><th>Teléfono</th><th>Fuente / Notas</th>'+
+                '<th>Nombre / Cargo</th><th>Correo</th><th>Teléfono</th><th style="width:100px">Actualizado</th>'+
                 (puedeEditar?'<th style="width:72px"></th>':'')+
               '</tr></thead>'+
               '<tbody>'+
                 cs.map(function(c){
-                  var fuenteCell = c.tipo==='manual'
-                    ? '<span class="source-chip source-manual">✎ Manual'+(c.notas?' — '+esc(c.notas):'')+'</span>'
-                    : (c.fuente?'<span class="source-chip" title="'+esc(c.fuente)+'">'+esc(c.fuente)+'</span>':'<span style="color:var(--muted);font-size:12px">—</span>');
+                  var nombreCell = '<div class="contact-name">'+esc(c.nombre||'—')+'</div>'+
+                    (c.cargo?'<div class="contact-cargo">'+esc(c.cargo)+'</div>':'')+
+                    (c.notas?'<div class="contact-cargo" style="color:#94a3b8;font-style:italic">'+esc(c.notas)+'</div>':'');
                   var acciones = puedeEditar
                     ? '<div class="row-actions">'+
                         '<button class="btn-row-act btn-row-edit" title="Editar" onclick="editarContacto('+c._idx+')">✎</button>'+
@@ -455,10 +462,10 @@ function renderContactos(lista){
                       '</div>'
                     : '';
                   return '<tr>'+
-                    '<td><div class="contact-name">'+esc(c.nombre||'—')+'</div>'+(c.cargo?'<div class="contact-cargo">'+esc(c.cargo)+'</div>':'')+'</td>'+
+                    '<td>'+nombreCell+'</td>'+
                     '<td>'+(c.correo?'<a class="contact-email" href="mailto:'+esc(c.correo)+'">'+esc(c.correo)+'</a>':'<span style="color:var(--muted)">—</span>')+'</td>'+
                     '<td style="color:var(--muted)">'+(c.telefono&&c.telefono!=='—'?esc(c.telefono):'—')+'</td>'+
-                    '<td>'+fuenteCell+'</td>'+
+                    '<td style="color:var(--muted);font-size:12px;white-space:nowrap">'+fmtFecha(c.fecha)+'</td>'+
                     (puedeEditar?'<td>'+acciones+'</td>':'')+
                   '</tr>';
                 }).join('')+
@@ -628,9 +635,9 @@ function exportarCSV(){
   var lista = todosContactos.filter(function(c){
     return (!inst||c.institucion===inst)&&(!q||c.nombre.toLowerCase().includes(q)||c.correo.toLowerCase().includes(q)||c.cargo.toLowerCase().includes(q));
   });
-  var rows=[['Institución','Nombre','Cargo','Correo','Teléfono','Fuente','Notas']];
+  var rows=[['Institución','Nombre','Cargo','Correo','Teléfono','Actualizado','Notas']];
   lista.forEach(function(c){
-    rows.push([c.institucion,c.nombre,c.cargo,c.correo,c.telefono,c.tipo==='manual'?'Manual':c.fuente,c.notas]);
+    rows.push([c.institucion,c.nombre,c.cargo,c.correo,c.telefono,fmtFecha(c.fecha),c.notas]);
   });
   var csv=rows.map(function(r){ return r.map(function(v){ return '"'+String(v||'').replace(/"/g,'""')+'"'; }).join(','); }).join('\r\n');
   var a=document.createElement('a');
