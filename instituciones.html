@@ -523,18 +523,22 @@ function uniqueInsts(){ return [...new Set(effectiveData().map(d=>d.inst))].sort
 function fmtFecha(iso){ if(!iso)return''; try{ const [y,m,d]=iso.split('-'); return d+'/'+m+'/'+y; }catch{return iso;} }
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// ── STATS GLOBALES ────────────────────────────────────────────────
+// ── STATS (globales o por institución si está bloqueada) ──────────
 function refreshStats(){
-  const all=effectiveData().filter(d=>!d.tramite.startsWith('('));
+  let all=effectiveData().filter(d=>!d.tramite.startsWith('('));
+  if(instForzada) all=all.filter(d=>d.inst===instForzada);
   const op=all.filter(r=>calcPct(r.etapas)>=1).length;
   const ni=all.filter(r=>calcPct(r.etapas)===0).length;
   const proc=all.length-op-ni;
-  const avg=all.reduce((s,r)=>s+calcPct(r.etapas),0)/all.length;
+  const avg=all.length ? all.reduce((s,r)=>s+calcPct(r.etapas),0)/all.length : 0;
   document.getElementById('s-op').textContent=op;
   document.getElementById('s-proc').textContent=proc;
   document.getElementById('s-ni').textContent=ni;
   document.getElementById('s-avg').textContent=Math.round(avg*100)+'%';
   document.getElementById('s-avgbar').style.width=Math.round(avg*100)+'%';
+  // Actualizar etiqueta del avance
+  var lbl=document.querySelector('.stat.avg .stat-lbl');
+  if(lbl) lbl.textContent = instForzada ? 'Avance — '+instForzada : 'Avance global';
 }
 
 // ── DROPDOWN ─────────────────────────────────────────────────────
@@ -553,6 +557,7 @@ function buildDropdown(){
 }
 
 let activeInst = null;
+let instForzada = null; // institución bloqueada (portal institucional o rol no-admin)
 
 function seleccionar(inst){
   activeInst = inst || null;
@@ -928,27 +933,30 @@ function eliminarTramite(id){
 
   // Auto-select institution for non-admin users
   var _ses = window.DIGER_SESSION;
-  var _instForzada = null;
+  instForzada = null;
   if (_ses && _ses.role && _ses.role !== 'admin' && _ses.institucion) {
-    _instForzada = _ses.institucion;
+    instForzada = _ses.institucion;
   }
   // Also read ?inst= URL param (from institution portal link)
   try {
     var _qp = new URLSearchParams(window.location.search);
-    if (_qp.get('inst')) _instForzada = _qp.get('inst');
+    if (_qp.get('inst')) instForzada = _qp.get('inst');
   } catch(e) {}
 
-  if (_instForzada) {
+  // Re-calcular stats con el filtro de institución ya cargado
+  refreshStats();
+
+  if (instForzada) {
     // Lock: hide the selector bar, show institution name as header
     var selBar = document.getElementById('instSelect');
     if (selBar) {
       selBar.style.display = 'none';
       var lbl = document.createElement('div');
       lbl.style.cssText = 'font-size:16px;font-weight:800;color:#0a2d6e;padding:6px 0';
-      lbl.textContent = _instForzada;
+      lbl.textContent = instForzada;
       selBar.parentNode.insertBefore(lbl, selBar);
     }
-    seleccionar(_instForzada);
+    seleccionar(instForzada);
   } else {
     seleccionar('__ALL__');
   }
