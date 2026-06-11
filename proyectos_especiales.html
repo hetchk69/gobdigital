@@ -299,9 +299,8 @@ input[type=file].hidden{display:none}
           <option>IP</option><option>SAG</option><option>SECAPPH</option>
           <option>SEN</option><option>SERNA</option><option>SGJD</option>
           <option>SIT</option><option>SRECI</option>
-          <option value="OTRA">Otra institución...</option>
+          <option value="OTRA">Otro</option>
         </select>
-        <input type="text" id="pub-inst-otra" placeholder="Especifique la institución" style="width:100%;padding:10px 13px;border:1.5px solid #cbd5e1;border-radius:10px;font-size:14px;font-family:inherit;outline:none;margin-top:6px;display:none">
       </div>
       <div class="pub-field"><label>Teléfono</label>
         <div class="tel-wrap">
@@ -326,6 +325,22 @@ input[type=file].hidden{display:none}
       <div class="check-wrap"><svg viewBox="0 0 52 52"><polyline points="14,27 22,35 38,17"/></svg></div>
       <h2 style="font-size:20px;font-weight:700;color:#0a2d6e;margin-bottom:.5rem">¡Registro exitoso!</h2>
       <p style="color:#6b7fa3;font-size:13px;line-height:1.6" id="pub-ok-msg">Su asistencia ha sido registrada correctamente.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: NUEVA INSTITUCIÓN ── -->
+<div id="modal-inst-overlay" style="display:none;position:fixed;inset:0;background:rgba(10,20,50,.45);z-index:9000;display:none;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#fff;border-radius:16px;padding:1.75rem 1.5rem;width:100%;max-width:380px;box-shadow:0 8px 32px rgba(10,45,110,.22)">
+    <div style="font-size:15px;font-weight:800;color:#0a2d6e;margin-bottom:.3rem">Nueva institución</div>
+    <div style="font-size:12.5px;color:#64748b;margin-bottom:1.1rem">Ingrese el nombre de su institución. Quedará guardado para futuras referencias.</div>
+    <input type="text" id="modal-inst-input" placeholder="Nombre de la institución"
+      style="width:100%;padding:11px 13px;border:1.5px solid #cbd5e1;border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#f8fafc;color:#1c2333;margin-bottom:.6rem"
+      onkeydown="if(event.key==='Enter') confirmarInstModal()">
+    <div id="modal-inst-err" style="display:none;color:#dc2626;font-size:12px;margin-bottom:.6rem"></div>
+    <div style="display:flex;gap:8px;margin-top:.5rem">
+      <button onclick="cancelarInstModal()" style="flex:1;padding:10px;border-radius:9px;border:1.5px solid #cbd5e1;background:#f8fafc;color:#64748b;font-size:13px;font-weight:700;cursor:pointer">Cancelar</button>
+      <button onclick="confirmarInstModal()" style="flex:1;padding:10px;border-radius:9px;border:none;background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;font-size:13px;font-weight:700;cursor:pointer">Agregar</button>
     </div>
   </div>
 </div>
@@ -803,14 +818,39 @@ var _foto1_file = null, _foto2_file = null;
 
 // ─────────────────────────────────────────────────────────────
 // MODO PÚBLICO
-// Toggle "Otra institución" en el formulario de registro
 document.addEventListener('DOMContentLoaded', function(){
   var selInst = document.getElementById('pub-inst');
   if(selInst) selInst.addEventListener('change', function(){
-    var otra = document.getElementById('pub-inst-otra');
-    if(otra) otra.style.display = this.value === 'OTRA' ? 'block' : 'none';
+    if(this.value === 'OTRA') abrirInstModal();
   });
 });
+
+function abrirInstModal(){
+  var ov = document.getElementById('modal-inst-overlay');
+  var inp = document.getElementById('modal-inst-input');
+  var err = document.getElementById('modal-inst-err');
+  if(!ov) return;
+  inp.value = ''; err.style.display = 'none';
+  ov.style.display = 'flex';
+  setTimeout(function(){ inp.focus(); }, 80);
+}
+
+function cancelarInstModal(){
+  document.getElementById('modal-inst-overlay').style.display = 'none';
+  var sel = document.getElementById('pub-inst');
+  if(sel) sel.value = '';
+}
+
+function confirmarInstModal(){
+  var inp = document.getElementById('modal-inst-input');
+  var err = document.getElementById('modal-inst-err');
+  var nombre = (inp.value||'').trim();
+  if(!nombre){ err.textContent = 'Ingrese el nombre de la institución.'; err.style.display = 'block'; inp.focus(); return; }
+  guardarInstPersonalizada(nombre); // guarda en localStorage y refresca el select
+  var sel = document.getElementById('pub-inst');
+  if(sel) sel.value = nombre; // selecciona la opción recién agregada
+  document.getElementById('modal-inst-overlay').style.display = 'none';
+}
 
 // ─────────────────────────────────────────────────────────────
 (async function initPublic(){
@@ -850,10 +890,7 @@ async function registrarAsistencia(){
   var nombre = (document.getElementById('pub-nombre').value||'').trim();
   var correo = (document.getElementById('pub-correo').value||'').trim();
   var cargo  = (document.getElementById('pub-cargo').value||'').trim();
-  var instSel = document.getElementById('pub-inst').value||'';
-  var inst   = instSel === 'OTRA'
-    ? (document.getElementById('pub-inst-otra').value||'').trim()
-    : instSel.trim();
+  var inst = (document.getElementById('pub-inst').value||'').trim();
   var tel    = getTelValue('pub-tel');
   var err    = document.getElementById('pub-err');
   var btn    = document.getElementById('pub-btn');
@@ -867,7 +904,7 @@ async function registrarAsistencia(){
   });
   btn.disabled=false; btn.textContent='✔ Registrar mi asistencia';
   if(error){ err.textContent='Error al registrar: '+error.message; err.style.display='block'; return; }
-  if(instSel === 'OTRA' && inst) guardarInstPersonalizada(inst);
+  if(inst) guardarInstPersonalizada(inst);
   document.getElementById('pub-form-inner').style.display='none';
   document.getElementById('pub-ok').style.display='block';
   document.getElementById('pub-ok-msg').textContent='Gracias, '+nombre+'. Su asistencia ha sido registrada correctamente.';
