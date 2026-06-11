@@ -1903,10 +1903,10 @@ function instsSaved(){
 
 function guardarInstPersonalizada(nombre){
   if(!nombre) return;
-  var norm = nombre.trim();
-  if(!norm || INSTS_BASE.map(function(s){return s.toUpperCase();}).includes(norm.toUpperCase())) return;
+  var norm = nombre.trim().toUpperCase();
+  if(!norm || INSTS_BASE.map(function(s){return s.toUpperCase();}).includes(norm)) return;
   var saved = instsSaved();
-  if(saved.map(function(s){return s.toUpperCase();}).includes(norm.toUpperCase())) return;
+  if(saved.map(function(s){return s.toUpperCase();}).includes(norm)) return;
   saved.push(norm);
   localStorage.setItem(LS_INSTS, JSON.stringify(saved));
   cargarInstsPersonalizadas();
