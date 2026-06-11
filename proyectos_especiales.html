@@ -1901,6 +1901,7 @@ function volverLista(){
 
 // ── INSTITUCIONES PERSONALIZADAS ──────────────────────────────
 var LS_INSTS = 'diger_insts_custom';
+var INSTS_SB_KEY = 'insts_custom';
 var INSTS_BASE = ['BANHPROVI','CANATURH / IHT','CNBS','CONATEL','CONSUCOOP','CONVIVIENDA',
   'COPECO','IHADFA','IHCINE','IHTT','INPREMA','INPREUNAH','IP','SAG','SECAPPH',
   'SEN','SERNA','SGJD','SIT','SRECI'];
@@ -1917,7 +1918,36 @@ function guardarInstPersonalizada(nombre){
   if(saved.map(function(s){return s.toUpperCase();}).includes(norm)) return;
   saved.push(norm);
   localStorage.setItem(LS_INSTS, JSON.stringify(saved));
+  guardarInstEnSupabase(norm);
   cargarInstsPersonalizadas();
+}
+
+async function guardarInstEnSupabase(nombre){
+  try{
+    var {data} = await sb.from('diger_notas').select('value').eq('key',INSTS_SB_KEY).maybeSingle();
+    var current = [];
+    try{ if(data && data.value) current = JSON.parse(data.value); }catch(e){}
+    var norm = nombre.trim().toUpperCase();
+    if(current.map(function(s){return s.toUpperCase();}).includes(norm)) return;
+    current.push(norm);
+    await sb.from('diger_notas').upsert({key:INSTS_SB_KEY, value:JSON.stringify(current)});
+  }catch(e){}
+}
+
+async function cargarInstsDesdeSupabase(){
+  try{
+    var {data} = await sb.from('diger_notas').select('value').eq('key',INSTS_SB_KEY).maybeSingle();
+    if(data && data.value){
+      var sbInsts = JSON.parse(data.value);
+      var local = instsSaved();
+      sbInsts.forEach(function(inst){
+        if(!local.map(function(s){return s.toUpperCase();}).includes(inst.toUpperCase()))
+          local.push(inst);
+      });
+      localStorage.setItem(LS_INSTS, JSON.stringify(local));
+      cargarInstsPersonalizadas();
+    }
+  }catch(e){}
 }
 
 function cargarInstsPersonalizadas(){
@@ -1948,7 +1978,10 @@ function cargarInstsPersonalizadas(){
 
 function toggleInstOtro(){ document.getElementById('field-inst-otro').style.display = gv('g-inst')==='Otro' ? 'block' : 'none'; }
 
-document.addEventListener('DOMContentLoaded', cargarInstsPersonalizadas);
+document.addEventListener('DOMContentLoaded', function(){
+  cargarInstsPersonalizadas();
+  cargarInstsDesdeSupabase();
+});
 
 // ── UTILS ─────────────────────────────────────────────────────
 function gv(id){ var el=document.getElementById(id); return el?(el.value||'').trim():''; }
