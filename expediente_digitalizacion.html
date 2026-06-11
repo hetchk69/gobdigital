@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expediente de Digitalización — DIGER</title>
+<style>
+:root{--azul:#0a2d6e;--azul-m:#1455a4;--azul-c:#e8f0ff;--gris-f:#f4f6fb;--borde:#dde4f0;--texto:#1c2333;--muted:#64748b;--verde:#16a34a;--verde-c:#dcfce7;--ambar:#d97706;--ambar-c:#fef3c7;--rojo:#dc2626;--rojo-c:#fee2e2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--texto);background:var(--gris-f);min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:linear-gradient(90deg,var(--azul),var(--azul-m));padding:0 1.5rem;height:48px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(10,45,110,.18);position:sticky;top:0;z-index:40}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:7px;padding:3px 10px;font-size:11px;font-weight:700;color:#fff;letter-spacing:.06em}
+.topbar h1{font-size:13px;font-weight:700;color:#fff}
+.tb-right{display:flex;align-items:center;gap:8px}
+.btn-top{padding:6px 13px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s;display:flex;align-items:center;gap:5px}
+.btn-sec{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.btn-sec:hover{background:rgba(255,255,255,.25)}
+.btn-pdf{background:#fff;color:var(--azul);font-weight:700}
+.btn-pdf:hover{background:#e8f0ff}
+
+/* LAYOUT */
+.wrap{display:grid;grid-template-columns:230px 1fr;max-width:1260px;margin:0 auto;min-height:calc(100vh - 48px)}
+.sidebar{background:#fff;border-right:1px solid var(--borde);padding:1.25rem 1rem;position:sticky;top:48px;height:calc(100vh - 48px);overflow-y:auto}
+.main{padding:1.75rem 2rem 4rem}
+.sb-hdr{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;padding-left:10px}
+.sbi{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;font-size:12.5px;cursor:pointer;color:var(--muted);transition:all .18s;margin-bottom:2px}
+.sbi:hover{background:var(--gris-f);color:var(--azul)}
+.sbi.active{background:var(--azul-c);color:var(--azul);font-weight:700}
+.sbi-dot{width:8px;height:8px;border-radius:50%;background:var(--borde);flex-shrink:0;transition:background .2s}
+.sbi.active .sbi-dot{background:var(--azul-m)}
+.sbi.done .sbi-dot{background:var(--verde)}
+.sbi.done{color:var(--muted)}
+.sb-div{height:1px;background:var(--borde);margin:.9rem 0}
+.sb-meta{font-size:11px;color:var(--muted);line-height:1.8;padding:9px 10px;background:var(--gris-f);border-radius:8px}
+.sb-meta strong{color:var(--texto);font-weight:600}
+.pb-wrap{margin-top:1.1rem;padding:0 2px}
+.pb-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px}
+.pb{height:5px;background:var(--borde);border-radius:99px;overflow:hidden}
+.pb-fill{height:100%;background:linear-gradient(90deg,var(--azul-m),var(--verde));border-radius:99px;transition:width .4s}
+
+/* SECTIONS */
+.sec{display:none}.sec.active{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sec-title{font-size:11px;font-weight:800;color:var(--azul-m);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1.4rem;padding-bottom:.65rem;border-bottom:2px solid var(--azul-c);display:flex;align-items:center;gap:8px}
+
+/* CARDS */
+.card{background:#fff;border:1px solid var(--borde);border-radius:13px;padding:1.4rem;margin-bottom:1.1rem}
+.card.accent{border-left:3px solid var(--azul-m)}
+.ct{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1rem;padding-bottom:.55rem;border-bottom:1.5px solid var(--gris-f);display:flex;align-items:center;gap:7px}
+
+/* FIELDS */
+.f{margin-bottom:1rem}.f:last-child{margin-bottom:0}
+.f label{display:block;font-size:12px;font-weight:700;color:var(--texto);margin-bottom:4px}
+.star{color:var(--rojo);margin-left:2px}
+.f input,.f select,.f textarea{width:100%;padding:9px 12px;border:1.5px solid var(--borde);border-radius:8px;font-size:13.5px;font-family:inherit;background:#fafbfd;color:var(--texto);transition:border .2s,box-shadow .2s}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--azul-m);background:#fff;box-shadow:0 0 0 3px rgba(20,85,164,.09)}
+.f textarea{min-height:80px;resize:vertical;line-height:1.6}
+.f .hint{font-size:11px;color:var(--muted);margin-top:3px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
+
+/* PILLS */
+.tg{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.tp{display:flex;align-items:center;gap:7px;padding:7px 15px;border:1.5px solid var(--borde);border-radius:99px;cursor:pointer;font-size:13px;font-weight:500;transition:all .18s;background:var(--gris-f)}
+.tp:hover{border-color:var(--azul-m);background:var(--azul-c)}
+.tp.on{border-color:var(--azul-m);background:linear-gradient(135deg,#dde9ff,#c8dbff);color:var(--azul);font-weight:700}
+.tp.on-v{border-color:var(--verde);background:var(--verde-c);color:var(--verde);font-weight:700}
+.tp.on-a{border-color:var(--ambar);background:var(--ambar-c);color:var(--ambar);font-weight:700}
+.tp.on-r{border-color:var(--rojo);background:var(--rojo-c);color:var(--rojo);font-weight:700}
+.tp input{display:none}
+
+/* STATUS BADGE */
+.badge-estado{display:inline-flex;align-items:center;gap:6px;padding:4px 13px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid}
+
+/* DYNAMIC TABLE */
+.dtbl{width:100%;border-collapse:collapse;font-size:13px}
+.dtbl th{background:var(--azul);color:#fff;padding:9px 11px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:left}
+.dtbl tr:nth-child(even){background:var(--gris-f)}
+.dtbl td{padding:0;border-bottom:1px solid var(--borde);vertical-align:top}
+.dtbl td input,.dtbl td select,.dtbl td textarea{width:100%;padding:8px 10px;border:none;background:transparent;font-size:12.5px;font-family:inherit;color:var(--texto)}
+.dtbl td input:focus,.dtbl td select:focus,.dtbl td textarea:focus{outline:none;background:var(--azul-c)}
+.dtbl .nc{text-align:center;padding:8px;font-weight:800;font-size:13px;color:var(--azul-m);background:var(--azul-c);border-bottom:1px solid var(--borde);width:34px}
+.dtbl td textarea{min-height:38px;resize:vertical}
+.btn-add{margin-top:.75rem;padding:7px 16px;background:var(--azul-c);color:var(--azul-m);border:1.5px solid var(--azul-m);border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-add:hover{background:var(--azul-m);color:#fff}
+.btn-rm{padding:5px 8px;background:#fff;border:1.5px solid var(--borde);color:var(--muted);border-radius:6px;font-size:12px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-rm:hover{border-color:var(--rojo);color:var(--rojo);background:#fff5f5}
+
+/* REUNIÓN CARD */
+.reunion-card{background:var(--gris-f);border:1.5px solid var(--borde);border-radius:12px;padding:1.1rem;margin-bottom:.9rem}
+.reunion-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;padding-bottom:.65rem;border-bottom:1px solid var(--borde)}
+.reunion-num{background:var(--azul-m);color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px}
+.acuerdo-item{display:flex;gap:8px;margin-bottom:6px;align-items:flex-start}
+.acuerdo-item input{flex:1;padding:7px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:13px;font-family:inherit;background:#fff}
+.acuerdo-item input:focus{outline:none;border-color:var(--azul-m)}
+.acuerdo-dot{width:8px;height:8px;border-radius:50%;background:var(--azul-m);flex-shrink:0;margin-top:9px}
+
+/* CHECKLIST DE ESTADO */
+.estado-row{display:grid;grid-template-columns:1fr 160px 1fr;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--borde);background:#fff}
+.estado-row:last-child{border-bottom:none}
+.estado-row:hover{background:var(--gris-f)}
+.estado-label{font-size:13px;color:var(--texto)}
+.estado-sel{padding:7px 10px;border:1.5px solid var(--borde);border-radius:8px;font-size:12.5px;font-family:inherit;background:#fafbfd;font-weight:600;cursor:pointer;outline:none}
+
+/* NAV */
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.75rem;padding-top:1.4rem;border-top:1px solid var(--borde)}
+.btn{padding:10px 22px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;border:none}
+.btn-p{background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;box-shadow:0 4px 14px rgba(10,45,110,.22)}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(10,45,110,.32)}
+.btn-s{background:#fff;border:1.5px solid var(--borde);color:var(--muted)}
+.btn-s:hover{border-color:var(--azul-m);color:var(--azul-m);background:var(--azul-c)}
+.btn-save-float{position:fixed;bottom:1.75rem;right:1.75rem;padding:12px 22px;background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(10,45,110,.35);transition:all .2s;z-index:50;display:flex;align-items:center;gap:7px}
+.btn-save-float:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(10,45,110,.45)}
+
+/* TOAST */
+.toast{position:fixed;bottom:5rem;right:1.75rem;background:#1c2333;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:all .3s;z-index:60;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* PRINT */
+@media print{
+  .topbar,.sidebar,.nav,.btn-save-float,.toast,.btn-add,.btn-rm{display:none!important}
+  .wrap{display:block}.main{padding:0}
+  .sec{display:block!important}
+  .card{break-inside:avoid;margin-bottom:10px}
+  body{font-size:12px}
+}
+@media(max-width:900px){
+  .wrap{grid-template-columns:1fr}.sidebar{display:none}
+  .main{padding:1.1rem 1rem 4rem}
+  .g2,.g3{grid-template-columns:1fr}
+  .estado-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<script src="header.js"></script>
+
+<div class="topbar">
+  <div class="tb-left">
+    <span class="tb-badge">EXPEDIENTE</span>
+    <h1 id="topbar-title">Expediente de Digitalización — DIGER</h1>
+  </div>
+  <div class="tb-right">
+    <button class="btn-top btn-sec" onclick="verHistorial()">☰ Historial</button>
+    <button class="btn-top btn-pdf" onclick="window.print()">🖨 PDF</button>
+  </div>
+</div>
+
+<div class="wrap" id="main-wrap">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-hdr">Secciones</div>
+    <div class="sbi active" id="sb0" onclick="ir(0)"><div class="sbi-dot"></div>Apertura del expediente</div>
+    <div class="sbi" id="sb1" onclick="ir(1)"><div class="sbi-dot"></div>Ficha del trámite</div>
+    <div class="sbi" id="sb2" onclick="ir(2)"><div class="sbi-dot"></div>Marco legal y documentación</div>
+    <div class="sbi" id="sb3" onclick="ir(3)"><div class="sbi-dot"></div>Proceso actual</div>
+    <div class="sbi" id="sb4" onclick="ir(4)"><div class="sbi-dot"></div>Reuniones y acuerdos</div>
+    <div class="sbi" id="sb5" onclick="ir(5)"><div class="sbi-dot"></div>Modelo propuesto</div>
+    <div class="sbi" id="sb6" onclick="ir(6)"><div class="sbi-dot"></div>Estado del expediente</div>
+    <div class="sb-div"></div>
+    <div class="sb-meta">
+      <strong>Institución:</strong> <span id="sb-inst">—</span><br>
+      <strong>Trámite:</strong> <span id="sb-tramite">—</span><br>
+      <strong>Analista:</strong> <span id="sb-analista">—</span><br>
+      <strong>Apertura:</strong> <span id="sb-fecha">—</span>
+    </div>
+    <div class="pb-wrap">
+      <div class="pb-lbl"><span>Completado</span><span id="pb-pct">0%</span></div>
+      <div class="pb"><div class="pb-fill" id="pb-fill" style="width:0%"></div></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="form-main">
+
+    <!-- ══ SECCIÓN 0: APERTURA ══ -->
+    <div class="sec active" id="sec0">
+      <div class="sec-title">📁 Apertura del expediente</div>
+
+      <div class="card accent">
+        <div class="ct">Identificación</div>
+        <div class="g2">
+          <div class="f">
+            <label>Institución <span class="star">*</span></label>
+            <select id="inst" oninput="actualizarMeta()">
+              <option value="">— Seleccione —</option>
+              <option>BANHPROVI</option><option>CANATURH / IHT</option><option>CNBS</option>
+              <option>CONATEL</option><option>CONSUCOOP</option><option>CONVIVIENDA</option>
+              <option>COPECO</option><option>IHADFA</option><option>IHCINE</option>
+              <option>IHTT</option><option>INPREMA</option><option>INPREUNAH</option>
+              <option>IP</option><option>SAG</option><option>SECAPPH</option>
+              <option>SEN</option><option>SERNA</option><option>SGJD</option>
+              <option>SIT</option><option>SRECI</option>
+            </select>
+          </div>
+          <div class="f">
+            <label>Fecha de apertura <span class="star">*</span></label>
+            <input type="date" id="fecha_apertura" oninput="actualizarMeta()">
+          </div>
+        </div>
+        <div class="f">
+          <label>Trámite(s) a digitalizar <span class="star">*</span></label>
+          <input type="text" id="tramites_lista" placeholder="Ej: Certificación de asiento, Inscripción de cooperativas..." oninput="actualizarMeta()">
+          <span class="hint">Si son varios trámites, sepárelos con coma</span>
+        </div>
+        <div class="g2">
+          <div class="f">
+            <label>Analista DIGER responsable <span class="star">*</span></label>
+            <input type="text" id="analista" placeholder="Nombre completo" oninput="actualizarMeta()">
+          </div>
+          <div class="f">
+            <label>Código de expediente</label>
+            <input type="text" id="codigo_exp" placeholder="Ej: EXP-IP-2026-01">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Justificación de priorización</div>
+        <div class="f">
+          <label>Impacto ciudadano — ¿por qué se priorizó este trámite? <span class="star">*</span></label>
+          <textarea id="justificacion" rows="4" placeholder="Describa el volumen de usuarios afectados, problemas actuales del trámite presencial, beneficios esperados de la digitalización..."></textarea>
+        </div>
+        <div class="g2">
+          <div class="f">
+            <label>Aprobado por (directiva)</label>
+            <input type="text" id="aprobado_por" placeholder="Nombre y cargo de quien aprobó">
+          </div>
+          <div class="f">
+            <label>Fecha de aprobación</label>
+            <input type="date" id="fecha_aprobacion">
+          </div>
+        </div>
+        <div class="f">
+          <label>Fuente del lead</label>
+          <div class="tg" id="tg-lead">
+            <label class="tp"><input type="radio" name="lead" value="Directiva DIGER"> Directiva DIGER</label>
+            <label class="tp"><input type="radio" name="lead" value="Solicitud institucional"> Solicitud institucional</label>
+            <label class="tp"><input type="radio" name="lead" value="Plan de gobierno"> Plan de gobierno</label>
+            <label class="tp"><input type="radio" name="lead" value="Otro"> Otro</label>
+          </div>
+        </div>
+        <div class="f">
+          <label>Observaciones sobre la priorización</label>
+          <textarea id="obs_priorizacion" rows="2" placeholder="Contexto adicional, restricciones, compromisos previos..."></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Contacto institucional principal</div>
+        <div class="g3">
+          <div class="f"><label>Nombre</label><input type="text" id="contacto_nombre" placeholder="Nombre completo"></div>
+          <div class="f"><label>Cargo</label><input type="text" id="contacto_cargo" placeholder="Cargo / función"></div>
+          <div class="f"><label>Correo</label><input type="email" id="contacto_correo" placeholder="correo@inst.gob.hn"></div>
+        </div>
+      </div>
+
+      <div class="nav">
+        <span style="font-size:12px;color:var(--muted)">* Campos obligatorios</span>
+        <button class="btn btn-p" onclick="ir(1)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- ══ SECCIÓN 1: FICHA DEL TRÁMITE ══ -->
+    <div class="sec" id="sec1">
+      <div class="sec-title">📋 Ficha del trámite</div>
+
+      <div class="card accent">
+        <div class="ct">Datos generales</div>
+        <div class="f"><label>Nombre completo del trámite <span class="star">*</span></label><input type="text" id="nombre_tramite" placeholder="Nombre oficial"></div>
+        <div class="g2">
+          <div class="f"><label>Nombre corto / abreviatura</label><input type="text" id="nombre_corto" placeholder="Nombre común"></div>
+          <div class="f"><label>Área o dirección responsable</label><input type="text" id="area_resp" placeholder="Unidad interna que gestiona el trámite"></div>
+        </div>
+        <div class="g3">
+          <div class="f">
+            <label>Modalidad actual</label>
+            <select id="modalidad"><option value="">— Seleccione —</option><option>Presencial</option><option>En línea (parcial)</option><option>En línea (total)</option><option>Mixto</option></select>
+          </div>
+          <div class="f"><label>Plazo máximo legal de respuesta</label><input type="text" id="plazo_legal" placeholder="Ej: 15 días hábiles"></div>
+          <div class="f">
+            <label>Tercero autorizado</label>
+            <select id="tercero"><option value="">— Seleccione —</option><option>Sí</option><option>No</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Tiempos y costos</div>
+        <div class="g2">
+          <div class="f"><label>Tiempo promedio real (actual)</label><input type="text" id="tiempo_real" placeholder="Ej: 5 días hábiles"></div>
+          <div class="f"><label>Costo del servicio</label><input type="text" id="costo" placeholder="Ej: L. 150.00 / Gratuito"></div>
+        </div>
+        <div class="g2">
+          <div class="f">
+            <label>Método de pago</label>
+            <select id="metodo_pago"><option value="">— Seleccione —</option><option>Gratuito</option><option>Pago en ventanilla</option><option>Depósito bancario</option><option>Transferencia electrónica</option><option>Pago en línea</option><option>Varios</option></select>
+          </div>
+          <div class="f"><label>Documento que se entrega al ciudadano</label><input type="text" id="doc_entregado" placeholder="Ej: Certificado, constancia, licencia"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Descripción del servicio</div>
+        <div class="f"><label>Descripción</label><textarea id="descripcion" rows="3" placeholder="¿Qué hace este trámite? ¿A quién sirve?"></textarea></div>
+        <div class="g2">
+          <div class="f"><label>Dirigido a</label><input type="text" id="dirigido" placeholder="Ciudadanos, empresas, instituciones..."></div>
+          <div class="f"><label>Horario de atención</label><input type="text" id="horario" placeholder="Ej: Lun-Vie 8:00-16:00"></div>
+        </div>
+        <div class="g3">
+          <div class="f"><label>Teléfono</label><input type="text" id="telefono" placeholder="+504 0000-0000"></div>
+          <div class="f"><label>Correo del trámite</label><input type="email" id="email_tramite" placeholder="correo@inst.gob.hn"></div>
+          <div class="f"><label>Sitio web</label><input type="text" id="sitio_web" placeholder="https://..."></div>
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(0)">← Anterior</button>
+        <button class="btn btn-p" onclick="ir(2)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- ══ SECCIÓN 2: MARCO LEGAL Y DOCUMENTACIÓN ══ -->
+    <div class="sec" id="sec2">
+      <div class="sec-title">⚖ Marco legal y documentación solicitada</div>
+
+      <div class="card accent">
+        <div class="ct">Fundamentos legales</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:.9rem">Registre cada ley, reglamento, acuerdo o normativa que sustenta el trámite.</p>
+        <table class="dtbl" id="tbl-legal">
+          <thead><tr><th>#</th><th>Instrumento legal</th><th>Artículos aplicables</th><th>Observación</th><th style="width:36px"></th></tr></thead>
+          <tbody id="legal-tbody"></tbody>
+        </table>
+        <button class="btn-add" onclick="agregarLegal()">+ Agregar fundamento</button>
+      </div>
+
+      <div class="card">
+        <div class="ct">Documentación solicitada a la institución</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:.9rem">Registre cada documento que se pidió y si fue recibido.</p>
+        <table class="dtbl" id="tbl-docs">
+          <thead><tr><th>#</th><th>Documento solicitado</th><th>Tipo</th><th>Recibido</th><th>Fecha</th><th style="width:36px"></th></tr></thead>
+          <tbody id="docs-tbody"></tbody>
+        </table>
+        <button class="btn-add" onclick="agregarDocSolicitado()">+ Agregar documento</button>
+      </div>
+
+      <div class="card">
+        <div class="ct">Observaciones sobre el marco documental</div>
+        <div class="f"><textarea id="obs_legal" rows="3" placeholder="Normativas identificadas en campo que no estaban en la ficha original, vacíos legales, documentos pendientes de recibir..."></textarea></div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(1)">← Anterior</button>
+        <button class="btn btn-p" onclick="ir(3)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- ══ SECCIÓN 3: PROCESO ACTUAL ══ -->
+    <div class="sec" id="sec3">
+      <div class="sec-title">🔄 Proceso actual del trámite</div>
+
+      <div class="card">
+        <div class="ct">Métricas de línea base</div>
+        <div class="g3">
+          <div class="f"><label>No. de funcionarios involucrados</label><input type="number" id="num_func" placeholder="Ej: 5" min="1"></div>
+          <div class="f"><label>Volumen anual (trámites/año)</label><input type="number" id="num_anio" placeholder="Ej: 300" min="0"></div>
+          <div class="f"><label>Tiempo promedio observado</label><input type="text" id="tiempo_obs" placeholder="Ej: 5 días hábiles"></div>
+        </div>
+        <div class="f"><label>Descripción general del proceso actual</label><textarea id="desc_proceso" rows="4" placeholder="Narrativa del proceso desde que el ciudadano llega hasta que recibe el resultado..."></textarea></div>
+      </div>
+
+      <div class="card accent">
+        <div class="ct">Flujo real de actividades</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:.9rem">Registre cada paso tal como ocurre actualmente. Sin simplificaciones.</p>
+        <table class="dtbl" id="tbl-flujo">
+          <thead><tr><th>#</th><th>Actividad</th><th>Área responsable</th><th>Tiempo observado</th><th>Documento que se emite</th><th>Observación de campo</th><th style="width:36px"></th></tr></thead>
+          <tbody id="flujo-tbody"></tbody>
+        </table>
+        <button class="btn-add" onclick="agregarFlujo()">+ Agregar actividad</button>
+      </div>
+
+      <div class="card">
+        <div class="ct">Observaciones del proceso</div>
+        <div class="f"><textarea id="obs_flujo" rows="3" placeholder="Cuellos de botella, variaciones, pasos no documentados, excepciones al proceso estándar..."></textarea></div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(2)">← Anterior</button>
+        <button class="btn btn-p" onclick="ir(4)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- ══ SECCIÓN 4: REUNIONES Y ACUERDOS ══ -->
+    <div class="sec" id="sec4">
+      <div class="sec-title">🗓 Reuniones y acuerdos</div>
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:1.25rem;line-height:1.6">Registre cada sesión de trabajo con la institución, los temas tratados y los acuerdos alcanzados.</p>
+
+      <div id="reuniones-wrap"></div>
+
+      <button class="btn-add" onclick="agregarReunion()" style="margin-bottom:1.5rem">+ Nueva reunión</button>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(3)">← Anterior</button>
+        <button class="btn btn-p" onclick="ir(5)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- ══ SECCIÓN 5: MODELO PROPUESTO ══ -->
+    <div class="sec" id="sec5">
+      <div class="sec-title">✅ Modelo propuesto (trámite racionalizado)</div>
+
+      <div class="card accent">
+        <div class="ct">Métricas de la versión digitalizada</div>
+        <div class="g3">
+          <div class="f"><label>Funcionarios (versión digital)</label><input type="number" id="func_dig" placeholder="Ej: 2" min="1"></div>
+          <div class="f"><label>Tiempo estimado digitalizado</label><input type="text" id="tiempo_dig" placeholder="Ej: 1 día hábil"></div>
+          <div class="f"><label>Reducción estimada (%)</label><input type="number" id="reduccion" placeholder="Ej: 70" min="0" max="100"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Flujo propuesto</div>
+        <div class="f"><textarea id="flujo_propuesto" rows="5" placeholder="Descripción del proceso digitalizado: canal de ingreso, pasos automatizados, notificaciones, validaciones, entregable final..."></textarea></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Requisitos propuestos a simplificar o eliminar</div>
+        <table class="dtbl" id="tbl-req">
+          <thead><tr><th>#</th><th>Requisito</th><th>Acción propuesta</th><th>Justificación</th><th style="width:36px"></th></tr></thead>
+          <tbody id="req-tbody"></tbody>
+        </table>
+        <button class="btn-add" onclick="agregarRequisito()">+ Agregar requisito</button>
+      </div>
+
+      <div class="card">
+        <div class="ct">Trámites modelados como piloto</div>
+        <table class="dtbl" id="tbl-piloto">
+          <thead><tr><th>#</th><th>Nombre del trámite</th><th>Estado del modelo</th><th>Observaciones</th><th style="width:36px"></th></tr></thead>
+          <tbody id="piloto-tbody"></tbody>
+        </table>
+        <button class="btn-add" onclick="agregarPiloto()">+ Agregar trámite piloto</button>
+      </div>
+
+      <div class="card">
+        <div class="ct">Observaciones del modelo</div>
+        <div class="f"><textarea id="obs_modelo" rows="3" placeholder="Restricciones técnicas, dependencias con otros sistemas, cambios normativos requeridos..."></textarea></div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(4)">← Anterior</button>
+        <button class="btn btn-p" onclick="ir(6)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- ══ SECCIÓN 6: ESTADO DEL EXPEDIENTE ══ -->
+    <div class="sec" id="sec6">
+      <div class="sec-title">📊 Estado del expediente</div>
+
+      <div class="card accent">
+        <div class="ct">Estado general del expediente</div>
+        <div class="f">
+          <div class="tg" id="tg-estado-exp">
+            <label class="tp"><input type="radio" name="estado_exp" value="En exploración"> En exploración</label>
+            <label class="tp"><input type="radio" name="estado_exp" value="En levantamiento"> En levantamiento</label>
+            <label class="tp"><input type="radio" name="estado_exp" value="En modelado"> En modelado</label>
+            <label class="tp"><input type="radio" name="estado_exp" value="En validación"> En validación</label>
+            <label class="tp on-v"><input type="radio" name="estado_exp" value="Cerrado" checked> ✓ Cerrado</label>
+          </div>
+        </div>
+        <div class="f" style="margin-top:.85rem"><label>Observaciones generales del expediente</label><textarea id="obs_expediente" rows="3" placeholder="Resumen del avance, bloqueos actuales, próximos pasos..."></textarea></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Estado por sección</div>
+        <div style="border:1px solid var(--borde);border-radius:10px;overflow:hidden">
+          <div class="estado-row" style="background:var(--azul-c);font-weight:700;font-size:11.5px;color:var(--azul-m)">
+            <span>Sección</span><span style="text-align:center">Estado</span><span>Notas</span>
+          </div>
+          <div class="estado-row"><span class="estado-label">Apertura del expediente</span><select class="estado-sel" id="est-0" onchange="actualizarEstados()"><option>Pendiente</option><option>En progreso</option><option>Completo</option><option>Validado</option></select><input type="text" style="padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;width:100%" id="nota-0" placeholder="Nota..."></div>
+          <div class="estado-row"><span class="estado-label">Ficha del trámite</span><select class="estado-sel" id="est-1" onchange="actualizarEstados()"><option>Pendiente</option><option>En progreso</option><option>Completo</option><option>Validado</option></select><input type="text" style="padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;width:100%" id="nota-1" placeholder="Nota..."></div>
+          <div class="estado-row"><span class="estado-label">Marco legal y documentación</span><select class="estado-sel" id="est-2" onchange="actualizarEstados()"><option>Pendiente</option><option>En progreso</option><option>Completo</option><option>Validado</option></select><input type="text" style="padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;width:100%" id="nota-2" placeholder="Nota..."></div>
+          <div class="estado-row"><span class="estado-label">Proceso actual</span><select class="estado-sel" id="est-3" onchange="actualizarEstados()"><option>Pendiente</option><option>En progreso</option><option>Completo</option><option>Validado</option></select><input type="text" style="padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;width:100%" id="nota-3" placeholder="Nota..."></div>
+          <div class="estado-row"><span class="estado-label">Reuniones y acuerdos</span><select class="estado-sel" id="est-4" onchange="actualizarEstados()"><option>Pendiente</option><option>En progreso</option><option>Completo</option><option>Validado</option></select><input type="text" style="padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;width:100%" id="nota-4" placeholder="Nota..."></div>
+          <div class="estado-row"><span class="estado-label">Modelo propuesto</span><select class="estado-sel" id="est-5" onchange="actualizarEstados()"><option>Pendiente</option><option>En progreso</option><option>Completo</option><option>Validado</option></select><input type="text" style="padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;width:100%" id="nota-5" placeholder="Nota..."></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Validaciones y firma de cierre</div>
+        <div class="g2">
+          <div class="f"><label>Validado por (DIGER)</label><input type="text" id="validado_diger" placeholder="Nombre completo"></div>
+          <div class="f"><label>Validado por (institución)</label><input type="text" id="validado_inst" placeholder="Nombre completo y cargo"></div>
+        </div>
+        <div class="g2">
+          <div class="f"><label>Fecha de validación</label><input type="date" id="fecha_validacion"></div>
+          <div class="f"><label>Número de acta de validación</label><input type="text" id="num_acta" placeholder="Referencia del acta firmada"></div>
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(5)">← Anterior</button>
+        <button class="btn btn-p" onclick="guardar()">💾 Guardar expediente</button>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /wrap -->
+
+<!-- HISTORIAL (overlay) -->
+<div id="hist-overlay" style="display:none;position:fixed;inset:0;background:rgba(10,20,50,.45);z-index:80;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#fff;border-radius:18px;padding:1.75rem;width:100%;max-width:640px;max-height:80vh;overflow-y:auto;box-shadow:0 16px 48px rgba(10,45,110,.25)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+      <div><h2 style="font-size:18px;font-weight:800;color:var(--azul)">Expedientes guardados</h2><p style="font-size:12px;color:var(--muted);margin-top:2px">Seleccione uno para editarlo</p></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-p" onclick="nuevoExp()">+ Nuevo</button><button class="btn btn-s" onclick="cerrarHistorial()">✕ Cerrar</button></div>
+    </div>
+    <div id="hist-lista"></div>
+  </div>
+</div>
+
+<button class="btn-save-float" onclick="guardar()">💾 Guardar</button>
+<div class="toast" id="toast"></div>
+
+<script>
+var LS_KEY = 'diger_expedientes_v1';
+var currentIdx = null;
+var reunionCount = 0;
+
+// ── NAVEGACIÓN ─────────────────────────────────────────────
+function ir(n){
+  document.querySelectorAll('.sec').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('.sbi').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('sec'+n).classList.add('active');
+  document.getElementById('sb'+n).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── META SIDEBAR ────────────────────────────────────────────
+function actualizarMeta(){
+  var inst = gv('inst') || '—';
+  var tram = gv('tramites_lista') || '—';
+  var analista = gv('analista') || '—';
+  var fecha = gv('fecha_apertura') || '—';
+  document.getElementById('sb-inst').textContent = inst;
+  document.getElementById('sb-tramite').textContent = tram.length > 30 ? tram.slice(0,28)+'…' : tram;
+  document.getElementById('sb-analista').textContent = analista;
+  document.getElementById('sb-fecha').textContent = fecha;
+  document.getElementById('topbar-title').textContent = inst !== '—' ? 'Expediente — ' + inst : 'Expediente de Digitalización — DIGER';
+}
+
+// ── PILLS ───────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.tg').forEach(function(tg){
+    tg.querySelectorAll('.tp').forEach(function(pill){
+      pill.addEventListener('click', function(){
+        var name = this.querySelector('input') && this.querySelector('input').name;
+        if(!name) return;
+        tg.querySelectorAll('.tp').forEach(function(p){ p.classList.remove('on','on-v','on-a','on-r'); });
+        this.classList.add('on');
+      });
+    });
+  });
+  cargarEstados();
+  nuevoExp();
+});
+
+// ── TABLES DINÁMICAS ────────────────────────────────────────
+function agregarLegal(){
+  var tbody = document.getElementById('legal-tbody');
+  var n = tbody.rows.length + 1;
+  var tr = tbody.insertRow();
+  tr.innerHTML = '<td class="nc">'+n+'</td>'
+    +'<td><input type="text" placeholder="Ej: Ley de Procedimiento Administrativo, Art. 5"></td>'
+    +'<td><input type="text" placeholder="Ej: Arts. 12, 15"></td>'
+    +'<td><textarea placeholder="Observación..."></textarea></td>'
+    +'<td style="text-align:center;padding:6px"><button class="btn-rm" onclick="rmRow(this)">✕</button></td>';
+}
+
+function agregarDocSolicitado(){
+  var tbody = document.getElementById('docs-tbody');
+  var n = tbody.rows.length + 1;
+  var tr = tbody.insertRow();
+  tr.innerHTML = '<td class="nc">'+n+'</td>'
+    +'<td><input type="text" placeholder="Nombre del documento"></td>'
+    +'<td><select style="padding:8px 10px;border:none;background:transparent;font-size:12.5px;font-family:inherit"><option>Flujo de proceso</option><option>Marco legal</option><option>Manual interno</option><option>Formulario</option><option>Instructivo</option><option>Otro</option></select></td>'
+    +'<td style="text-align:center"><select style="padding:8px 10px;border:none;background:transparent;font-size:12.5px;font-family:inherit"><option>Pendiente</option><option>Recibido</option><option>No disponible</option></select></td>'
+    +'<td><input type="date"></td>'
+    +'<td style="text-align:center;padding:6px"><button class="btn-rm" onclick="rmRow(this)">✕</button></td>';
+}
+
+function agregarFlujo(){
+  var tbody = document.getElementById('flujo-tbody');
+  var n = tbody.rows.length + 1;
+  var tr = tbody.insertRow();
+  tr.innerHTML = '<td class="nc">'+n+'</td>'
+    +'<td><textarea placeholder="Descripción de la actividad..."></textarea></td>'
+    +'<td><input type="text" placeholder="Área"></td>'
+    +'<td><input type="text" placeholder="Ej: 2h / 1 día"></td>'
+    +'<td><input type="text" placeholder="Documento emitido (si aplica)"></td>'
+    +'<td><textarea placeholder="Observación de campo..."></textarea></td>'
+    +'<td style="text-align:center;padding:6px"><button class="btn-rm" onclick="rmRow(this)">✕</button></td>';
+}
+
+function agregarRequisito(){
+  var tbody = document.getElementById('req-tbody');
+  var n = tbody.rows.length + 1;
+  var tr = tbody.insertRow();
+  tr.innerHTML = '<td class="nc">'+n+'</td>'
+    +'<td><input type="text" placeholder="Nombre del requisito"></td>'
+    +'<td><select style="padding:8px 10px;border:none;background:transparent;font-size:12.5px;font-family:inherit"><option>Eliminar</option><option>Simplificar</option><option>Digitalizar</option><option>Mantener</option></select></td>'
+    +'<td><textarea placeholder="Justificación..."></textarea></td>'
+    +'<td style="text-align:center;padding:6px"><button class="btn-rm" onclick="rmRow(this)">✕</button></td>';
+}
+
+function agregarPiloto(){
+  var tbody = document.getElementById('piloto-tbody');
+  var n = tbody.rows.length + 1;
+  var tr = tbody.insertRow();
+  tr.innerHTML = '<td class="nc">'+n+'</td>'
+    +'<td><input type="text" placeholder="Nombre del trámite"></td>'
+    +'<td><select style="padding:8px 10px;border:none;background:transparent;font-size:12.5px;font-family:inherit"><option>En modelado</option><option>Modelado</option><option>En validación</option><option>Validado</option><option>En producción</option></select></td>'
+    +'<td><textarea placeholder="Observaciones..."></textarea></td>'
+    +'<td style="text-align:center;padding:6px"><button class="btn-rm" onclick="rmRow(this)">✕</button></td>';
+}
+
+function rmRow(btn){ btn.closest('tr').remove(); }
+
+// ── REUNIONES ───────────────────────────────────────────────
+function agregarReunion(){
+  reunionCount++;
+  var n = reunionCount;
+  var wrap = document.getElementById('reuniones-wrap');
+  var div = document.createElement('div');
+  div.className = 'reunion-card';
+  div.id = 'reunion-'+n;
+  div.innerHTML = '<div class="reunion-hdr"><span class="reunion-num">Reunión '+n+'</span><button class="btn-rm" onclick="this.closest(\'.reunion-card\').remove()">✕ Eliminar</button></div>'
+    +'<div class="g3" style="margin-bottom:.85rem">'
+    +'<div class="f"><label>Fecha</label><input type="date" id="reu-fecha-'+n+'"></div>'
+    +'<div class="f"><label>Tipo</label><select id="reu-tipo-'+n+'"><option value="">— Tipo —</option><option>Conocimiento de plataforma</option><option>Levantamiento de información</option><option>Taller de modelado</option><option>Validación técnica</option><option>Retroalimentación</option><option>Seguimiento</option><option>Otro</option></select></div>'
+    +'<div class="f"><label>Lugar / Plataforma</label><input type="text" id="reu-lugar-'+n+'" placeholder="Ej: Zoom, presencial en sede"></div>'
+    +'</div>'
+    +'<div class="f" style="margin-bottom:.85rem"><label>Participantes</label><input type="text" id="reu-part-'+n+'" placeholder="Nombres y cargos de los asistentes"></div>'
+    +'<div class="f" style="margin-bottom:.85rem"><label>Temas tratados</label><textarea id="reu-temas-'+n+'" rows="2" placeholder="Temas discutidos en la sesión..."></textarea></div>'
+    +'<div><label style="font-size:12px;font-weight:700;color:var(--texto);display:block;margin-bottom:.55rem">Acuerdos y compromisos</label><div id="acuerdos-'+n+'"></div><button class="btn-add" style="margin-top:4px;padding:5px 12px;font-size:12px" onclick="agregarAcuerdo('+n+')">+ Acuerdo</button></div>';
+  wrap.appendChild(div);
+  agregarAcuerdo(n);
+}
+
+function agregarAcuerdo(n){
+  var wrap = document.getElementById('acuerdos-'+n);
+  var div = document.createElement('div');
+  div.className = 'acuerdo-item';
+  div.innerHTML = '<div class="acuerdo-dot"></div>'
+    +'<input type="text" placeholder="Descripción del acuerdo o compromiso">'
+    +'<input type="text" placeholder="Responsable" style="max-width:160px">'
+    +'<input type="date" style="max-width:140px">'
+    +'<button class="btn-rm" onclick="this.parentNode.remove()">✕</button>';
+  wrap.appendChild(div);
+}
+
+// ── ESTADOS ─────────────────────────────────────────────────
+function actualizarEstados(){
+  var total = 6, completadas = 0;
+  for(var i=0;i<6;i++){
+    var el = document.getElementById('est-'+i);
+    if(el && (el.value === 'Completo' || el.value === 'Validado')) completadas++;
+  }
+  var pct = Math.round((completadas/total)*100);
+  document.getElementById('pb-fill').style.width = pct+'%';
+  document.getElementById('pb-pct').textContent = pct+'%';
+  for(var j=0;j<7;j++){
+    var sb = document.getElementById('sb'+j);
+    if(!sb) continue;
+    var est = document.getElementById('est-'+j);
+    if(est && (est.value === 'Completo' || est.value === 'Validado')){
+      sb.classList.add('done');
+    } else {
+      sb.classList.remove('done');
+    }
+  }
+}
+
+function cargarEstados(){ actualizarEstados(); }
+
+// ── GUARDAR / CARGAR ────────────────────────────────────────
+function recolectar(){
+  var d = {};
+  ['inst','fecha_apertura','tramites_lista','analista','codigo_exp','justificacion','aprobado_por',
+   'fecha_aprobacion','obs_priorizacion','contacto_nombre','contacto_cargo','contacto_correo',
+   'nombre_tramite','nombre_corto','area_resp','plazo_legal','tiempo_real','costo','doc_entregado',
+   'descripcion','dirigido','horario','telefono','email_tramite','sitio_web',
+   'obs_legal','num_func','num_anio','tiempo_obs','desc_proceso','obs_flujo',
+   'flujo_propuesto','obs_modelo','obs_expediente','validado_diger','validado_inst',
+   'fecha_validacion','num_acta'].forEach(function(id){ d[id]=gv(id); });
+
+  ['modalidad','tercero','metodo_pago'].forEach(function(id){ d[id]=gv(id); });
+  ['func_dig','reduccion'].forEach(function(id){ d[id]=gv(id); });
+
+  // Radios
+  ['lead','estado_exp'].forEach(function(name){
+    var el = document.querySelector('input[name="'+name+'"]:checked');
+    d[name] = el ? el.value : '';
+  });
+
+  // Estado por sección
+  d.estados = {}; d.notas = {};
+  for(var i=0;i<6;i++){
+    d.estados[i] = (document.getElementById('est-'+i)||{}).value||'Pendiente';
+    d.notas[i] = (document.getElementById('nota-'+i)||{}).value||'';
+  }
+
+  // Tablas
+  d.legal   = tblData('legal-tbody',  ['instrumento','articulos','obs']);
+  d.docs    = tblData('docs-tbody',   ['nombre','tipo','recibido','fecha']);
+  d.flujo   = tblData('flujo-tbody',  ['actividad','area','tiempo','doc_emitido','obs']);
+  d.requisitos = tblData('req-tbody', ['requisito','accion','justificacion']);
+  d.pilotos = tblData('piloto-tbody', ['tramite','estado','obs']);
+
+  // Reuniones
+  d.reuniones = [];
+  document.querySelectorAll('.reunion-card').forEach(function(card){
+    var n = card.id.replace('reunion-','');
+    var acuerdos = [];
+    card.querySelectorAll('.acuerdo-item').forEach(function(item){
+      var inps = item.querySelectorAll('input');
+      acuerdos.push({desc:inps[0]?inps[0].value:'', responsable:inps[1]?inps[1].value:'', fecha:inps[2]?inps[2].value:''});
+    });
+    d.reuniones.push({
+      fecha: gv('reu-fecha-'+n), tipo: gv('reu-tipo-'+n),
+      lugar: gv('reu-lugar-'+n), participantes: gv('reu-part-'+n),
+      temas: gv('reu-temas-'+n), acuerdos: acuerdos
+    });
+  });
+
+  d._ts = new Date().toISOString();
+  return d;
+}
+
+function tblData(tbodyId, cols){
+  var rows = [];
+  var tbody = document.getElementById(tbodyId);
+  if(!tbody) return rows;
+  Array.from(tbody.rows).forEach(function(tr){
+    var inputs = tr.querySelectorAll('input,select,textarea');
+    var obj = {};
+    cols.forEach(function(col,i){ obj[col] = inputs[i] ? inputs[i].value : ''; });
+    rows.push(obj);
+  });
+  return rows;
+}
+
+function guardar(){
+  var data = recolectar();
+  var all = cargarTodos();
+  if(currentIdx === null){ all.push(data); currentIdx = all.length-1; }
+  else { all[currentIdx] = data; }
+  localStorage.setItem(LS_KEY, JSON.stringify(all));
+  mostrarToast('✓ Expediente guardado');
+}
+
+function cargarTodos(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
+
+function poblarFormulario(d){
+  Object.keys(d).forEach(function(key){
+    var el = document.getElementById(key);
+    if(el && el.tagName !== 'DIV') el.value = d[key]||'';
+  });
+  // Radios
+  ['lead','estado_exp'].forEach(function(name){
+    var el = document.querySelector('input[name="'+name+'"][value="'+d[name]+'"]');
+    if(el){ el.checked=true; el.closest('.tp') && el.closest('.tp').classList.add('on'); }
+  });
+  // Pill click recalc
+  document.querySelectorAll('.tg').forEach(function(tg){
+    tg.querySelectorAll('.tp').forEach(function(p){
+      var inp = p.querySelector('input');
+      p.classList.toggle('on', inp && inp.checked);
+    });
+  });
+  // Estados
+  if(d.estados) for(var i=0;i<6;i++){
+    var el = document.getElementById('est-'+i);
+    if(el) el.value = d.estados[i]||'Pendiente';
+    var nel = document.getElementById('nota-'+i);
+    if(nel) nel.value = d.notas&&d.notas[i]?d.notas[i]:'';
+  }
+  // Tablas
+  var maps = {
+    'legal-tbody':   {data:d.legal,   fn:agregarLegal,   cols:['instrumento','articulos','obs']},
+    'docs-tbody':    {data:d.docs,    fn:agregarDocSolicitado, cols:['nombre','tipo','recibido','fecha']},
+    'flujo-tbody':   {data:d.flujo,   fn:agregarFlujo,   cols:['actividad','area','tiempo','doc_emitido','obs']},
+    'req-tbody':     {data:d.requisitos, fn:agregarRequisito, cols:['requisito','accion','justificacion']},
+    'piloto-tbody':  {data:d.pilotos, fn:agregarPiloto,  cols:['tramite','estado','obs']}
+  };
+  Object.keys(maps).forEach(function(tbId){
+    var m = maps[tbId];
+    if(!m.data) return;
+    document.getElementById(tbId).innerHTML='';
+    m.data.forEach(function(row){
+      m.fn();
+      var tbody = document.getElementById(tbId);
+      var tr = tbody.rows[tbody.rows.length-1];
+      var inputs = tr.querySelectorAll('input,select,textarea');
+      m.cols.forEach(function(col,i){ if(inputs[i]) inputs[i].value = row[col]||''; });
+    });
+  });
+  // Reuniones
+  document.getElementById('reuniones-wrap').innerHTML=''; reunionCount=0;
+  if(d.reuniones) d.reuniones.forEach(function(r){
+    agregarReunion();
+    var n = reunionCount;
+    sv('reu-fecha-'+n, r.fecha||''); sv('reu-tipo-'+n, r.tipo||'');
+    sv('reu-lugar-'+n, r.lugar||''); sv('reu-part-'+n, r.participantes||'');
+    sv('reu-temas-'+n, r.temas||'');
+    var wrap = document.getElementById('acuerdos-'+n);
+    wrap.innerHTML='';
+    if(r.acuerdos) r.acuerdos.forEach(function(a){
+      agregarAcuerdo(n);
+      var inps = wrap.lastElementChild.querySelectorAll('input');
+      if(inps[0]) inps[0].value=a.desc||'';
+      if(inps[1]) inps[1].value=a.responsable||'';
+      if(inps[2]) inps[2].value=a.fecha||'';
+    });
+  });
+  actualizarMeta();
+  actualizarEstados();
+}
+
+// ── HISTORIAL ───────────────────────────────────────────────
+function verHistorial(){
+  var all = cargarTodos();
+  var lista = document.getElementById('hist-lista');
+  if(all.length === 0){
+    lista.innerHTML='<p style="text-align:center;color:var(--muted);padding:2rem;font-size:13px">No hay expedientes guardados</p>';
+  } else {
+    lista.innerHTML = all.map(function(exp,i){
+      var ts = exp._ts ? new Date(exp._ts).toLocaleDateString('es-HN') : '—';
+      return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--gris-f);border:1.5px solid var(--borde);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:all .2s" '
+        +'onmouseover="this.style.borderColor=\'var(--azul-m)\'" onmouseout="this.style.borderColor=\'var(--borde)\'" onclick="cargarExp('+i+')">'
+        +'<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(exp.inst||'?').slice(0,2)+'</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:var(--azul);margin-bottom:2px">'+(exp.inst||'Sin institución')+'</div>'
+        +'<div style="font-size:11.5px;color:var(--muted)">'+(exp.tramites_lista||'Sin trámites')+'</div>'
+        +'<div style="font-size:11px;color:var(--muted);margin-top:2px">Guardado: '+ts+'</div></div>'
+        +'<button style="padding:5px 10px;background:#fff;border:1.5px solid var(--borde);color:var(--rojo);border-radius:7px;font-size:12px;cursor:pointer" onclick="event.stopPropagation();eliminarExp('+i+')" onmouseover="this.style.background=\'#fff5f5\'" onmouseout="this.style.background=\'#fff\'">✕</button>'
+        +'</div>';
+    }).join('');
+  }
+  document.getElementById('hist-overlay').style.display='flex';
+}
+
+function cargarExp(i){
+  currentIdx = i;
+  var all = cargarTodos();
+  poblarFormulario(all[i]);
+  cerrarHistorial();
+  ir(0);
+}
+
+function eliminarExp(i){
+  if(!confirm('¿Eliminar este expediente?')) return;
+  var all = cargarTodos();
+  all.splice(i,1);
+  localStorage.setItem(LS_KEY, JSON.stringify(all));
+  if(currentIdx===i) currentIdx=null;
+  verHistorial();
+}
+
+function nuevoExp(){
+  currentIdx = null;
+  document.querySelectorAll('input:not([type=radio]):not([type=checkbox]),select,textarea').forEach(function(el){
+    if(el.id && !el.readOnly) el.value='';
+  });
+  document.querySelectorAll('.tg .tp').forEach(function(p){ p.classList.remove('on','on-v','on-a','on-r'); });
+  document.querySelectorAll('[id^="est-"]').forEach(function(el){ el.value='Pendiente'; });
+  ['legal-tbody','docs-tbody','flujo-tbody','req-tbody','piloto-tbody'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.innerHTML='';
+  });
+  document.getElementById('reuniones-wrap').innerHTML=''; reunionCount=0;
+  actualizarMeta(); actualizarEstados();
+  cerrarHistorial();
+}
+
+function cerrarHistorial(){ document.getElementById('hist-overlay').style.display='none'; }
+
+// ── UTILS ───────────────────────────────────────────────────
+function gv(id){ var el=document.getElementById(id); return el?(el.value||'').trim():''; }
+function sv(id,val){ var el=document.getElementById(id); if(el) el.value=val; }
+function mostrarToast(msg){
+  var t=document.getElementById('toast'); t.textContent=msg;
+  t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); },2500);
+}
+
+// Autosave cada 2 minutos si hay datos
+setInterval(function(){ if(gv('inst')) guardar(); }, 120000);
+</script>
+</body>
+</html>
