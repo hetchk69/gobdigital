@@ -107,6 +107,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .fn-ret{display:flex;align-items:center;gap:7px;margin-top:7px;font-size:12px;color:var(--muted)}
 .fn-ret select{padding:4px 8px;border:1.5px solid var(--borde);border-radius:6px;font-size:12px;font-family:inherit;background:#fafbfd;cursor:pointer}
 .ret-badge{display:inline-flex;align-items:center;gap:4px;background:var(--ambar-c);color:var(--ambar);border:1px solid var(--ambar);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-top:5px}
+/* FLOW DIAGRAM TOGGLE */
+.flow-toggle{display:flex;gap:6px;margin-bottom:1rem}
+.ftog{padding:6px 14px;border:1.5px solid var(--borde);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted);transition:all .18s}
+.ftog:hover{border-color:var(--azul-m);color:var(--azul-m);background:var(--azul-c)}
+.ftog.active{background:var(--azul-m);color:#fff;border-color:var(--azul-m)}
+.flow-diag-wrap{background:#fafbfd;border:1.5px solid var(--borde);border-radius:10px;padding:1.25rem;overflow-x:auto;text-align:center}
 /* BEFORE/AFTER */
 .bva{display:grid;grid-template-columns:1fr 90px 1fr;gap:1rem;align-items:center}
 .bva-col{border:1.5px solid var(--borde);border-radius:12px;padding:1rem;background:#fff}
@@ -350,9 +356,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
       <div class="card accent">
         <div class="ct">Flujo real de actividades</div>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:1rem">Registre cada paso tal como ocurre actualmente, etapa por etapa. Indique retornos cuando aplica.</p>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:.85rem">Registre cada paso tal como ocurre actualmente, etapa por etapa. Indique retornos cuando aplica.</p>
+        <div class="flow-toggle">
+          <button class="ftog active" id="ftog-actual-edit" onclick="toggleFlowView('actual','edit')">✏️ Editar</button>
+          <button class="ftog" id="ftog-actual-diag" onclick="toggleFlowView('actual','diag')">📊 Ver diagrama</button>
+        </div>
         <div id="flujo-actual-list" class="flow-list"></div>
-        <div style="display:flex;gap:8px;margin-top:.9rem;flex-wrap:wrap">
+        <div id="flujo-actual-diag" style="display:none"></div>
+        <div id="flujo-actual-btns" style="display:flex;gap:8px;margin-top:.9rem;flex-wrap:wrap">
           <button class="btn-add" style="margin-top:0" onclick="addFlowNode('actual','inicio')">▶ Inicio</button>
           <button class="btn-add" style="margin-top:0" onclick="addFlowNode('actual','paso')">+ Paso</button>
           <button class="btn-add" style="margin-top:0" onclick="addFlowNode('actual','decision')">⬦ Decisión</button>
@@ -419,9 +430,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
       <!-- FLUJO PROPUESTO INTERACTIVO -->
       <div class="card">
         <div class="ct">Flujo propuesto</div>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:1rem">Diseñe el proceso digitalizado paso a paso.</p>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:.85rem">Diseñe el proceso digitalizado paso a paso.</p>
+        <div class="flow-toggle">
+          <button class="ftog active" id="ftog-propuesto-edit" onclick="toggleFlowView('propuesto','edit')">✏️ Editar</button>
+          <button class="ftog" id="ftog-propuesto-diag" onclick="toggleFlowView('propuesto','diag')">📊 Ver diagrama</button>
+        </div>
         <div id="flujo-propuesto-list" class="flow-list"></div>
-        <div style="display:flex;gap:8px;margin-top:.9rem;flex-wrap:wrap">
+        <div id="flujo-propuesto-diag" style="display:none"></div>
+        <div id="flujo-propuesto-btns" style="display:flex;gap:8px;margin-top:.9rem;flex-wrap:wrap">
           <button class="btn-add" style="margin-top:0" onclick="addFlowNode('propuesto','inicio')">▶ Inicio</button>
           <button class="btn-add" style="margin-top:0" onclick="addFlowNode('propuesto','paso')">+ Paso</button>
           <button class="btn-add" style="margin-top:0" onclick="addFlowNode('propuesto','decision')">⬦ Decisión</button>
@@ -1200,6 +1216,130 @@ function mostrarToast(msg){
 }
 
 setInterval(function(){ if(gv('inst')) guardar(); }, 120000);
+
+// ── FLOW DIAGRAM VIEWER ──────────────────────────────────────
+function toggleFlowView(key, mode){
+  var listEl  = document.getElementById('flujo-'+key+'-list');
+  var diagEl  = document.getElementById('flujo-'+key+'-diag');
+  var btnsEl  = document.getElementById('flujo-'+key+'-btns');
+  var editBtn = document.getElementById('ftog-'+key+'-edit');
+  var diagBtn = document.getElementById('ftog-'+key+'-diag');
+  if(!listEl||!diagEl) return;
+  if(mode==='diag'){
+    diagEl.innerHTML = '<div class="flow-diag-wrap">'+renderFlowSVG(key)+'</div>';
+    listEl.style.display='none';
+    if(btnsEl) btnsEl.style.display='none';
+    diagEl.style.display='block';
+    editBtn.classList.remove('active'); diagBtn.classList.add('active');
+  } else {
+    diagEl.style.display='none';
+    listEl.style.display='block';
+    if(btnsEl) btnsEl.style.display='flex';
+    editBtn.classList.add('active'); diagBtn.classList.remove('active');
+  }
+}
+
+function renderFlowSVG(key){
+  var data = key==='actual' ? (flujosActual[activeTram]||[]) : (flujosPropuesto[activeTram]||[]);
+  if(!data.length) return '<p style="color:var(--muted);font-size:13px;padding:2rem;text-align:center">Sin pasos definidos. Vuelva a Editar para agregar actividades.</p>';
+
+  var W = 480, CX = 200;
+  var RECT_W=200, RECT_H=52, OVAL_RX=95, OVAL_RY=24, DIAM=52;
+  var GAP=110, MTOP=55;
+
+  function halfH(tipo){ return tipo==='inicio'||tipo==='fin'?OVAL_RY:tipo==='decision'?DIAM:RECT_H/2; }
+
+  var cy = [];
+  for(var i=0;i<data.length;i++) cy.push(MTOP + i*GAP);
+  var totalH = MTOP + (data.length-1)*GAP + DIAM + 55;
+
+  var els = [];
+
+  // Defs
+  els.push('<defs>'
+    +'<marker id="mB" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#1455a4"/></marker>'
+    +'<marker id="mA" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#d97706"/></marker>'
+    +'<filter id="shd" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.10"/></filter>'
+    +'</defs>');
+
+  // Main connector lines (drawn first, behind nodes)
+  for(var i=1;i<data.length;i++){
+    var prevBot = cy[i-1] + halfH(data[i-1].tipo||'paso');
+    var curTop  = cy[i]   - halfH(data[i].tipo||'paso');
+    if(curTop > prevBot+2)
+      els.push('<line x1="'+CX+'" y1="'+prevBot+'" x2="'+CX+'" y2="'+(curTop)+'" stroke="#1455a4" stroke-width="2" marker-end="url(#mB)"/>');
+  }
+
+  // Return arrows (dashed, on right side)
+  data.forEach(function(step,i){
+    var j = (step.retorno_a!==null && step.retorno_a!==undefined && step.retorno_a!=='') ? parseInt(step.retorno_a) : -1;
+    if(j<0||j>=i) return;
+    var fromY = cy[i] + halfH(step.tipo||'paso');
+    var toY   = cy[j];
+    var rx = CX + RECT_W/2 + 28;
+    els.push('<path d="M'+(CX+RECT_W/2)+' '+fromY+' Q '+rx+' '+fromY+' '+rx+' '+((fromY+toY)/2)+' Q '+rx+' '+toY+' '+(CX+RECT_W/2)+' '+toY
+      +'" fill="none" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#mA)"/>');
+    var lx = rx+6, ly=(fromY+toY)/2;
+    els.push('<text x="'+lx+'" y="'+ly+'" font-size="9" font-style="italic" font-weight="600" fill="#d97706" dominant-baseline="middle">↩ retorno</text>');
+  });
+
+  // Nodes
+  data.forEach(function(step,i){
+    var tipo = step.tipo||'paso';
+    var label = step.titulo||(TIPO_LABELS[tipo]||'Paso');
+    var nodeCy = cy[i];
+
+    // Shapes
+    if(tipo==='inicio'){
+      els.push('<ellipse cx="'+CX+'" cy="'+nodeCy+'" rx="'+OVAL_RX+'" ry="'+OVAL_RY+'" fill="#dcfce7" stroke="#16a34a" stroke-width="2" filter="url(#shd)"/>');
+    } else if(tipo==='fin'){
+      els.push('<ellipse cx="'+CX+'" cy="'+nodeCy+'" rx="'+OVAL_RX+'" ry="'+OVAL_RY+'" fill="#dbeafe" stroke="#2563eb" stroke-width="2" filter="url(#shd)"/>');
+    } else if(tipo==='decision'){
+      var pts=CX+','+(nodeCy-DIAM)+' '+(CX+DIAM)+','+nodeCy+' '+CX+','+(nodeCy+DIAM)+' '+(CX-DIAM)+','+nodeCy;
+      els.push('<polygon points="'+pts+'" fill="#fef3c7" stroke="#d97706" stroke-width="2" filter="url(#shd)"/>');
+    } else {
+      els.push('<rect x="'+(CX-RECT_W/2)+'" y="'+(nodeCy-RECT_H/2)+'" width="'+RECT_W+'" height="'+RECT_H+'" rx="9" fill="#e8f0ff" stroke="#1455a4" stroke-width="2" filter="url(#shd)"/>');
+    }
+
+    // Step badge
+    var badgeX = CX - (tipo==='decision'?DIAM:RECT_W/2) - 18;
+    var badgeColor = tipo==='inicio'?'#16a34a':tipo==='fin'?'#2563eb':tipo==='decision'?'#d97706':'#1455a4';
+    els.push('<circle cx="'+badgeX+'" cy="'+nodeCy+'" r="11" fill="'+badgeColor+'"/>');
+    els.push('<text x="'+badgeX+'" y="'+nodeCy+'" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="800" fill="#fff" font-family="Segoe UI,sans-serif">'+(i+1)+'</text>');
+
+    // Label text (word-wrap)
+    var maxChars = tipo==='decision' ? 11 : 26;
+    var lines = wrapText(label, maxChars);
+    var lh = 13, startY = nodeCy - ((lines.length-1)*lh/2);
+    lines.forEach(function(ln,li){
+      els.push('<text x="'+CX+'" y="'+(startY+li*lh)+'" text-anchor="middle" dominant-baseline="middle"'
+        +' font-size="11" font-weight="700" fill="#1c2333" font-family="Segoe UI,sans-serif">'+escHtml(ln)+'</text>');
+    });
+
+    // Meta (area · tiempo) below node
+    var meta=[];
+    if(step.area) meta.push(step.area);
+    if(step.tiempo) meta.push(step.tiempo);
+    if(meta.length){
+      var metaY = nodeCy + halfH(tipo) + 13;
+      els.push('<text x="'+CX+'" y="'+metaY+'" text-anchor="middle" font-size="9" fill="#64748b" font-family="Segoe UI,sans-serif">'+escHtml(meta.join(' · '))+'</text>');
+    }
+  });
+
+  return '<svg viewBox="0 0 '+W+' '+totalH+'" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;margin:0 auto">'
+    +els.join('')+'</svg>';
+}
+
+function wrapText(text, maxChars){
+  var words=(text||'').split(' '), lines=[], cur='';
+  words.forEach(function(w){
+    var test=cur?cur+' '+w:w;
+    if(test.length<=maxChars){ cur=test; }
+    else { if(cur) lines.push(cur); cur=w; }
+  });
+  if(cur) lines.push(cur);
+  return lines.length?lines:[text||''];
+}
 </script>
 </body>
 </html>
