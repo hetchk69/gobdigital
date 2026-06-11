@@ -1243,86 +1243,113 @@ function renderFlowSVG(key){
   var data = key==='actual' ? (flujosActual[activeTram]||[]) : (flujosPropuesto[activeTram]||[]);
   if(!data.length) return '<p style="color:var(--muted);font-size:13px;padding:2rem;text-align:center">Sin pasos definidos. Vuelva a Editar para agregar actividades.</p>';
 
-  var W = 480, CX = 200;
-  var RECT_W=200, RECT_H=52, OVAL_RX=95, OVAL_RY=24, DIAM=52;
-  var GAP=110, MTOP=55;
+  /* Layout constants — compact & formal */
+  var W=430, CX=175;
+  var RW=160, PADD=8;          /* rect width, inner padding */
+  var ORX=70, ORY=17;          /* oval radii */
+  var DW=46, DH=40;            /* diamond half-width / half-height */
+  var VGAP=26;                  /* gap between node bottom and next node top */
+  var MTOP=42;
+  var LT=11, LM=9;             /* line-height: title / meta */
 
-  function halfH(tipo){ return tipo==='inicio'||tipo==='fin'?OVAL_RY:tipo==='decision'?DIAM:RECT_H/2; }
-
-  var cy = [];
-  for(var i=0;i<data.length;i++) cy.push(MTOP + i*GAP);
-  var totalH = MTOP + (data.length-1)*GAP + DIAM + 55;
-
-  var els = [];
-
-  // Defs
-  els.push('<defs>'
-    +'<marker id="mB" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#1455a4"/></marker>'
-    +'<marker id="mA" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#d97706"/></marker>'
-    +'<filter id="shd" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.10"/></filter>'
-    +'</defs>');
-
-  // Main connector lines (drawn first, behind nodes)
-  for(var i=1;i<data.length;i++){
-    var prevBot = cy[i-1] + halfH(data[i-1].tipo||'paso');
-    var curTop  = cy[i]   - halfH(data[i].tipo||'paso');
-    if(curTop > prevBot+2)
-      els.push('<line x1="'+CX+'" y1="'+prevBot+'" x2="'+CX+'" y2="'+(curTop)+'" stroke="#1455a4" stroke-width="2" marker-end="url(#mB)"/>');
+  function wt(txt,mc){ /* word-wrap */
+    var ws=(txt||'').split(' '),ls=[],c='';
+    ws.forEach(function(w){ var t=c?c+' '+w:w; if(t.length<=mc){c=t;}else{if(c)ls.push(c);c=w;}});
+    if(c)ls.push(c); return ls.length?ls:[txt||''];
   }
 
-  // Return arrows (dashed, on right side)
+  /* Per-node half-height (rect nodes expand to fit content) */
+  function hh(step){
+    var t=step.tipo||'paso';
+    if(t==='inicio'||t==='fin') return ORY;
+    if(t==='decision') return DH;
+    var tl=Math.min(wt(step.titulo||'PASO',18).length,2);
+    var ml=(step.area?1:0)+(step.doc_emitido?1:0)+(step.obs?1:0);
+    return Math.max(20, Math.ceil((PADD+tl*LT+(ml?3+ml*LM:0)+PADD)/2));
+  }
+
+  /* Y-centers */
+  var cy=[], y=MTOP;
+  for(var i=0;i<data.length;i++){ var h=hh(data[i]); cy.push(y+h); y=cy[i]+h+VGAP; }
+  var totalH=y+28;
+
+  /* Stagger return-arrow x-positions so none overlap */
+  var slot=0, retX={};
   data.forEach(function(step,i){
-    var j = (step.retorno_a!==null && step.retorno_a!==undefined && step.retorno_a!=='') ? parseInt(step.retorno_a) : -1;
-    if(j<0||j>=i) return;
-    var fromY = cy[i] + halfH(step.tipo||'paso');
-    var toY   = cy[j];
-    var rx = CX + RECT_W/2 + 28;
-    els.push('<path d="M'+(CX+RECT_W/2)+' '+fromY+' Q '+rx+' '+fromY+' '+rx+' '+((fromY+toY)/2)+' Q '+rx+' '+toY+' '+(CX+RECT_W/2)+' '+toY
-      +'" fill="none" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#mA)"/>');
-    var lx = rx+6, ly=(fromY+toY)/2;
-    els.push('<text x="'+lx+'" y="'+ly+'" font-size="9" font-style="italic" font-weight="600" fill="#d97706" dominant-baseline="middle">↩ retorno</text>');
+    if(step.retorno_a!==null&&step.retorno_a!==undefined&&step.retorno_a!=='')
+      { retX[i]=CX+RW/2+16+slot*26; slot++; }
   });
 
-  // Nodes
-  data.forEach(function(step,i){
-    var tipo = step.tipo||'paso';
-    var label = step.titulo||(TIPO_LABELS[tipo]||'Paso');
-    var nodeCy = cy[i];
+  var els=[];
 
-    // Shapes
-    if(tipo==='inicio'){
-      els.push('<ellipse cx="'+CX+'" cy="'+nodeCy+'" rx="'+OVAL_RX+'" ry="'+OVAL_RY+'" fill="#dcfce7" stroke="#16a34a" stroke-width="2" filter="url(#shd)"/>');
-    } else if(tipo==='fin'){
-      els.push('<ellipse cx="'+CX+'" cy="'+nodeCy+'" rx="'+OVAL_RX+'" ry="'+OVAL_RY+'" fill="#dbeafe" stroke="#2563eb" stroke-width="2" filter="url(#shd)"/>');
+  /* Arrow markers */
+  els.push('<defs>'
+    +'<marker id="aB" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#1455a4"/></marker>'
+    +'<marker id="aA" markerWidth="5" markerHeight="5" refX="5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="#d97706"/></marker>'
+    +'<filter id="fs"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.09"/></filter>'
+    +'</defs>');
+
+  /* Main vertical connectors */
+  for(var i=1;i<data.length;i++){
+    var bot=cy[i-1]+hh(data[i-1]), top=cy[i]-hh(data[i]);
+    if(top>bot+2)
+      els.push('<line x1="'+CX+'" y1="'+bot+'" x2="'+CX+'" y2="'+(top-1)+'" stroke="#1455a4" stroke-width="1.5" marker-end="url(#aB)"/>');
+  }
+
+  /* Return arrows — each on its own staggered lane */
+  data.forEach(function(step,i){
+    var j=(step.retorno_a!==null&&step.retorno_a!==undefined&&step.retorno_a!=='')?parseInt(step.retorno_a):-1;
+    if(j<0||j>=i) return;
+    var fromY=cy[i]+hh(step), toY=cy[j], rx=retX[i];
+    els.push('<path d="M'+(CX+RW/2)+' '+fromY+' H'+rx+' V'+toY+' H'+(CX+RW/2)
+      +'" fill="none" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4,2.5" marker-end="url(#aA)"/>');
+    els.push('<text x="'+(rx+3)+'" y="'+((fromY+toY)/2)+'" font-size="7.5" fill="#d97706" font-style="italic" dominant-baseline="middle" font-family="Segoe UI,sans-serif">↩ retorno</text>');
+  });
+
+  /* Nodes */
+  data.forEach(function(step,i){
+    var tipo=step.tipo||'paso', ncy=cy[i], nh=hh(step);
+    var fills={inicio:'#dcfce7',fin:'#dbeafe',decision:'#fef9ec',paso:'#eef3ff'};
+    var strks={inicio:'#16a34a',fin:'#2563eb',decision:'#d97706',paso:'#1455a4'};
+    var f=fills[tipo]||fills.paso, s=strks[tipo]||strks.paso;
+
+    /* Shape */
+    if(tipo==='inicio'||tipo==='fin'){
+      els.push('<ellipse cx="'+CX+'" cy="'+ncy+'" rx="'+ORX+'" ry="'+ORY+'" fill="'+f+'" stroke="'+s+'" stroke-width="1.5" filter="url(#fs)"/>');
     } else if(tipo==='decision'){
-      var pts=CX+','+(nodeCy-DIAM)+' '+(CX+DIAM)+','+nodeCy+' '+CX+','+(nodeCy+DIAM)+' '+(CX-DIAM)+','+nodeCy;
-      els.push('<polygon points="'+pts+'" fill="#fef3c7" stroke="#d97706" stroke-width="2" filter="url(#shd)"/>');
+      els.push('<polygon points="'+CX+','+(ncy-DH)+' '+(CX+DW)+','+ncy+' '+CX+','+(ncy+DH)+' '+(CX-DW)+','+ncy+'" fill="'+f+'" stroke="'+s+'" stroke-width="1.5" filter="url(#fs)"/>');
     } else {
-      els.push('<rect x="'+(CX-RECT_W/2)+'" y="'+(nodeCy-RECT_H/2)+'" width="'+RECT_W+'" height="'+RECT_H+'" rx="9" fill="#e8f0ff" stroke="#1455a4" stroke-width="2" filter="url(#shd)"/>');
+      els.push('<rect x="'+(CX-RW/2)+'" y="'+(ncy-nh)+'" width="'+RW+'" height="'+(nh*2)+'" rx="6" fill="'+f+'" stroke="'+s+'" stroke-width="1.5" filter="url(#fs)"/>');
     }
 
-    // Step badge
-    var badgeX = CX - (tipo==='decision'?DIAM:RECT_W/2) - 18;
-    var badgeColor = tipo==='inicio'?'#16a34a':tipo==='fin'?'#2563eb':tipo==='decision'?'#d97706':'#1455a4';
-    els.push('<circle cx="'+badgeX+'" cy="'+nodeCy+'" r="11" fill="'+badgeColor+'"/>');
-    els.push('<text x="'+badgeX+'" y="'+nodeCy+'" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="800" fill="#fff" font-family="Segoe UI,sans-serif">'+(i+1)+'</text>');
+    /* Step-number badge */
+    var bx=CX-(tipo==='decision'?DW:RW/2)-12;
+    els.push('<circle cx="'+bx+'" cy="'+ncy+'" r="8" fill="'+(strks[tipo]||strks.paso)+'"/>');
+    els.push('<text x="'+bx+'" y="'+ncy+'" text-anchor="middle" dominant-baseline="middle" font-size="7.5" font-weight="800" fill="#fff" font-family="Segoe UI,sans-serif">'+(i+1)+'</text>');
 
-    // Label text (word-wrap)
-    var maxChars = tipo==='decision' ? 11 : 26;
-    var lines = wrapText(label, maxChars);
-    var lh = 13, startY = nodeCy - ((lines.length-1)*lh/2);
-    lines.forEach(function(ln,li){
-      els.push('<text x="'+CX+'" y="'+(startY+li*lh)+'" text-anchor="middle" dominant-baseline="middle"'
-        +' font-size="11" font-weight="700" fill="#1c2333" font-family="Segoe UI,sans-serif">'+escHtml(ln)+'</text>');
-    });
-
-    // Meta (area · tiempo) below node
-    var meta=[];
-    if(step.area) meta.push(step.area);
-    if(step.tiempo) meta.push(step.tiempo);
-    if(meta.length){
-      var metaY = nodeCy + halfH(tipo) + 13;
-      els.push('<text x="'+CX+'" y="'+metaY+'" text-anchor="middle" font-size="9" fill="#64748b" font-family="Segoe UI,sans-serif">'+escHtml(meta.join(' · '))+'</text>');
+    /* Title */
+    if(tipo==='inicio'||tipo==='fin'){
+      els.push('<text x="'+CX+'" y="'+ncy+'" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="700" fill="#1e293b" font-family="Segoe UI,sans-serif">'+escHtml(wt(step.titulo||(TIPO_LABELS[tipo]||''),18)[0]||'')+'</text>');
+    } else if(tipo==='decision'){
+      var dl=wt(step.titulo||'DECISIÓN',9).slice(0,2);
+      var ds=ncy-((dl.length-1)*9/2);
+      dl.forEach(function(ln,li){ els.push('<text x="'+CX+'" y="'+(ds+li*9)+'" text-anchor="middle" dominant-baseline="middle" font-size="8.5" font-weight="700" fill="#1e293b" font-family="Segoe UI,sans-serif">'+escHtml(ln)+'</text>'); });
+    } else {
+      /* Rect node: title + divider + meta lines */
+      var tl=wt(step.titulo||'PASO',18).slice(0,2);
+      var mi=[]; if(step.area)mi.push({ic:'●',v:step.area}); if(step.doc_emitido)mi.push({ic:'▸',v:step.doc_emitido}); if(step.obs)mi.push({ic:'…',v:(step.obs||'').slice(0,32)+(step.obs&&step.obs.length>32?'…':'')});
+      var blockH=tl.length*LT+(mi.length?3+mi.length*LM:0);
+      var ty=ncy-blockH/2+LT*0.5;
+      tl.forEach(function(ln,li){ els.push('<text x="'+CX+'" y="'+(ty+li*LT)+'" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="700" fill="#0a2d6e" font-family="Segoe UI,sans-serif">'+escHtml(ln)+'</text>'); });
+      if(mi.length){
+        var divY=ty+tl.length*LT+2;
+        els.push('<line x1="'+(CX-RW/2+7)+'" y1="'+divY+'" x2="'+(CX+RW/2-7)+'" y2="'+divY+'" stroke="#c7d4f0" stroke-width="0.8"/>');
+        var my=divY+1+LM*0.5;
+        mi.forEach(function(m,mj){
+          var cap=Math.floor((RW-16)/5.2), vt=m.v.length>cap?m.v.slice(0,cap)+'…':m.v;
+          els.push('<text x="'+(CX-RW/2+8)+'" y="'+(my+mj*LM)+'" dominant-baseline="middle" font-size="8" fill="#334155" font-family="Segoe UI,sans-serif">'+m.ic+' '+escHtml(vt)+'</text>');
+        });
+      }
     }
   });
 
@@ -1330,15 +1357,10 @@ function renderFlowSVG(key){
     +els.join('')+'</svg>';
 }
 
-function wrapText(text, maxChars){
-  var words=(text||'').split(' '), lines=[], cur='';
-  words.forEach(function(w){
-    var test=cur?cur+' '+w:w;
-    if(test.length<=maxChars){ cur=test; }
-    else { if(cur) lines.push(cur); cur=w; }
-  });
-  if(cur) lines.push(cur);
-  return lines.length?lines:[text||''];
+function wrapText(text,maxChars){
+  var ws=(text||'').split(' '),ls=[],c='';
+  ws.forEach(function(w){ var t=c?c+' '+w:w; if(t.length<=maxChars){c=t;}else{if(c)ls.push(c);c=w;}});
+  if(c)ls.push(c); return ls.length?ls:[text||''];
 }
 </script>
 </body>
