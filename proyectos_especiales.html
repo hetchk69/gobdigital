@@ -292,13 +292,6 @@ input[type=file].hidden{display:none}
       <div class="pub-field"><label>Institución</label>
         <select id="pub-inst" style="width:100%;padding:11px 13px;border:1.5px solid #cbd5e1;border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#fff;color:#1c2333;appearance:auto">
           <option value="">— Seleccione su institución —</option>
-          <option>BANHPROVI</option><option>CANATURH / IHT</option><option>CNBS</option>
-          <option>CONATEL</option><option>CONSUCOOP</option><option>CONVIVIENDA</option>
-          <option>COPECO</option><option>IHADFA</option><option>IHCINE</option>
-          <option>IHTT</option><option>INPREMA</option><option>INPREUNAH</option>
-          <option>IP</option><option>SAG</option><option>SECAPPH</option>
-          <option>SEN</option><option>SERNA</option><option>SGJD</option>
-          <option>SIT</option><option>SRECI</option>
           <option value="OTRA">Otro</option>
         </select>
       </div>
@@ -441,13 +434,6 @@ input[type=file].hidden{display:none}
         <label>Institución Beneficiaria *</label>
         <select id="g-inst" onchange="toggleInstOtro()">
           <option value="">— Seleccione —</option>
-          <option>BANHPROVI</option><option>CANATURH / IHT</option><option>CNBS</option>
-          <option>CONATEL</option><option>CONSUCOOP</option><option>CONVIVIENDA</option>
-          <option>COPECO</option><option>IHADFA</option><option>IHCINE</option>
-          <option>IHTT</option><option>INPREMA</option><option>INPREUNAH</option>
-          <option>IP</option><option>SAG</option><option>SECAPPH</option>
-          <option>SEN</option><option>SERNA</option><option>SGJD</option>
-          <option>SIT</option><option>SRECI</option>
           <option value="Otro">Otro</option>
         </select>
         <div id="field-inst-otro" style="display:none;margin-top:6px">
@@ -1941,29 +1927,36 @@ async function cargarInstsDesdeSupabase(){
 }
 
 function cargarInstsPersonalizadas(){
-  var saved = instsSaved().slice().sort(function(a,b){ return a.localeCompare(b,'es'); });
-  // select g-inst (admin)
-  var gInstSel = document.getElementById('g-inst');
-  if(gInstSel){
-    Array.from(gInstSel.querySelectorAll('[data-custom]')).forEach(function(o){ o.remove(); });
-    var otraOptAdmin = gInstSel.querySelector('option[value="Otro"]');
-    saved.forEach(function(inst){
+  // Normalizar a mayúsculas y deduplicar contra base
+  var raw = instsSaved().map(function(s){ return s.trim().toUpperCase(); });
+  var baseUp = INSTS_BASE.map(function(s){ return s.toUpperCase(); });
+  var custom = [];
+  raw.forEach(function(s){
+    if(s && !baseUp.includes(s) && !custom.includes(s)) custom.push(s);
+  });
+  // Guardar normalizados
+  localStorage.setItem(LS_INSTS, JSON.stringify(custom));
+
+  // Lista completa ordenada
+  var todas = INSTS_BASE.concat(custom).sort(function(a,b){ return a.localeCompare(b,'es'); });
+
+  function buildOpts(sel, placeholder, otraValue){
+    if(!sel) return;
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">' + placeholder + '</option>';
+    todas.forEach(function(inst){
       var o = document.createElement('option');
-      o.value = inst; o.textContent = inst; o.setAttribute('data-custom','1');
-      gInstSel.insertBefore(o, otraOptAdmin);
+      o.value = inst; o.textContent = inst;
+      sel.appendChild(o);
     });
+    var oOtra = document.createElement('option');
+    oOtra.value = otraValue; oOtra.textContent = 'Otro';
+    sel.appendChild(oOtra);
+    sel.value = cur;
   }
-  // select pub-inst (público)
-  var sel = document.getElementById('pub-inst');
-  if(sel){
-    Array.from(sel.querySelectorAll('[data-custom]')).forEach(function(o){ o.remove(); });
-    var otraOpt = sel.querySelector('option[value="OTRA"]');
-    saved.forEach(function(inst){
-      var o = document.createElement('option');
-      o.value = inst; o.textContent = inst; o.setAttribute('data-custom','1');
-      sel.insertBefore(o, otraOpt);
-    });
-  }
+
+  buildOpts(document.getElementById('g-inst'),    '— Seleccione —',              'Otro');
+  buildOpts(document.getElementById('pub-inst'),  '— Seleccione su institución —','OTRA');
 }
 
 function toggleInstOtro(){ document.getElementById('field-inst-otro').style.display = gv('g-inst')==='Otro' ? 'block' : 'none'; }
