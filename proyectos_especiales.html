@@ -424,8 +424,9 @@ input[type=file].hidden{display:none}
     <div class="row2">
       <div class="field">
         <label>Institución Beneficiaria *</label>
-        <select id="g-inst" style="width:100%;padding:9px 11px;border:1.5px solid var(--borde);border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:var(--texto)">
-          <option value="">— Seleccione —</option>
+        <input type="text" id="g-inst" list="inst-datalist" placeholder="Seleccione o escriba una institución" autocomplete="off"
+          style="width:100%;padding:9px 11px;border:1.5px solid var(--borde);border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:var(--texto)">
+        <datalist id="inst-datalist">
           <option>BANHPROVI</option><option>CANATURH / IHT</option><option>CNBS</option>
           <option>CONATEL</option><option>CONSUCOOP</option><option>CONVIVIENDA</option>
           <option>COPECO</option><option>IHADFA</option><option>IHCINE</option>
@@ -433,7 +434,7 @@ input[type=file].hidden{display:none}
           <option>IP</option><option>SAG</option><option>SECAPPH</option>
           <option>SEN</option><option>SERNA</option><option>SGJD</option>
           <option>SIT</option><option>SRECI</option>
-        </select>
+        </datalist>
       </div>
       <div class="field">
         <label>Tipo de Capacitación / Evento *</label>
@@ -866,6 +867,7 @@ async function registrarAsistencia(){
   });
   btn.disabled=false; btn.textContent='✔ Registrar mi asistencia';
   if(error){ err.textContent='Error al registrar: '+error.message; err.style.display='block'; return; }
+  if(instSel === 'OTRA' && inst) guardarInstPersonalizada(inst);
   document.getElementById('pub-form-inner').style.display='none';
   document.getElementById('pub-ok').style.display='block';
   document.getElementById('pub-ok-msg').textContent='Gracias, '+nombre+'. Su asistencia ha sido registrada correctamente.';
@@ -1083,6 +1085,7 @@ async function guardarGeneral(){
   currentId=id;
   var {data:r}=await sb.from('reuniones').select('*').eq('id',id).single();
   if(r) currentReunion=r;
+  guardarInstPersonalizada(inst);
 
   btn.disabled=false; btn.textContent='✔ Guardado'; btn.style.background='linear-gradient(135deg,#16a34a,#15803d)';
 
@@ -1136,6 +1139,7 @@ async function guardarTodo(){
     errEl.textContent='Error al guardar: '+error.message; errEl.style.display='block';
   } else {
     if(updated) currentReunion=updated;
+    guardarInstPersonalizada(inst);
     document.getElementById('ev-titulo-bar').textContent=titulo;
     okEl.textContent='✓ Cambios guardados correctamente';
     okEl.style.display='block';
@@ -1849,6 +1853,54 @@ function volverLista(){
   renderLista();
   cambiarVista('view-list');
 }
+
+// ── INSTITUCIONES PERSONALIZADAS ──────────────────────────────
+var LS_INSTS = 'diger_insts_custom';
+var INSTS_BASE = ['BANHPROVI','CANATURH / IHT','CNBS','CONATEL','CONSUCOOP','CONVIVIENDA',
+  'COPECO','IHADFA','IHCINE','IHTT','INPREMA','INPREUNAH','IP','SAG','SECAPPH',
+  'SEN','SERNA','SGJD','SIT','SRECI'];
+
+function instsSaved(){
+  try{ return JSON.parse(localStorage.getItem(LS_INSTS)||'[]'); }catch(e){ return []; }
+}
+
+function guardarInstPersonalizada(nombre){
+  if(!nombre) return;
+  var norm = nombre.trim();
+  if(!norm || INSTS_BASE.map(function(s){return s.toUpperCase();}).includes(norm.toUpperCase())) return;
+  var saved = instsSaved();
+  if(saved.map(function(s){return s.toUpperCase();}).includes(norm.toUpperCase())) return;
+  saved.push(norm);
+  localStorage.setItem(LS_INSTS, JSON.stringify(saved));
+  cargarInstsPersonalizadas();
+}
+
+function cargarInstsPersonalizadas(){
+  var saved = instsSaved();
+  // datalist para g-inst (admin)
+  var dl = document.getElementById('inst-datalist');
+  if(dl){
+    Array.from(dl.querySelectorAll('[data-custom]')).forEach(function(o){ o.remove(); });
+    saved.forEach(function(inst){
+      var o = document.createElement('option');
+      o.value = inst; o.setAttribute('data-custom','1');
+      dl.appendChild(o);
+    });
+  }
+  // select pub-inst (público)
+  var sel = document.getElementById('pub-inst');
+  if(sel){
+    Array.from(sel.querySelectorAll('[data-custom]')).forEach(function(o){ o.remove(); });
+    var otraOpt = sel.querySelector('option[value="OTRA"]');
+    saved.forEach(function(inst){
+      var o = document.createElement('option');
+      o.value = inst; o.textContent = inst; o.setAttribute('data-custom','1');
+      sel.insertBefore(o, otraOpt);
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', cargarInstsPersonalizadas);
 
 // ── UTILS ─────────────────────────────────────────────────────
 function gv(id){ var el=document.getElementById(id); return el?(el.value||'').trim():''; }
