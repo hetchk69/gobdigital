@@ -439,9 +439,8 @@ input[type=file].hidden{display:none}
     <div class="row2">
       <div class="field">
         <label>Institución Beneficiaria *</label>
-        <input type="text" id="g-inst" list="inst-datalist" placeholder="Seleccione o escriba una institución" autocomplete="off"
-          style="width:100%;padding:9px 11px;border:1.5px solid var(--borde);border-radius:9px;font-size:13px;font-family:inherit;outline:none;background:#fff;color:var(--texto)">
-        <datalist id="inst-datalist">
+        <select id="g-inst" onchange="toggleInstOtro()">
+          <option value="">— Seleccione —</option>
           <option>BANHPROVI</option><option>CANATURH / IHT</option><option>CNBS</option>
           <option>CONATEL</option><option>CONSUCOOP</option><option>CONVIVIENDA</option>
           <option>COPECO</option><option>IHADFA</option><option>IHCINE</option>
@@ -449,7 +448,11 @@ input[type=file].hidden{display:none}
           <option>IP</option><option>SAG</option><option>SECAPPH</option>
           <option>SEN</option><option>SERNA</option><option>SGJD</option>
           <option>SIT</option><option>SRECI</option>
-        </datalist>
+          <option value="Otro">Otro</option>
+        </select>
+        <div id="field-inst-otro" style="display:none;margin-top:6px">
+          <input type="text" id="g-inst-otro" placeholder="Especifique la institución">
+        </div>
       </div>
       <div class="field">
         <label>Tipo de Capacitación / Evento *</label>
@@ -1063,10 +1066,13 @@ function cargarCamposGenerales(r, datos){
   sv('g-lugar',  r.lugar||'');
   sv('g-modalidad', datos.modalidad||'');
   sv('g-modalidad-otro', datos.modalidad_otro||'');
-  sv('g-inst',   datos.institucion_beneficiaria||'');
+  var instVal = datos.institucion_beneficiaria||'';
+  if(instVal) guardarInstPersonalizada(instVal);
+  sv('g-inst', instVal);
   sv('g-tipo',   datos.tipo_cap||'');
   sv('g-tipo-otro', datos.tipo_cap_otro||'');
   toggleModalidadOtro();
+  toggleInstOtro();
   toggleTipoOtro();
 }
 
@@ -1092,7 +1098,8 @@ function actualizarBadgeEstado(activa){
 
 // ── GUARDAR GENERAL (primer guardado — nuevo evento) ──────────
 async function guardarGeneral(){
-  var titulo=gv('g-titulo'), fecha=gv('g-fecha'), modalidad=gv('g-modalidad'), inst=gv('g-inst'), tipo=gv('g-tipo');
+  var titulo=gv('g-titulo'), fecha=gv('g-fecha'), modalidad=gv('g-modalidad'), tipo=gv('g-tipo');
+  var inst = gv('g-inst')==='Otro' ? gv('g-inst-otro').trim().toUpperCase() : gv('g-inst');
   var errEl=document.getElementById('gen-err');
   errEl.style.display='none'; errEl.textContent='';
   if(!titulo){ errEl.textContent='El título del evento es obligatorio.'; errEl.style.display='block'; return; }
@@ -1143,7 +1150,8 @@ async function guardarGeneral(){
 async function guardarTodo(){
   if(!currentId){ guardarGeneral(); return; }
 
-  var titulo=gv('g-titulo'), fecha=gv('g-fecha'), modalidad=gv('g-modalidad'), inst=gv('g-inst'), tipo=gv('g-tipo');
+  var titulo=gv('g-titulo'), fecha=gv('g-fecha'), modalidad=gv('g-modalidad'), tipo=gv('g-tipo');
+  var inst = gv('g-inst')==='Otro' ? gv('g-inst-otro').trim().toUpperCase() : gv('g-inst');
   var errEl=document.getElementById('global-err'), okEl=document.getElementById('global-ok');
   errEl.style.display='none'; okEl.style.display='none';
   if(!titulo||!fecha||!modalidad||!inst||!tipo){
@@ -1914,14 +1922,15 @@ function guardarInstPersonalizada(nombre){
 
 function cargarInstsPersonalizadas(){
   var saved = instsSaved();
-  // datalist para g-inst (admin)
-  var dl = document.getElementById('inst-datalist');
-  if(dl){
-    Array.from(dl.querySelectorAll('[data-custom]')).forEach(function(o){ o.remove(); });
+  // select g-inst (admin)
+  var gInstSel = document.getElementById('g-inst');
+  if(gInstSel){
+    Array.from(gInstSel.querySelectorAll('[data-custom]')).forEach(function(o){ o.remove(); });
+    var otraOptAdmin = gInstSel.querySelector('option[value="Otro"]');
     saved.forEach(function(inst){
       var o = document.createElement('option');
-      o.value = inst; o.setAttribute('data-custom','1');
-      dl.appendChild(o);
+      o.value = inst; o.textContent = inst; o.setAttribute('data-custom','1');
+      gInstSel.insertBefore(o, otraOptAdmin);
     });
   }
   // select pub-inst (público)
@@ -1936,6 +1945,8 @@ function cargarInstsPersonalizadas(){
     });
   }
 }
+
+function toggleInstOtro(){ document.getElementById('field-inst-otro').style.display = gv('g-inst')==='Otro' ? 'block' : 'none'; }
 
 document.addEventListener('DOMContentLoaded', cargarInstsPersonalizadas);
 
