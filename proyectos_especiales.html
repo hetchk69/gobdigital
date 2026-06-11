@@ -1941,7 +1941,7 @@ async function cargarInstsDesdeSupabase(){
 }
 
 function cargarInstsPersonalizadas(){
-  var saved = instsSaved();
+  var saved = instsSaved().slice().sort(function(a,b){ return a.localeCompare(b,'es'); });
   // select g-inst (admin)
   var gInstSel = document.getElementById('g-inst');
   if(gInstSel){
