@@ -1243,41 +1243,45 @@ function renderFlowSVG(key){
   var data = key==='actual' ? (flujosActual[activeTram]||[]) : (flujosPropuesto[activeTram]||[]);
   if(!data.length) return '<p style="color:var(--muted);font-size:13px;padding:2rem;text-align:center">Sin pasos definidos. Vuelva a Editar para agregar actividades.</p>';
 
-  /* ── LAYOUT: flujo principal horizontal, decisiones como bloques EXTERNOS arriba ── */
+  /* ── LAYOUT: flujo principal horizontal, decisiones EXTERNAS flotando arriba ── */
   var fills={inicio:'#dcfce7',fin:'#dbeafe',decision:'#fef9ec',paso:'#eef3ff'};
   var strks={inicio:'#16a34a',fin:'#2563eb',decision:'#d97706',paso:'#1455a4'};
-  var NW={inicio:82,fin:82,decision:70,paso:100};
-  var NH={inicio:30,fin:30,decision:70,paso:42};
-  var GAP=28, MLEFT=22, LT=9;
+  var NW={inicio:82,fin:82,decision:72,paso:100};
+  var NH={inicio:30,fin:30,decision:72,paso:42};
+  var GAP=30, MLEFT=22, LT=9;
   function nw(t){return NW[t]||NW.paso;}
   function nh(t){return NH[t]||NH.paso;}
   function nhh(t){return nh(t)/2;}
 
-  /* Separar flujo principal de decisiones */
   var mainIdx=[], decIdx=[];
   data.forEach(function(s,i){ (s.tipo||'paso')==='decision'?decIdx.push(i):mainIdx.push(i); });
 
-  /* Centros X del flujo principal (solo pasos no-decision) */
+  /* X del flujo principal */
   var cx=new Array(data.length).fill(0);
   var xp=MLEFT;
   mainIdx.forEach(function(i){ cx[i]=xp+nw(data[i].tipo||'paso')/2; xp+=nw(data[i].tipo||'paso')+GAP; });
-  var W=xp-GAP+22+56; /* +56 para flechas de retorno */
 
-  /* X de cada decisión = X de su predecesor inmediato no-decision */
+  /* X de cada decisión: encima del predecesor + slot horizontal si hay varias del mismo paso */
+  function findPred(di){ for(var k=di-1;k>=0;k--) if((data[k].tipo||'paso')!=='decision') return k; return -1; }
+  var predSlot={};
   decIdx.forEach(function(di){
-    var pred=-1;
-    for(var k=di-1;k>=0;k--){ if((data[k].tipo||'paso')!=='decision'){pred=k;break;} }
-    cx[di]=pred>=0?cx[pred]:MLEFT+nw('decision')/2;
+    var pred=findPred(di);
+    var slot=predSlot[pred]||0; predSlot[pred]=slot+1;
+    var baseX=pred>=0?cx[pred]:MLEFT+nw('decision')/2;
+    cx[di]=baseX+slot*(nw('decision')+16);  /* desplazar derecha si varias del mismo paso */
   });
 
-  /* Alturas: decisiones flotan ENCIMA del flujo principal */
+  /* Ancho total = máximo entre flujo principal y decisiones más a la derecha */
+  var maxDecX=decIdx.reduce(function(m,di){ return Math.max(m,cx[di]+nw('decision')/2); }, xp-GAP);
+  var W=Math.max(xp-GAP,maxDecX)+44;
+
+  /* Alturas — decisiones flotan bien SEPARADAS encima */
   var DH=nh('decision'), DW=nw('decision');
-  var DEC_GAP=18;                    /* espacio entre base decision y tope del flujo */
-  var TOP=DH+DEC_GAP+10;
+  var DEC_GAP=44;                  /* separación entre fondo del diamante y tope del paso */
+  var TOP=DH+DEC_GAP+14;
   var BOT=36;
-  var MY=TOP;                         /* Y eje flujo principal */
-  var DY=MY-DEC_GAP-DH/2;            /* Y centro de todas las decisiones */
-  var H=MY+BOT;
+  var MY=TOP, H=MY+BOT;
+  var DY=MY-DEC_GAP-DH/2;         /* centro Y de todas las decisiones */
 
   var els=[];
   els.push('<defs>'
@@ -1286,7 +1290,7 @@ function renderFlowSVG(key){
     +'<filter id="fs"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.09"/></filter>'
     +'</defs>');
 
-  /* Conectores horizontales del FLUJO PRINCIPAL (no pasan por decisiones) */
+  /* Conectores horizontales del flujo principal (sin pasar por decisiones) */
   for(var k=1;k<mainIdx.length;k++){
     var pi=mainIdx[k-1], ci=mainIdx[k];
     var prevR=cx[pi]+nw(data[pi].tipo||'paso')/2;
@@ -1295,29 +1299,31 @@ function renderFlowSVG(key){
       els.push('<line x1="'+prevR+'" y1="'+MY+'" x2="'+(curL-1)+'" y2="'+MY+'" stroke="#1455a4" stroke-width="1.4" marker-end="url(#aB)"/>');
   }
 
-  /* Flechas de DERIVACIÓN: tope del predecesor → base de la decision (vertical) */
+  /* Flecha de DERIVACIÓN: tope del predecesor → fondo del diamante (vertical, offset -6px) */
   decIdx.forEach(function(di){
-    var pred=-1;
-    for(var k=di-1;k>=0;k--){ if((data[k].tipo||'paso')!=='decision'){pred=k;break;} }
+    var pred=findPred(di);
     if(pred<0) return;
+    var bx=cx[di]-6;
     var srcTop=MY-nhh(data[pred].tipo||'paso');
     var decBot=DY+DH/2;
-    els.push('<line x1="'+cx[di]+'" y1="'+srcTop+'" x2="'+cx[di]+'" y2="'+(decBot+1)
+    els.push('<line x1="'+bx+'" y1="'+srcTop+'" x2="'+bx+'" y2="'+(decBot+1)
       +'" stroke="#1455a4" stroke-width="1.3" marker-end="url(#aB)"/>');
   });
 
-  /* Flechas de RETORNO: lado derecho de la decision → derecha → baja → nodo destino */
+  /* Flecha de RETORNO: fondo del diamante → curva bezier directa al nodo destino (offset +6px) */
   decIdx.forEach(function(di){
     var j=(data[di].retorno_a!==null&&data[di].retorno_a!==undefined&&data[di].retorno_a!=='')?parseInt(data[di].retorno_a):-1;
     if(j<0) return;
-    var fromX=cx[di]+DW/2;
-    var toX=cx[j], toTop=MY-nhh(data[j].tipo||'paso');
-    var rx=Math.max(fromX,toX)+22;
-    els.push('<path d="M'+fromX+' '+DY+' H'+rx+' V'+toTop+' H'+toX
-      +'" fill="none" stroke="#d97706" stroke-width="1.1" stroke-dasharray="3.5,2" marker-end="url(#aA)"/>');
+    var rx=cx[di]+6;
+    var decBot=DY+DH/2;
+    var toX=cx[j], toTop=MY-nhh(data[j].tipo||'paso')+2;
+    /* Bezier: sale del fondo del diamante y curva hasta el tope del nodo destino */
+    var cpY=(decBot+toTop)/2+10; /* punto de control empuja la curva hacia abajo */
+    els.push('<path d="M'+rx+' '+decBot+' Q'+rx+' '+cpY+' '+toX+' '+toTop
+      +'" fill="none" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#aA)"/>');
   });
 
-  /* Dibujar todos los nodos */
+  /* Nodos */
   data.forEach(function(step,i){
     var tipo=step.tipo||'paso';
     var ncx=cx[i], ncy=(tipo==='decision'?DY:MY);
@@ -1334,12 +1340,10 @@ function renderFlowSVG(key){
       els.push('<rect x="'+(ncx-nwi/2)+'" y="'+(ncy-nhhi)+'" width="'+nwi+'" height="'+(nhhi*2)+'" rx="5" fill="'+f+'" stroke="'+s+'" stroke-width="1.4" filter="url(#fs)"'+oc+'><title>Ver detalles</title></rect>');
     }
 
-    /* Badge numérico */
     var bx=ncx-nwi/2+(tipo==='decision'?5:8), by=ncy-nhhi+(tipo==='decision'?11:9);
     els.push('<circle cx="'+bx+'" cy="'+by+'" r="7.5" fill="'+(strks[tipo]||strks.paso)+'"/>');
     els.push('<text x="'+bx+'" y="'+by+'" text-anchor="middle" dominant-baseline="middle" font-size="6.5" font-weight="800" fill="#fff" font-family="Segoe UI,sans-serif" style="pointer-events:none">'+(i+1)+'</text>');
 
-    /* Título */
     var maxC=tipo==='decision'?7:13;
     var tl=wrapText(step.titulo||(TIPO_LABELS[tipo]||'Paso'),maxC).slice(0,tipo==='decision'?3:2);
     var ty=ncy-((tl.length-1)*LT/2);
@@ -1393,7 +1397,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v1.5</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v1.6</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
