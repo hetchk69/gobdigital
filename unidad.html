@@ -510,7 +510,7 @@ if (!ses) { window.location.replace('index.html'); }
 // ── ROUTING ─────────────────────────────────────────────────────
 var params = new URLSearchParams(window.location.search);
 var unitParam = params.get('u'); // 'proyectos' | 'digitalizacion' | null
-var tabParam  = params.get('tab') || 'modulos';
+var tabParam  = params.get('tab') || 'documentos';
 
 var app = document.getElementById('app');
 
@@ -581,10 +581,9 @@ function renderUnitPage(unitKey, tab) {
   document.title = u.label + ' — ' + (tabLabels[tab] || 'Módulos') + ' — DIGER';
 
   if (tab === 'calendario')  { renderCalendario(unitKey); return; }
-  if (tab === 'documentos')  { renderDocumentos(unitKey); return; }
   if (tab === 'repositorio') { renderRepositorio(unitKey); return; }
-  // default: modulos
-  renderModulos(unitKey);
+  // default: documentos (includes modules)
+  renderDocumentos(unitKey);
 }
 
 function renderModulos(unitKey) {
@@ -901,10 +900,52 @@ function renderDocumentos(unitKey) {
       '<p>No hay documentos registrados en esta unidad.<br>Agregue el primero con el botón de arriba.</p></div>';
   }
 
+  // Modules section
+  var isAdmin = ses.role === 'admin';
+  var acc = ses.access || {};
+  var visibles = u.modulos.filter(function(m){ return isAdmin || acc[m.key]; });
+  var modsHtml = '';
+  if (visibles.length > 0) {
+    modsHtml = '<div class="card" style="padding:0;overflow:hidden;margin-bottom:1rem">' +
+      '<div style="padding:.85rem 1.25rem .5rem;border-bottom:1px solid var(--borde)">' +
+        '<div class="sec-title" style="margin:0;border:none;padding:0">📂 Módulos — ' + esc(u.label) + '</div>' +
+      '</div>' +
+      '<div class="mod-list">';
+    visibles.forEach(function(m, idx){
+      var subHtml = '';
+      if(m.subItems){
+        subHtml = '<div class="mod-sub-list">';
+        m.subItems.forEach(function(si){
+          subHtml += '<a class="mod-sub-item" href="' + si.url + '">' +
+            '<div class="mod-sub-icon">' + (SVGS[si.icon]||'') + '</div>' +
+            '<div><div class="mod-sub-name">' + esc(si.label) + '</div><div class="mod-sub-desc">' + esc(si.desc) + '</div></div>' +
+            '<span class="btn-open">Abrir →</span>' +
+          '</a>';
+        });
+        subHtml += '</div>';
+      }
+      modsHtml +=
+        '<div class="mod-row" id="modrow-' + idx + '">' +
+          '<div class="mod-row-head" style="cursor:default">' +
+            '<div class="mod-row-icon" style="color:var(--azul-m)">' + (SVGS[m.icon]||m.icon) + '</div>' +
+            '<div class="mod-row-name">' + esc(m.label) + '</div>' +
+            '<div><span class="mod-type-badge ' + (m.tipoCls||'') + '">' + esc(m.tipo||'Módulo') + '</span></div>' +
+            '<div class="mod-row-desc">' + esc(m.desc) + '</div>' +
+            '<div class="mod-row-actions">' +
+              (m.url ? '<a class="btn-open" href="' + m.url + '">Abrir →</a>' : '') +
+            '</div>' +
+          '</div>' +
+          subHtml +
+        '</div>';
+    });
+    modsHtml += '</div></div>';
+  }
+
   app.innerHTML =
     tabBreadcrumb(unitKey, 'Documentos') +
     '<div class="welcome"><div class="badge">' + esc(u.label) + '</div>' +
-      '<h2>Documentos</h2><p>Registro central de documentos de la unidad.</p></div>' +
+      '<h2>Documentos</h2><p>Registro central de documentos y módulos de la unidad.</p></div>' +
+    modsHtml +
     '<div class="tab-toolbar">' +
       '<div style="font-size:13px;color:var(--muted);font-weight:600">' + total + ' documento' + (total!==1?'s':'') + '</div>' +
       '<button class="btn-prim" onclick="docAddPrompt()">+ Agregar documento</button>' +
