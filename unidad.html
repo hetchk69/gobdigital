@@ -1032,49 +1032,84 @@ async function renderInicio(unitKey) {
         '</div>'+
       '</div>'+
 
-      // Tabla detalle
-      '<div class="card" style="padding:0;overflow:hidden">'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem 1.25rem;border-bottom:1px solid var(--borde)">'+
-          '<div style="font-size:15px;font-weight:800;color:var(--azul)">Detalle de trámites ('+total+')</div>'+
-          '<div style="display:flex;gap:10px;font-size:11px">'+
-            '<span style="color:#16a34a;font-weight:700">● En op.: '+op+'</span>'+
-            '<span style="color:#f59e0b;font-weight:700">● En proc.: '+proc+'</span>'+
-            '<span style="color:#dc2626;font-weight:700">● No inic.: '+ni+'</span>'+
-          '</div>'+
-        '</div>'+
-        '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px">'+
-          '<thead><tr style="background:#f0f4fb">'+
-            '<th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--borde)">#</th>'+
-            '<th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--borde)">Institución</th>'+
-            '<th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--borde)">Trámite</th>'+
-            '<th style="padding:8px 12px;text-align:center;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--borde)">Avance</th>'+
-            '<th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--borde)">Estado</th>'+
-            '<th style="padding:8px 12px;text-align:left;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--borde)">Alojamiento</th>'+
-          '</tr></thead><tbody>'+
-          data.slice().sort(function(a,b){ return dbCalcPct(b.e)-dbCalcPct(a.e); }).map(function(r,i){
-            var pct=dbCalcPct(r.e),est=dbEstado(r.e),pd=Math.round(pct*100);
-            var ec=est==='En operación'?'#16a34a':est==='En proceso'?'#f59e0b':'#dc2626';
-            var eb=est==='En operación'?'#dcfce7':est==='En proceso'?'#fef3c7':'#fee2e2';
-            var bc=pct>=1?'#16a34a':pct>=0.6?'#1455a4':'#f59e0b';
-            return '<tr style="border-bottom:1px solid var(--borde)">'+
-              '<td style="padding:7px 12px;color:var(--muted);font-weight:600">'+(i+1)+'</td>'+
-              '<td style="padding:7px 12px;font-weight:700;color:var(--azul)">'+esc(r.inst)+'</td>'+
-              '<td style="padding:7px 12px;color:var(--texto)">'+esc(r.t)+'</td>'+
-              '<td style="padding:7px 12px;text-align:center">'+
-                '<div style="display:flex;align-items:center;gap:5px;justify-content:center">'+
-                  '<div style="width:54px;height:5px;background:#e8eef8;border-radius:99px;overflow:hidden">'+
-                    '<div style="height:100%;width:'+pd+'%;background:'+bc+';border-radius:99px"></div>'+
+      // Tabla detalle — acordeón por institución
+      (function(){
+        var TH='padding:7px 12px;text-align:left;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--borde)';
+        var rows=stackRows.map(function(row,idx){
+          var gId='_ig'+idx;
+          var tramites=data.filter(function(r){ return r.inst===row.label; }).sort(function(a,b){ return dbCalcPct(b.e)-dbCalcPct(a.e); });
+          var avgC=row.avgPct>=1?'#16a34a':row.avgPct>=0.6?'#1455a4':'#f59e0b';
+          var headerTr='<tr onclick="window._toggleInst(\''+gId+'\')" style="cursor:pointer;background:#f4f7fd;border-bottom:1px solid var(--borde)">'+
+            '<td style="padding:9px 14px;font-weight:800;color:var(--azul);font-size:12.5px">'+
+              '<span id="ic-'+gId+'" style="display:inline-block;width:14px;font-size:9px;opacity:.6">▶</span> '+esc(row.label)+
+            '</td>'+
+            '<td style="padding:9px 10px;text-align:center">'+
+              '<span style="font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--azul-c);color:var(--azul)">'+row.total+' trám.</span>'+
+            '</td>'+
+            '<td style="padding:9px 10px;text-align:center;font-size:11.5px;font-weight:800;color:#16a34a">'+row.op+'</td>'+
+            '<td style="padding:9px 10px;text-align:center;font-size:11.5px;font-weight:800;color:#f59e0b">'+row.proc+'</td>'+
+            '<td style="padding:9px 10px;text-align:center;font-size:11.5px;font-weight:800;color:#dc2626">'+row.ni+'</td>'+
+            '<td style="padding:9px 14px">'+
+              '<div style="display:flex;align-items:center;gap:6px">'+
+                '<div style="width:64px;height:5px;background:#e8eef8;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+Math.round(row.avgPct*100)+'%;background:'+avgC+';border-radius:99px"></div></div>'+
+                '<span style="font-size:12px;font-weight:800;color:'+avgC+'">'+Math.round(row.avgPct*100)+'%</span>'+
+              '</div>'+
+            '</td>'+
+          '</tr>';
+          var subRows='<tbody id="'+gId+'" style="display:none">'+
+            tramites.map(function(r){
+              var p=dbCalcPct(r.e),pd=Math.round(p*100),est=dbEstado(r.e);
+              var ec=est==='En operación'?'#16a34a':est==='En proceso'?'#f59e0b':'#dc2626';
+              var eb=est==='En operación'?'#dcfce7':est==='En proceso'?'#fef3c7':'#fee2e2';
+              var bc=p>=1?'#16a34a':p>=0.6?'#1455a4':'#f59e0b';
+              return '<tr style="border-bottom:1px solid #f0f4fb">'+
+                '<td style="padding:6px 14px 6px 34px;color:var(--texto);font-size:11.5px" colspan="2">'+esc(r.t)+'</td>'+
+                '<td colspan="2" style="padding:6px 10px;text-align:center">'+
+                  '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+eb+';color:'+ec+'">'+est+'</span>'+
+                '</td>'+
+                '<td style="padding:6px 10px;font-size:10.5px;color:var(--muted)">'+esc(r.l||'—')+'</td>'+
+                '<td style="padding:6px 14px">'+
+                  '<div style="display:flex;align-items:center;gap:5px">'+
+                    '<div style="width:54px;height:4px;background:#e8eef8;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pd+'%;background:'+bc+';border-radius:99px"></div></div>'+
+                    '<span style="font-size:11px;font-weight:800;color:'+bc+'">'+pd+'%</span>'+
                   '</div>'+
-                  '<span style="font-size:11.5px;font-weight:700;min-width:30px">'+pd+'%</span>'+
-                '</div>'+
-              '</td>'+
-              '<td style="padding:7px 12px"><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+eb+';color:'+ec+'">'+est+'</span></td>'+
-              '<td style="padding:7px 12px;color:var(--muted)">'+esc(r.l||'—')+'</td>'+
-            '</tr>';
-          }).join('')+
-          '</tbody></table></div>'+
-      '</div>';
+                '</td>'+
+              '</tr>';
+            }).join('')+
+          '</tbody>';
+          return '<tbody>'+headerTr+'</tbody>'+subRows;
+        }).join('');
+        return '<div class="card" style="padding:0;overflow:hidden">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem 1.25rem;border-bottom:1px solid var(--borde)">'+
+            '<div style="font-size:15px;font-weight:800;color:var(--azul)">Detalle por institución</div>'+
+            '<div style="display:flex;gap:10px;font-size:11px">'+
+              '<span style="color:#16a34a;font-weight:700">● Op: '+op+'</span>'+
+              '<span style="color:#f59e0b;font-weight:700">● Proc: '+proc+'</span>'+
+              '<span style="color:#dc2626;font-weight:700">● N/I: '+ni+'</span>'+
+              '<span style="color:var(--muted)">Clic en institución para desglosar</span>'+
+            '</div>'+
+          '</div>'+
+          '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'+
+            '<thead><tr style="background:#eef1f7">'+
+              '<th style="'+TH+'">Institución</th>'+
+              '<th style="'+TH+';text-align:center">Total</th>'+
+              '<th style="'+TH+';text-align:center;color:#16a34a">Op.</th>'+
+              '<th style="'+TH+';text-align:center;color:#f59e0b">Proc.</th>'+
+              '<th style="'+TH+';text-align:center;color:#dc2626">N/I</th>'+
+              '<th style="'+TH+'">Avance prom.</th>'+
+            '</tr></thead>'+
+            rows+
+          '</table></div>'+
+        '</div>';
+      })();
 
+    window._toggleInst = function(id){
+      var tb=document.getElementById(id), ic=document.getElementById('ic-'+id);
+      if(!tb) return;
+      var open=tb.style.display!=='none';
+      tb.style.display=open?'none':'';
+      if(ic) ic.textContent=open?'▶':'▼';
+    };
     app.innerHTML = html;
   }
 
