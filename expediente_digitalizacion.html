@@ -142,14 +142,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .req-sum-item.simplificar .req-sum-badge{background:var(--ambar);color:#fff}
 .req-sum-item.digitalizar .req-sum-badge{background:var(--azul-m);color:#fff}
 .req-sum-item.mantener .req-sum-badge{background:var(--muted);color:#fff}
-/* REUNION */
-.reunion-card{background:var(--gris-f);border:1.5px solid var(--borde);border-radius:12px;padding:1.1rem;margin-bottom:.9rem}
-.reunion-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;padding-bottom:.65rem;border-bottom:1px solid var(--borde)}
-.reunion-num{background:var(--azul-m);color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px}
-.acuerdo-item{display:flex;gap:8px;margin-bottom:6px;align-items:flex-start}
-.acuerdo-item input{flex:1;padding:7px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:13px;font-family:inherit;background:#fff}
-.acuerdo-item input:focus{outline:none;border-color:var(--azul-m)}
-.acuerdo-dot{width:8px;height:8px;border-radius:50%;background:var(--azul-m);flex-shrink:0;margin-top:9px}
 /* ESTADO */
 .estado-row{display:grid;grid-template-columns:1fr 160px 1fr;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--borde);background:#fff}
 .estado-row:last-child{border-bottom:none}
@@ -202,7 +194,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
     <div class="sbi" id="sb1" onclick="ir(1)"><div class="sbi-dot"></div>Ficha del trámite</div>
     <div class="sbi" id="sb2" onclick="ir(2)"><div class="sbi-dot"></div>Marco legal y documentación</div>
     <div class="sbi" id="sb3" onclick="ir(3)"><div class="sbi-dot"></div>Proceso actual</div>
-    <div class="sbi" id="sb4" onclick="ir(4)"><div class="sbi-dot"></div>Reuniones y acuerdos</div>
     <div class="sbi" id="sb5" onclick="ir(5)"><div class="sbi-dot"></div>Modelo propuesto</div>
     <div class="sbi" id="sb6" onclick="ir(6)"><div class="sbi-dot"></div>Estado del expediente</div>
     <div class="sb-div"></div>
@@ -222,7 +213,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.4</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.5</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -378,21 +369,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
       <div class="nav">
         <button class="btn btn-s" onclick="ir(2)">← Anterior</button>
-        <button class="btn btn-p" onclick="ir(4)">Siguiente →</button>
-      </div>
-    </div>
-
-    <!-- ══ SECCIÓN 4: REUNIONES ══ -->
-    <div class="sec" id="sec4">
-      <div class="sec-title">🗓 Reuniones y acuerdos</div>
-      <p style="font-size:12.5px;color:var(--muted);margin-bottom:1.25rem;line-height:1.6">Registre cada sesión de trabajo, los temas tratados y los compromisos alcanzados.</p>
-      <div id="reuniones-wrap"></div>
-      <button class="btn-add" onclick="agregarReunion()" style="margin-bottom:1.5rem">+ Nueva reunión</button>
-      <div class="nav">
-        <button class="btn btn-s" onclick="ir(3)">← Anterior</button>
         <button class="btn btn-p" onclick="ir(5)">Siguiente →</button>
       </div>
     </div>
+
 
     <!-- ══ SECCIÓN 5: MODELO PROPUESTO ══ -->
     <div class="sec" id="sec5">
@@ -468,7 +448,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
       </div>
 
       <div class="nav">
-        <button class="btn btn-s" onclick="ir(4)">← Anterior</button>
+        <button class="btn btn-s" onclick="ir(3)">← Anterior</button>
         <button class="btn btn-p" onclick="ir(6)">Siguiente →</button>
       </div>
     </div>
@@ -501,7 +481,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
           <div class="estado-row"><span class="estado-label">Ficha del trámite</span><select class="estado-sel" id="est-1" onchange="actualizarEstados()"><option>Pendiente</option><option>En progreso</option><option>Completo</option><option>Validado</option></select><input type="text" style="padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;width:100%" id="nota-1" placeholder="Nota..."></div>
           <div class="estado-row"><span class="estado-label">Marco legal y documentación</span><select class="estado-sel" id="est-2" onchange="actualizarEstados()"><option>Pendiente</option><option>En progreso</option><option>Completo</option><option>Validado</option></select><input type="text" style="padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;width:100%" id="nota-2" placeholder="Nota..."></div>
           <div class="estado-row"><span class="estado-label">Proceso actual</span><select class="estado-sel" id="est-3" onchange="actualizarEstados()"><option>Pendiente</option><option>En progreso</option><option>Completo</option><option>Validado</option></select><input type="text" style="padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;width:100%" id="nota-3" placeholder="Nota..."></div>
-          <div class="estado-row"><span class="estado-label">Reuniones y acuerdos</span><select class="estado-sel" id="est-4" onchange="actualizarEstados()"><option>Pendiente</option><option>En progreso</option><option>Completo</option><option>Validado</option></select><input type="text" style="padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;width:100%" id="nota-4" placeholder="Nota..."></div>
           <div class="estado-row"><span class="estado-label">Modelo propuesto</span><select class="estado-sel" id="est-5" onchange="actualizarEstados()"><option>Pendiente</option><option>En progreso</option><option>Completo</option><option>Validado</option></select><input type="text" style="padding:6px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd;width:100%" id="nota-5" placeholder="Nota..."></div>
         </div>
       </div>
@@ -544,7 +523,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 <script>
 var LS_KEY = 'diger_expedientes_v2';
 var currentIdx = null;
-var reunionCount = 0;
 var tramiteCount = 1;
 var activeTram = 0;
 
@@ -900,45 +878,9 @@ function agregarRequisito(){
 
 function rmRow(btn){ btn.closest('tr').remove(); }
 
-// ── REUNIONES ────────────────────────────────────────────────
-function agregarReunion(){
-  reunionCount++;
-  var n = reunionCount;
-  var wrap = document.getElementById('reuniones-wrap');
-  var div = document.createElement('div');
-  div.className = 'reunion-card';
-  div.id = 'reunion-'+n;
-  div.innerHTML = '<div class="reunion-hdr"><span class="reunion-num">Reunión '+n+'</span>'
-    +'<button class="btn-rm" onclick="this.closest(\'.reunion-card\').remove()">✕ Eliminar</button></div>'
-    +'<div class="g3" style="margin-bottom:.85rem">'
-    +'<div class="f"><label>Fecha</label><input type="date" id="reu-fecha-'+n+'"></div>'
-    +'<div class="f"><label>Tipo</label><select id="reu-tipo-'+n+'"><option value="">— Tipo —</option><option>Conocimiento de plataforma</option><option>Levantamiento de información</option><option>Taller de modelado</option><option>Validación técnica</option><option>Retroalimentación</option><option>Seguimiento</option><option>Otro</option></select></div>'
-    +'<div class="f"><label>Lugar / Plataforma</label><input type="text" id="reu-lugar-'+n+'" placeholder="Ej: Zoom, presencial en sede"></div>'
-    +'</div>'
-    +'<div class="f" style="margin-bottom:.85rem"><label>Participantes</label><input type="text" id="reu-part-'+n+'" placeholder="Nombres y cargos de los asistentes"></div>'
-    +'<div class="f" style="margin-bottom:.85rem"><label>Temas tratados</label><textarea id="reu-temas-'+n+'" rows="2" placeholder="Temas discutidos en la sesión..."></textarea></div>'
-    +'<div><label style="font-size:12px;font-weight:700;color:var(--texto);display:block;margin-bottom:.55rem">Acuerdos y compromisos</label>'
-    +'<div id="acuerdos-'+n+'"></div>'
-    +'<button class="btn-add" style="margin-top:4px;padding:5px 12px;font-size:12px" onclick="agregarAcuerdo('+n+')">+ Acuerdo</button></div>';
-  wrap.appendChild(div);
-  agregarAcuerdo(n);
-}
-
-function agregarAcuerdo(n){
-  var wrap = document.getElementById('acuerdos-'+n);
-  var div = document.createElement('div');
-  div.className = 'acuerdo-item';
-  div.innerHTML = '<div class="acuerdo-dot"></div>'
-    +'<input type="text" placeholder="Descripción del acuerdo o compromiso">'
-    +'<input type="text" placeholder="Responsable" style="max-width:160px">'
-    +'<input type="date" style="max-width:140px">'
-    +'<button class="btn-rm" onclick="this.parentNode.remove()">✕</button>';
-  wrap.appendChild(div);
-}
-
 // ── ESTADOS ──────────────────────────────────────────────────
 function actualizarEstados(){
-  var total=6, completadas=0;
+  var total=5, completadas=0;
   for(var i=0;i<6;i++){
     var el = document.getElementById('est-'+i);
     if(el && (el.value==='Completo'||el.value==='Validado')) completadas++;
@@ -1544,7 +1486,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.4</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.5</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
