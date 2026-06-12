@@ -998,15 +998,11 @@ async function renderInicio(unitKey) {
         kpiCard('No iniciados', ni, 'Sin avance registrado', '#dc2626', total?ni/total:null)+
       '</div>'+
 
-      // Fila 1 (3 cols): Donut | Pie | Ranking
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.1rem">'+
+      // Fila 1 (2 cols): Donut | Ranking
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.1rem">'+
         '<div class="card" style="padding:1rem 1.25rem">'+
           '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Estado de trámites</div>'+
           donutChart([{v:op,c:'#16a34a',l:'En operación'},{v:proc,c:'#f59e0b',l:'En proceso'},{v:ni,c:'#dc2626',l:'No iniciado'}],total,'trámites')+
-        '</div>'+
-        '<div class="card" style="padding:1rem 1.25rem">'+
-          '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Distribución por alojamiento</div>'+
-          pieChart(alojSegs)+
         '</div>'+
         '<div class="card" style="padding:1rem 1.25rem">'+
           '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Ranking de instituciones</div>'+
@@ -1023,11 +1019,17 @@ async function renderInicio(unitKey) {
         stackedHBar(stackRows)+
       '</div>'+
 
-      // Fila 3 (2 cols): Líneas + Cumplimiento por etapa
+      // Fila 3 (2 cols): Líneas+Pie | Cumplimiento por etapa
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.1rem">'+
         '<div class="card" style="padding:1rem 1.25rem;overflow-x:auto">'+
           '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Avance por etapa según alojamiento</div>'+
-          lineChart(lineSeries, DB_ETAPAS_LABELS)+
+          '<div style="display:flex;gap:12px;align-items:flex-start">'+
+            '<div style="flex:1;min-width:0">'+lineChart(lineSeries, DB_ETAPAS_LABELS)+'</div>'+
+            '<div style="width:160px;flex-shrink:0">'+
+              '<div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Distribución</div>'+
+              pieChart(alojSegs)+
+            '</div>'+
+          '</div>'+
         '</div>'+
         '<div class="card" style="padding:1rem 1.25rem;overflow-x:auto">'+
           '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Cumplimiento por etapa del proceso</div>'+
