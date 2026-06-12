@@ -222,7 +222,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v1.8</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v1.9</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -1361,9 +1361,20 @@ function renderFlowSVG(key){
     tl.forEach(function(ln,li){
       els.push('<text x="'+ncx+'" y="'+(ty+li*LT)+'" text-anchor="middle" dominant-baseline="middle" font-size="9" font-weight="700" fill="#0a2d6e" font-family="Segoe UI,sans-serif" style="pointer-events:none">'+escHtml(ln)+'</text>');
     });
+
+    /* Botón "+" para agregar nodos — no aparece en FIN */
+    if(tipo !== 'fin'){
+      var addBX=ncx+nwi/2+12, addBY=(tipo==='decision'?DY:MY);
+      var addC=strks[tipo]||strks.paso;
+      var addOC='showFlowMenu(event,\''+key+'\','+i+',\''+tipo+'\')';
+      els.push('<g onclick="'+addOC+';event.stopPropagation()" style="cursor:pointer">'
+        +'<circle cx="'+addBX+'" cy="'+addBY+'" r="7.5" fill="'+addC+'" opacity="0.82"/>'
+        +'<text x="'+addBX+'" y="'+addBY+'" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif" style="pointer-events:none">+</text>'
+        +'</g>');
+    }
   });
 
-  els.push('<text x="'+(W/2)+'" y="'+(H-5)+'" text-anchor="middle" font-size="7" fill="#b0bec5" font-style="italic" font-family="Segoe UI,sans-serif">Haga clic en un nodo para ver detalles</text>');
+  els.push('<text x="'+(W/2)+'" y="'+(H-5)+'" text-anchor="middle" font-size="7" fill="#b0bec5" font-style="italic" font-family="Segoe UI,sans-serif">Clic en nodo para ver · (+) para agregar</text>');
 
   return '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="width:'+W+'px;height:'+H+'px;max-width:none;display:block">'
     +els.join('')+'</svg>';
@@ -1398,7 +1409,86 @@ function closeNodeModal(){
   document.getElementById('node-modal').style.display='none';
 }
 
-document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeNodeModal(); });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeNodeModal(); closeFlowMenu(); } });
+
+/* ── MENÚ FLOTANTE "+" ── */
+function showFlowMenu(event, key, idx, tipo){
+  event.stopPropagation();
+  var menu=document.getElementById('flow-add-menu');
+  var html='';
+  if(tipo==='inicio'){
+    html='<div class="fam-opt" onclick="execAddNode(\''+key+'\','+idx+',\'paso\');closeFlowMenu()">▬ Paso</div>';
+  } else if(tipo==='paso'){
+    html='<div class="fam-opt" onclick="execAddNode(\''+key+'\','+idx+',\'decision\');closeFlowMenu()"><span style="color:#d97706">◆</span> Decisión</div>'
+        +'<div class="fam-opt" onclick="execAddNode(\''+key+'\','+idx+',\'paso\');closeFlowMenu()">▬ Paso</div>';
+  } else if(tipo==='decision'){
+    html='<div class="fam-opt" onclick="execAddNode(\''+key+'\','+idx+',\'decision\');closeFlowMenu()"><span style="color:#d97706">◆</span> Decisión</div>'
+        +'<div class="fam-opt fam-ret" onclick="showRetornoMenu(event,\''+key+'\','+idx+')">↩ Retorno</div>';
+  }
+  menu.innerHTML=html;
+  menu.style.display='block';
+  menu.style.left=(event.clientX+8)+'px';
+  menu.style.top=(event.clientY-16)+'px';
+}
+
+function closeFlowMenu(){
+  document.getElementById('flow-add-menu').style.display='none';
+}
+document.addEventListener('click', closeFlowMenu);
+
+function execAddNode(key, afterIdx, tipo){
+  var arr=key==='actual'?flujosActual[activeTram]:flujosPropuesto[activeTram];
+  var insertAt=afterIdx+1;
+  if(tipo!=='decision'){
+    while(insertAt<arr.length&&(arr[insertAt].tipo||'paso')==='decision') insertAt++;
+  }
+  var node={tipo:tipo,titulo:'',area:'',tiempo:'',doc_emitido:'',obs:'',retorno_a:null};
+  arr.splice(insertAt,0,node);
+  arr.forEach(function(s){
+    if(s.retorno_a!==null&&s.retorno_a!==undefined&&parseInt(s.retorno_a)>=insertAt)
+      s.retorno_a=parseInt(s.retorno_a)+1;
+  });
+  if(key==='actual') renderFlujosActual(); else renderFlujosPropuesto();
+  refreshDiagIfVisible(key);
+  actualizarBVA();
+}
+
+function refreshDiagIfVisible(key){
+  var el=document.getElementById('flujo-'+key+'-diag');
+  if(el&&el.style.display!=='none')
+    el.innerHTML='<div class="flow-diag-wrap">'+renderFlowSVG(key)+'</div>';
+}
+
+function showRetornoMenu(event, key, decIdx){
+  event.stopPropagation();
+  var arr=key==='actual'?flujosActual[activeTram]:flujosPropuesto[activeTram];
+  var labels={inicio:'INICIO',fin:'FIN',paso:'Paso',decision:'Decisión'};
+  var html='<div style="font-size:10px;font-weight:700;color:#94a3b8;padding:4px 10px 6px;border-bottom:1px solid #f0f4fa;margin-bottom:3px">↩ Retorna a:</div>';
+  var hasOpts=false;
+  for(var j=0;j<decIdx;j++){
+    var t=arr[j].tipo||'paso';
+    if(t==='decision') continue;
+    hasOpts=true;
+    var isSel=parseInt(arr[decIdx].retorno_a)===j;
+    var lbl=escHtml((arr[j].titulo||labels[t]||'Paso '+(j+1)).slice(0,24));
+    html+='<div class="fam-opt'+(isSel?' fam-sel':'')+'" onclick="setRetorno(\''+key+'\','+decIdx+','+j+');closeFlowMenu()">'+lbl+'</div>';
+  }
+  if(!hasOpts) html+='<div style="font-size:11px;color:#94a3b8;padding:5px 10px">Sin nodos anteriores</div>';
+  if(arr[decIdx].retorno_a!==null&&arr[decIdx].retorno_a!==undefined&&arr[decIdx].retorno_a!=='')
+    html+='<div class="fam-opt fam-del" onclick="setRetorno(\''+key+'\','+decIdx+',null);closeFlowMenu()">✕ Quitar retorno</div>';
+  var menu=document.getElementById('flow-add-menu');
+  menu.innerHTML=html;
+  menu.style.left=(event.clientX+8)+'px';
+  menu.style.top=(event.clientY-16)+'px';
+}
+
+function setRetorno(key, decIdx, val){
+  var arr=key==='actual'?flujosActual[activeTram]:flujosPropuesto[activeTram];
+  arr[decIdx].retorno_a=(val===null)?null:parseInt(val);
+  if(key==='actual') renderFlujosActual(); else renderFlujosPropuesto();
+  refreshDiagIfVisible(key);
+  actualizarBVA();
+}
 
 function wrapText(text,maxChars){
   var ws=(text||'').split(' '),ls=[],c='';
@@ -1408,7 +1498,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v1.8</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v1.9</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
@@ -1443,6 +1533,18 @@ function wrapText(text,maxChars){
     </div>
   </div>
 </div>
-<style>@keyframes nmIn{from{opacity:0;transform:scale(0.94)}to{opacity:1;transform:scale(1)}}</style>
+<style>
+@keyframes nmIn{from{opacity:0;transform:scale(0.94)}to{opacity:1;transform:scale(1)}}
+@keyframes famIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.fam-opt{padding:7px 12px;font-size:12.5px;cursor:pointer;border-radius:7px;display:flex;align-items:center;gap:6px;color:#1c2333;transition:background .13s;white-space:nowrap}
+.fam-opt:hover{background:#e8f0ff;color:#1455a4}
+.fam-ret,.fam-ret *{color:#d97706!important}
+.fam-ret:hover{background:#fef3c7!important}
+.fam-del{color:#dc2626!important;font-size:11.5px}
+.fam-del:hover{background:#fee2e2!important}
+.fam-sel{background:#e8f0ff;color:#1455a4;font-weight:700}
+</style>
+
+<div id="flow-add-menu" onclick="event.stopPropagation()" style="display:none;position:fixed;z-index:9998;background:#fff;border:1px solid #dde4f0;border-radius:10px;box-shadow:0 4px 18px rgba(10,45,110,.18);padding:5px;min-width:140px;animation:famIn .14s ease"></div>
 </body>
 </html>
