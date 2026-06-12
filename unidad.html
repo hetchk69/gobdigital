@@ -799,12 +799,17 @@ async function renderInicio(unitKey) {
 
   // HORIZONTAL BAR CHART (stages)
   function hBarChart(labels,values){
-    var pL=168,pR=44,pT=8,rH=26,w=520;
-    var cW=w-pL-pR,h=pT+labels.length*rH+12;
-    var maxV=Math.max.apply(null,values)||1;
-    var bg='<rect x="'+pL+'" y="'+pT+'" width="'+cW+'" height="'+(labels.length*rH)+'" fill="#f8faff" rx="4"/>';
+    var pL=168,pR=50,pT=22,rH=26,w=520,axH=18;
+    var cW=w-pL-pR,barsH=labels.length*rH,h=pT+barsH+axH+4;
+    var bg='<rect x="'+pL+'" y="'+pT+'" width="'+cW+'" height="'+barsH+'" fill="#f8faff" rx="4"/>';
+    // X-axis grid + tick labels (0%, 25%, 50%, 75%, 100%)
+    var ticks=[0,0.25,0.5,0.75,1].map(function(t){
+      var x=pL+t*cW;
+      return '<line x1="'+x.toFixed(1)+'" y1="'+pT+'" x2="'+x.toFixed(1)+'" y2="'+(pT+barsH)+'" stroke="'+(t===0?'#c8d4e8':'#dde4f0')+'" stroke-width="'+(t===0?1.5:1)+'"/>'+
+        '<text x="'+x.toFixed(1)+'" y="'+(pT+barsH+axH-4)+'" text-anchor="middle" '+FF+' font-size="9" fill="#94a3b8">'+Math.round(t*100)+'%</text>';
+    }).join('');
     var bars=labels.map(function(lbl,i){
-      var val=values[i],bw=Math.round((val/maxV)*cW);
+      var val=values[i],bw=Math.round(val*cW);
       var by=pT+i*rH+rH*.22,bh=rH*.56;
       var col=val>=0.8?'#16a34a':val>=0.5?'#1455a4':'#f59e0b';
       var short=lbl.length>24?lbl.slice(0,23)+'…':lbl;
@@ -812,7 +817,7 @@ async function renderInicio(unitKey) {
         '<rect x="'+pL+'" y="'+by.toFixed(1)+'" width="'+bw+'" height="'+bh.toFixed(1)+'" rx="'+(bh/2)+'" fill="'+col+'"/>'+
         '<text x="'+(pL+bw+5)+'" y="'+(by+bh*.65+1).toFixed(1)+'" '+FF+' font-size="10.5" font-weight="700" fill="'+col+'">'+Math.round(val*100)+'%</text>';
     }).join('');
-    return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="width:100%">'+bg+bars+'</svg>';
+    return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="width:100%">'+bg+ticks+bars+'</svg>';
   }
 
   function renderDash(){
@@ -845,7 +850,7 @@ async function renderInicio(unitKey) {
 
     // Alojamiento
     var alojMap={};
-    data.forEach(function(r){ alojMap[r.l||'—']=(alojMap[r.l||'—']||0)+1; });
+    data.forEach(function(r){ var k=(r.l||'—').toUpperCase().replace(/^PROPI[AO]$/,'PROPIO'); alojMap[k]=(alojMap[k]||0)+1; });
     var alojColors=['#1455a4','#16a34a','#f59e0b','#8b5cf6','#dc2626'];
     var alojSegs=Object.keys(alojMap).map(function(k,i){ return {v:alojMap[k],c:alojColors[i%5],l:k}; });
 
