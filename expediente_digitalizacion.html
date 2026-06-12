@@ -222,7 +222,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.1</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.2</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -1332,25 +1332,27 @@ function renderFlowSVG(key){
     }
   });
 
-  /* Flecha de RETORNO: baja → izquierda → sube → entra por el LADO IZQUIERDO del nodo destino
-     al nivel del flujo principal (MY), con arrowhead apuntando →  */
+  /* Flecha de RETORNO: viaja en el corredor entre decisiones y pasos (sin pasar por debajo del flujo) */
   decIdx.forEach(function(di){
     var j=(data[di].retorno_a!==null&&data[di].retorno_a!==undefined&&data[di].retorno_a!=='')?parseInt(data[di].retorno_a):-1;
     if(j<0) return;
     var startX=cx[di]+6;
-    var startY=DY+DH/2;
+    var startY=DY+DH/2;               /* fondo del diamante */
     var targetType=data[j].tipo||'paso';
-    var endX=cx[j]-nw(targetType)/2;   /* borde izquierdo del nodo destino */
-    var endY=MY;                        /* nivel del flujo principal */
-    var belowY=MY+nhh(targetType)+28;
-    var approachX=endX-14;             /* punto de aproximación horizontal antes de entrar */
-    var r=6;
+    var endX=cx[j]-nw(targetType)/2;  /* borde izquierdo del nodo destino */
+    var endY=MY;                       /* nivel del flujo principal */
+    var routeY=DY+DH/2+12;            /* corredor entre decisiones (86) y pasos (109) */
+    var approachX=endX-14;
+    var r=Math.min(6,Math.abs(startX-approachX)/2);
+    var goLeft=startX>approachX+r;
+    var hTurn=goLeft?startX-r:startX+r;
+    var hArrive=goLeft?approachX+r:approachX-r;
     var d='M'+startX+' '+startY
-         +' L'+startX+' '+(belowY-r)
-         +' Q'+startX+' '+belowY+' '+(startX-r)+' '+belowY
-         +' L'+(approachX+r)+' '+belowY
-         +' Q'+approachX+' '+belowY+' '+approachX+' '+(belowY-r)
-         +' L'+approachX+' '+(endY+r)
+         +' L'+startX+' '+(routeY-r)
+         +' Q'+startX+' '+routeY+' '+hTurn+' '+routeY
+         +' L'+hArrive+' '+routeY
+         +' Q'+approachX+' '+routeY+' '+approachX+' '+(routeY+r)
+         +' L'+approachX+' '+(endY-r)
          +' Q'+approachX+' '+endY+' '+(approachX+r)+' '+endY
          +' L'+endX+' '+endY;
     els.push('<path d="'+d+'" fill="none" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#aA)"/>');
@@ -1520,7 +1522,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.1</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.2</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
