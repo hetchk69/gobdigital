@@ -1060,6 +1060,12 @@ async function renderInicio(unitKey) {
             '</td>'+
           '</tr>';
           var subRows='<tbody id="'+gId+'" style="display:none">'+
+            '<tr style="background:#eef1f7">'+
+              '<th style="padding:5px 14px 5px 34px;text-align:left;font-size:9.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em" colspan="2">Trámite</th>'+
+              '<th style="padding:5px 10px;text-align:center;font-size:9.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em" colspan="2">Estado</th>'+
+              '<th style="padding:5px 10px;text-align:left;font-size:9.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Alojamiento</th>'+
+              '<th style="padding:5px 14px;text-align:left;font-size:9.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Avance</th>'+
+            '</tr>'+
             tramites.map(function(r){
               var p=dbCalcPct(r.e),pd=Math.round(p*100),est=dbEstado(r.e);
               var ec=est==='En operación'?'#16a34a':est==='En proceso'?'#f59e0b':'#dc2626';
