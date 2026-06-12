@@ -213,7 +213,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.5</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.6</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -520,8 +520,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 <button class="btn-save-float" onclick="guardar()">💾 Guardar</button>
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-var LS_KEY = 'diger_expedientes_v2';
+var _sb = supabase.createClient(
+  'https://gnpvqiyantdtksfvqtqk.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw'
+);
+var EXP_KEY = 'expedientes';
+var expCache = [];
 var currentIdx = null;
 var tramiteCount = 1;
 var activeTram = 0;
@@ -895,7 +901,7 @@ function actualizarEstados(){
 }
 
 // ── PILLS ────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', async function(){
   document.querySelectorAll('.tg').forEach(function(tg){
     tg.querySelectorAll('.tp').forEach(function(pill){
       pill.addEventListener('click', function(){
@@ -906,6 +912,12 @@ document.addEventListener('DOMContentLoaded', function(){
       });
     });
   });
+  // Cargar expedientes desde Supabase
+  var saveBtn = document.querySelector('.btn-save-float');
+  if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='Cargando…'; }
+  var res = await _sb.from('diger_tram').select('value').eq('key', EXP_KEY).maybeSingle();
+  expCache = (res.data && res.data.value) ? res.data.value : [];
+  if(saveBtn){ saveBtn.disabled=false; saveBtn.innerHTML='💾 Guardar'; }
   renderFichasPanels();
   renderFlujosActual();
   renderFlujosPropuesto();
@@ -991,16 +1003,18 @@ function tblData(tbodyId, cols){
   return rows;
 }
 
-function guardar(){
+async function guardar(){
+  var btn = document.querySelector('.btn-save-float');
+  if(btn){ btn.disabled=true; btn.textContent='Guardando…'; }
   var data = recolectar();
-  var all = cargarTodos();
-  if(currentIdx===null){ all.push(data); currentIdx=all.length-1; }
-  else{ all[currentIdx]=data; }
-  localStorage.setItem(LS_KEY, JSON.stringify(all));
+  if(currentIdx===null){ expCache.push(data); currentIdx=expCache.length-1; }
+  else{ expCache[currentIdx]=data; }
+  await _sb.from('diger_tram').upsert({key:EXP_KEY, value:expCache, updated_at:new Date().toISOString()});
+  if(btn){ btn.disabled=false; btn.innerHTML='💾 Guardar'; }
   mostrarToast('✓ Expediente guardado');
 }
 
-function cargarTodos(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
+function cargarTodos(){ return expCache; }
 
 function poblarFormulario(d){
   // Apertura
@@ -1120,11 +1134,12 @@ function cargarExp(i){
   cerrarHistorial(); ir(0);
 }
 
-function eliminarExp(i){
+async function eliminarExp(i){
   if(!confirm('¿Eliminar este expediente?')) return;
-  var all=cargarTodos(); all.splice(i,1);
-  localStorage.setItem(LS_KEY, JSON.stringify(all));
+  expCache.splice(i,1);
   if(currentIdx===i) currentIdx=null;
+  else if(currentIdx!==null&&currentIdx>i) currentIdx--;
+  await _sb.from('diger_tram').upsert({key:EXP_KEY, value:expCache, updated_at:new Date().toISOString()});
   verHistorial();
 }
 
@@ -1135,7 +1150,6 @@ function nuevoExp(){
   document.querySelectorAll('.tg .tp').forEach(function(p){ p.classList.remove('on','on-v'); });
   document.querySelectorAll('[id^="est-"]').forEach(function(el){ el.value='Pendiente'; });
   ['legal-tbody','docs-tbody','req-tbody'].forEach(function(id){ var el=document.getElementById(id); if(el) el.innerHTML=''; });
-  document.getElementById('reuniones-wrap').innerHTML=''; reunionCount=0;
   sv('num_tramites','1');
   document.getElementById('tramites-nombres-wrap').innerHTML='<div class="f"><label>Trámite 1 <span class="star">*</span></label><input type="text" id="tnam-0" placeholder="Nombre completo del trámite" oninput="actualizarMeta();actualizarTabsTramite()"></div>';
   renderFichasPanels();
@@ -1486,7 +1500,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.5</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.6</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
