@@ -207,11 +207,36 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   .firma-grid{grid-template-columns:1fr}
   .glos-fila{grid-template-columns:28px 1fr}
 }
+
+/* HIST-VIEW */
+#hist-view{display:none;max-width:860px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.hist-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.hist-header h2{font-size:18px;font-weight:800;color:var(--azul)}
+.hist-empty{text-align:center;padding:3rem 1.5rem;background:#fff;border:1.5px dashed var(--borde);border-radius:14px;color:var(--muted)}
+.hist-empty .ico{font-size:40px;margin-bottom:.75rem}
+.hist-card{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:1.5px solid var(--borde);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.hist-card:hover{border-color:var(--azul-m);box-shadow:0 3px 12px rgba(10,45,110,.1)}
+.hist-card-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hist-card-info{flex:1;min-width:0}
+.hist-card-title{font-size:14px;font-weight:700;color:var(--azul);margin-bottom:2px}
+.hist-card-meta{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-card-del{padding:5px 10px;background:#fff;border:1.5px solid var(--borde);color:var(--rojo);border-radius:7px;font-size:12px;cursor:pointer;flex-shrink:0;transition:background .2s}
+.hist-card-del:hover{background:#fff5f5}
 </style>
 </head>
 <body>
 <!-- header.js prepends the shared DIGER header -->
 <script src="header.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<!-- HIST-VIEW -->
+<div id="hist-view">
+  <div class="hist-header">
+    <h2>📋 Levantamientos de Campo</h2>
+    <button class="btn btn-p" onclick="iniciarNuevoLev()">+ Nuevo levantamiento</button>
+  </div>
+  <div id="hist-lista"></div>
+</div>
 
 <!-- GATE -->
 <div id="gate">
@@ -229,13 +254,18 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   </div>
 </div>
 
+<!-- FORM-VIEW -->
+<div id="form-view" style="display:none">
+
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="tb-left">
+    <button class="btn-top btn-json" id="btn-volver" onclick="verHistorial()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff">← Volver</button>
     <span class="tb-badge">CAMPO</span>
     <h1 id="topbar-title">Levantamiento de Campo — DIGER</h1>
   </div>
   <div class="tb-right">
+    <button class="btn-top btn-json" onclick="guardarLevantamiento()">💾 Guardar</button>
     <button class="btn-top btn-json" onclick="descargarJson()">⬇ JSON</button>
     <button class="btn-top btn-pdf" onclick="imprimirPDF()">🖨 PDF</button>
   </div>
@@ -626,8 +656,128 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
   </main>
 </div>
+</div><!-- /form-view -->
 
 <script>
+// ── SUPABASE ─────────────────────────────────────────
+var _sb = supabase.createClient(
+  'https://gnpvqiyantdtksfvqtqk.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw'
+);
+var TECNICA_KEY = 'levantamientos_tecnica';
+var tecnicaCache = [];
+var tecnicaCurrentIdx = null;
+
+async function cargarCache(){
+  var res = await _sb.from('diger_tram').select('value').eq('key', TECNICA_KEY).maybeSingle();
+  tecnicaCache = (res.data && res.data.value) ? res.data.value : [];
+}
+
+async function guardarLevantamiento(){
+  var data = buildData();
+  data._ts = new Date().toISOString();
+  if(tecnicaCurrentIdx !== null){
+    tecnicaCache[tecnicaCurrentIdx] = data;
+  } else {
+    tecnicaCache.push(data);
+    tecnicaCurrentIdx = tecnicaCache.length - 1;
+  }
+  await _sb.from('diger_tram').upsert({key:TECNICA_KEY, value:tecnicaCache, updated_at:new Date().toISOString()},{onConflict:'key'});
+  alert('Levantamiento guardado.');
+}
+
+function verHistorial(){
+  document.getElementById('hist-view').style.display='block';
+  document.getElementById('form-view').style.display='none';
+  var lista = document.getElementById('hist-lista');
+  if(!tecnicaCache.length){
+    lista.innerHTML='<div class="hist-empty"><div class="ico">📋</div><p>No hay levantamientos registrados.<br>Crea el primero con el botón de arriba.</p></div>';
+    return;
+  }
+  lista.innerHTML = tecnicaCache.map(function(lev, i){
+    var ts = lev._ts ? new Date(lev._ts).toLocaleDateString('es-HN') : '—';
+    var inst = (lev.meta && lev.meta.institucion) || lev.identificacion && lev.identificacion.institucion || 'Sin institución';
+    var tram = (lev.meta && lev.meta.tramite) || lev.identificacion && lev.identificacion.nombre || 'Sin nombre';
+    return '<div class="hist-card" onclick="cargarLevantamiento('+i+')">'
+      +'<div class="hist-card-av">'+(inst).slice(0,2).toUpperCase()+'</div>'
+      +'<div class="hist-card-info">'
+        +'<div class="hist-card-title">'+escH(inst)+'</div>'
+        +'<div class="hist-card-meta">'+escH(tram)+'</div>'
+        +'<div class="hist-card-meta">Guardado: '+ts+'</div>'
+      +'</div>'
+      +'<button class="hist-card-del" onclick="event.stopPropagation();eliminarLevantamiento('+i+')">✕</button>'
+    +'</div>';
+  }).join('');
+}
+
+function mostrarFormView(){
+  document.getElementById('hist-view').style.display='none';
+  document.getElementById('form-view').style.display='block';
+}
+
+function iniciarNuevoLev(){
+  tecnicaCurrentIdx = null;
+  resetFormulario();
+  mostrarFormView();
+  ir(0);
+}
+
+function cargarLevantamiento(i){
+  tecnicaCurrentIdx = i;
+  poblarFormulario(tecnicaCache[i]);
+  mostrarFormView();
+  ir(0);
+}
+
+async function eliminarLevantamiento(i){
+  if(!confirm('¿Eliminar este levantamiento?')) return;
+  tecnicaCache.splice(i, 1);
+  await _sb.from('diger_tram').upsert({key:TECNICA_KEY, value:tecnicaCache, updated_at:new Date().toISOString()},{onConflict:'key'});
+  verHistorial();
+}
+
+function resetFormulario(){
+  document.querySelectorAll('input:not([type=radio]):not([type=checkbox]), select, textarea').forEach(function(el){
+    if(!el.readOnly) el.value='';
+  });
+  document.querySelectorAll('.tg .tp').forEach(function(p){ p.classList.remove('on','on-v','on-a'); });
+  var hoy = new Date().toISOString().split('T')[0];
+  var fe = document.getElementById('fecha_lev'); if(fe) fe.value = hoy;
+  var ff = document.getElementById('fecha_firma'); if(ff) ff.value = hoy;
+  if(userEmail) { var ae = document.getElementById('analista_email'); if(ae) ae.value = userEmail; }
+}
+
+function poblarFormulario(data){
+  if(!data) return;
+  var g = function(id, val){ var el = document.getElementById(id); if(el && val !== undefined) el.value = val||''; };
+  var id = data.identificacion||{};
+  var li = data.lider||{};
+  var an = data.analista||{};
+  var h1 = data.hoja1||{};
+  var h2 = data.hoja2||{};
+  var h3 = data.hoja3||{};
+  var ci = data.cierre||{};
+  g('institucion', id.institucion); g('codigo', id.codigo); g('nombre_tramite', id.nombre);
+  g('num_expediente', id.expediente); g('fecha_lev', id.fecha_levantamiento);
+  g('ver_cod', id.version_codigo); g('ver_num', id.version); g('fecha_entrega', id.fecha_entrega);
+  g('lider_nombre', li.nombre); g('lider_email', li.email); g('lider_tel', li.telefono);
+  g('area', li.area); g('sistema', li.sistema_soporte);
+  g('analista_email', an.email); g('analista_nombre', an.nombre);
+  g('objetivo', h1.objetivo); g('alcance_obs', h1.alcance_obs);
+  g('marco_legal', h1.marco_legal); g('marco_adicional', h1.marco_adicional);
+  g('costo_desc', h1.costo_desc); g('monto', h1.monto); g('medio_pago', h1.medio_pago); g('banco', h1.banco);
+  g('condicion', h1.condicion_especial);
+  g('desc_proceso', h2.desc_proceso); g('num_func', h2.num_funcionarios); g('num_req', h2.num_requisitos);
+  g('num_anio', h2.tramites_anio); g('tiempo_real', h2.tiempo_real); g('docs_add', h2.docs_adicionales);
+  g('obs_flujo', h2.obs_flujo);
+  g('func_dig', h3.func_digital); g('tiempo_dig', h3.tiempo_digital); g('reduccion', h3.reduccion_pct);
+  g('req_simp', h3.req_simplificar); g('flujo_rac', h3.flujo_racionalizado); g('obs_gen', h3.obs_generales);
+  g('firma_analista', ci.firma_analista); g('firma_lider', ci.firma_lider);
+  g('lugar', ci.lugar); g('fecha_firma', ci.fecha);
+  actualizarMeta();
+  actualizarKPIs();
+}
+
 // ── ACCESO ──────────────────────────────────────────
 const SESSION_KEY = 'diger_sol_session';
 var userEmail = '';
@@ -638,13 +788,9 @@ var docCount = 0;
 var entregableCount = 0;
 var glosarioCount = 0;
 
-function abrirFormulario(email) {
+async function abrirFormulario(email) {
   userEmail = email;
   document.getElementById('gate').style.display = 'none';
-  document.getElementById('analista_email').value = email;
-  var hoy = new Date().toISOString().split('T')[0];
-  document.getElementById('fecha_lev').value = hoy;
-  document.getElementById('fecha_firma').value = hoy;
   document.getElementById('sb-user').textContent = email;
   document.getElementById('sb-fecha').textContent = new Date().toLocaleDateString('es-HN');
   document.getElementById('ph-analista').textContent = email;
@@ -654,6 +800,8 @@ function abrirFormulario(email) {
   agregarDocInterno();
   agregarEntregable();
   agregarGlosario();
+  await cargarCache();
+  verHistorial();
 }
 
 function verificarAcceso() {
