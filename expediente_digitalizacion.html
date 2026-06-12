@@ -222,7 +222,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.2</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.3</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -1332,7 +1332,8 @@ function renderFlowSVG(key){
     }
   });
 
-  /* Flecha de RETORNO: viaja en el corredor entre decisiones y pasos (sin pasar por debajo del flujo) */
+  /* Flechas de RETORNO: cada una en su propio carril (escalonadas) en el corredor entre decisiones y pasos */
+  var retN=0;
   decIdx.forEach(function(di){
     var j=(data[di].retorno_a!==null&&data[di].retorno_a!==undefined&&data[di].retorno_a!=='')?parseInt(data[di].retorno_a):-1;
     if(j<0) return;
@@ -1341,9 +1342,12 @@ function renderFlowSVG(key){
     var targetType=data[j].tipo||'paso';
     var endX=cx[j]-nw(targetType)/2;  /* borde izquierdo del nodo destino */
     var endY=MY;                       /* nivel del flujo principal */
-    var routeY=DY+DH/2+12;            /* corredor entre decisiones (86) y pasos (109) */
+    var routeY=Math.min(DY+DH/2+8+retN*7, endY-14); /* carril escalonado por índice de retorno */
+    retN++;
     var approachX=endX-14;
-    var r=Math.min(6,Math.abs(startX-approachX)/2);
+    var rH=Math.min(6,Math.abs(startX-approachX)/2);
+    var rV=Math.min(rH,(endY-routeY)/2-1);
+    var r=Math.max(2,rV);
     var goLeft=startX>approachX+r;
     var hTurn=goLeft?startX-r:startX+r;
     var hArrive=goLeft?approachX+r:approachX-r;
@@ -1522,7 +1526,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.2</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.3</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
