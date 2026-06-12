@@ -577,7 +577,7 @@ function renderSelector() {
 // ════════════════════════════════════════════════════════════════
 function renderUnitPage(unitKey, tab) {
   var u = UNITS[unitKey];
-  var tabLabels = { modulos:'Módulos', calendario:'Calendario', documentos:'Documentos', repositorio:'Repositorio' };
+  var tabLabels = { inicio:'Inicio', modulos:'Módulos', calendario:'Calendario', documentos:'Documentos', repositorio:'Repositorio' };
   document.title = u.label + ' — ' + (tabLabels[tab] || 'Módulos') + ' — DIGER';
 
   if (tab === 'inicio')      { renderInicio(unitKey); return; }
