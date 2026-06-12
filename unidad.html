@@ -510,7 +510,7 @@ if (!ses) { window.location.replace('index.html'); }
 // ── ROUTING ─────────────────────────────────────────────────────
 var params = new URLSearchParams(window.location.search);
 var unitParam = params.get('u'); // 'proyectos' | 'digitalizacion' | null
-var tabParam  = params.get('tab') || 'documentos';
+var tabParam  = params.get('tab') || 'inicio';
 
 var app = document.getElementById('app');
 
@@ -580,10 +580,315 @@ function renderUnitPage(unitKey, tab) {
   var tabLabels = { modulos:'Módulos', calendario:'Calendario', documentos:'Documentos', repositorio:'Repositorio' };
   document.title = u.label + ' — ' + (tabLabels[tab] || 'Módulos') + ' — DIGER';
 
+  if (tab === 'inicio')      { renderInicio(unitKey); return; }
   if (tab === 'calendario')  { renderCalendario(unitKey); return; }
   if (tab === 'repositorio') { renderRepositorio(unitKey); return; }
   // default: documentos (includes modules)
   renderDocumentos(unitKey);
+}
+
+// ════════════════════════════════════════════════════════════════
+// DASHBOARD — INICIO
+// ════════════════════════════════════════════════════════════════
+var DB_DEFAULT = [
+  {id:4,  inst:"IHADFA",    t:"Nuevo cert. bebidas alcohólicas",                    e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:5,  inst:"IHADFA",    t:"Renovación cert. bebidas alcohólicas",               e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:6,  inst:"IHADFA",    t:"Nuevo cert. productos derivados del tabaco",         e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:7,  inst:"IHADFA",    t:"Renovación cert. productos derivados del tabaco",    e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:8,  inst:"IHADFA",    t:"Nuevo cert. productos farmacéuticos",                e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:9,  inst:"IHADFA",    t:"Renovación cert. productos farmacéuticos",           e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:10, inst:"BANHPROVI", t:"Precalificación solicitud de vivienda",              e:[1,1,1,1,1,1,1,0,0,0,0,0], a:"Si",  l:"PROPIA"},
+  {id:13, inst:"INPREUNAH", t:"Solicitud de Historial de Cotizaciones",             e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:14, inst:"INPREUNAH", t:"Solicitud de Váucher",                               e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:15, inst:"INPREUNAH", t:"Solicitud de Constancia",                            e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:16, inst:"CNBS",      t:"Inscripción Registro Auditores Externos (RAE)",      e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"PROPIO"},
+  {id:17, inst:"CNBS",      t:"Actualización Registro Auditores Externos (RAE)",    e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"PROPIO"},
+  {id:18, inst:"CNBS",      t:"Reclasificación Registro Auditores Externos (RAE)",  e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"PROPIO"},
+  {id:81, inst:"CNBS",      t:"Reclamos de Usuarios Financieros",                   e:[0,0,0,0,0,0,0,0,0,0,0,0], a:"No",  l:"PROPIO"},
+  {id:82, inst:"CNBS",      t:"Cancelación Registro Remesadoras de Dinero",         e:[0,0,0,0,0,0,0,0,0,0,0,0], a:"No",  l:"PROPIO"},
+  {id:19, inst:"INPREMA",   t:"Actualización de Datos Docentes",                    e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:20, inst:"INPREMA",   t:"Pre-análisis Préstamo Rapibono",                     e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:21, inst:"INPREMA",   t:"Pre-análisis Préstamo Hipotecario",                  e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:22, inst:"INPREMA",   t:"Pre-análisis Préstamo Personal",                     e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:23, inst:"INPREMA",   t:"Pre-análisis Préstamo Personal Consolidación",       e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:24, inst:"INPREMA",   t:"Protocolo de atención de casos externos",            e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:25, inst:"IHTT",      t:"Certificación de expediente en trámite",             e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:26, inst:"IHTT",      t:"Certificación de código aduanero",                   e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:27, inst:"IHTT",      t:"Certificación de ser concesionario",                 e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:28, inst:"SEN",       t:"Inscripción empresas suplidoras energía solar",      e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:29, inst:"SEN",       t:"Autorización equipos radiodiagnóstico dental",       e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:30, inst:"SEN",       t:"Inscripción comercialización hidrocarburos",         e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:31, inst:"CONSUCOOP", t:"Constancia de solvencia de cooperativas",            e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:32, inst:"CONSUCOOP", t:"Constancia de inscripción de cooperativas",          e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:33, inst:"CONSUCOOP", t:"Petición de cálculo de aporte",                     e:[1,1,1,1,1,0,0,0,0,0,0,0], a:"Si",  l:"DIGER"},
+  {id:34, inst:"CONSUCOOP", t:"Certificación de inscripción junta directiva",       e:[1,1,1,1,1,0,0,0,0,0,0,0], a:"Si",  l:"DIGER"},
+  {id:35, inst:"CONATEL",   t:"Certificado de Homologación",                        e:[1,1,1,0,0,0,0,0,0,0,0,0], a:"No",  l:"DIGER"},
+  {id:36, inst:"CONATEL",   t:"Servicio Móvil Marítimo - Licencia",                e:[0,0,0,0,0,0,0,0,0,0,0,0], a:"No",  l:"DIGER"},
+  {id:37, inst:"IHCINE",    t:"Inscripción Cinematografía Persona Natural",         e:[1,1,1,1,1,0,0,0,0,0,0,0], a:"Si",  l:"DIGER"},
+  {id:38, inst:"IHCINE",    t:"Inscripción Cinematografía Persona Jurídica",        e:[1,1,1,1,1,0,0,0,0,0,0,0], a:"Si",  l:"DIGER"},
+  {id:39, inst:"IHCINE",    t:"Solicitud Fondos Apoyo Financiero y Patrocinio",     e:[1,1,1,1,1,0,0,0,0,0,0,0], a:"Si",  l:"DIGER"},
+  {id:40, inst:"SAG",       t:"Carné comercialización productos pesqueros",         e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:41, inst:"SAG",       t:"Constancia trazabilidad exportación pepino de mar",  e:[1,1,1,1,1,1,0,0,0,0,0,0], a:"Si",  l:"DIGER"},
+  {id:42, inst:"SAG",       t:"Constancia trazabilidad comercio local Caracol",     e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:43, inst:"SECAPPH",   t:"Solicitud de agrupaciones artísticas",              e:[1,1,1,0,0,0,0,0,0,0,0,0], a:"Si",  l:"DIGER"},
+  {id:44, inst:"SECAPPH",   t:"Matrícula Anual Academia Arte Dramático",            e:[1,1,1,0,0,0,0,0,0,0,0,0], a:"Si",  l:"DIGER"},
+  {id:45, inst:"SECAPPH",   t:"Matrícula Escolar Academia Nacional de Danza",       e:[1,1,1,0,0,0,0,0,0,0,0,0], a:"Si",  l:"DIGER"},
+  {id:46, inst:"SECAPPH",   t:"Solicitud de Teatros",                               e:[1,1,1,0,0,0,0,0,0,0,0,0], a:"No",  l:"DIGER"},
+  {id:47, inst:"SECAPPH",   t:"Solicitud de Artes Plásticas y Audiovisuales",       e:[1,1,1,0,0,0,0,0,0,0,0,0], a:"Si",  l:"DIGER"},
+  {id:60, inst:"IHT",       t:"RNT: Hospitalidad, recreación y espacios",           e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:61, inst:"IHT",       t:"RNT: Transporte y arrendadoras de vehículos",        e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:62, inst:"IHT",       t:"RNT: Guías turísticos",                              e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:63, inst:"IHT",       t:"RNT: Operadoras de turismo y agencias de viaje",     e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:64, inst:"IHT",       t:"RNT Renovación: Intermediación y facilitación",      e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:65, inst:"IHT",       t:"RNT Renovación: Transporte y arrendadoras",          e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:66, inst:"IHT",       t:"RNT Renovación: Guías turísticos",                   e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:67, inst:"IHT",       t:"RNT Renovación: Hospitalidad y espacios",            e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:73, inst:"CNI",       t:"Constancia de inversionista",                        e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"},
+  {id:74, inst:"CNI",       t:"Renovación de constancia de inversionista",          e:[1,1,1,1,1,1,1,1,1,1,1,1], a:"Si",  l:"DIGER"}
+];
+
+var DB_ETAPAS_PESOS  = [0.10,0.30,0.10,0.10,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05];
+var DB_ETAPAS_LABELS = ['Relevamiento','Modelación SOL','Automatización','Testing','Producción','Video/Talleres','Transferencia','Traslado Hosting','Pruebas Producción','Acuerdos','Socialización','Disponible al ciudadano'];
+
+function dbCalcPct(e){ return DB_ETAPAS_PESOS.reduce(function(s,p,i){ return s+(e&&e[i]?p:0); },0); }
+
+function dbEffective(patches){
+  var base = DB_DEFAULT.map(function(d){
+    var p = patches[d.id]||{};
+    if(p._deleted) return null;
+    return {id:d.id, inst:p.inst||d.inst, t:p.tramite||d.t, e:p.etapas||d.e, a:p.activo||d.a, l:p.aloj||d.l};
+  }).filter(Boolean);
+  Object.keys(patches).forEach(function(k){
+    var r=patches[k];
+    if(r&&r._new&&!r._deleted) base.push({id:k, inst:r.inst||'', t:r.tramite||'', e:r.etapas||[], a:r.activo||'', l:r.aloj||''});
+  });
+  return base;
+}
+
+function dbEstado(e){ var p=dbCalcPct(e); if(p>=1)return'En operación'; if(p>0)return'En proceso'; return'No iniciado'; }
+
+async function renderInicio(unitKey) {
+  app.innerHTML = '<div style="padding:3rem;text-align:center;color:var(--muted)"><div style="font-size:28px;margin-bottom:.75rem">⏳</div>Cargando datos...</div>';
+  var res = await sb.from('diger_tram').select('value').eq('key','tram').maybeSingle();
+  var patches = (res.data && res.data.value) || {};
+  var all = dbEffective(patches);
+
+  // ── Filtros activos ──
+  var fInst  = '';
+  var fEstado = '';
+  var fAloj  = '';
+
+  function filtered(){
+    return all.filter(function(r){
+      if(fInst   && r.inst !== fInst)   return false;
+      if(fAloj   && r.l    !== fAloj)   return false;
+      if(fEstado && dbEstado(r.e) !== fEstado) return false;
+      return true;
+    });
+  }
+
+  function renderDash(){
+    var data = filtered();
+    var total = data.length;
+    var op   = data.filter(function(r){ return dbCalcPct(r.e)>=1; }).length;
+    var proc = data.filter(function(r){ var p=dbCalcPct(r.e); return p>0&&p<1; }).length;
+    var ni   = data.filter(function(r){ return dbCalcPct(r.e)===0; }).length;
+    var avgPct = total ? data.reduce(function(s,r){ return s+dbCalcPct(r.e); },0)/total : 0;
+
+    // Unique filter options
+    var insts  = [...new Set(all.map(function(r){ return r.inst; }))].sort();
+    var alojs  = [...new Set(all.map(function(r){ return r.l; }).filter(Boolean))].sort();
+    var estados = ['En operación','En proceso','No iniciado'];
+
+    function fOpt(arr, cur, placeholder){
+      return '<option value="">'+placeholder+'</option>'+arr.map(function(v){
+        return '<option value="'+esc(v)+'"'+(cur===v?' selected':'')+'>'+esc(v)+'</option>';
+      }).join('');
+    }
+
+    // Stage completion %
+    var stagePcts = DB_ETAPAS_LABELS.map(function(_,i){
+      if(!total) return 0;
+      return Math.round(data.filter(function(r){ return r.e&&r.e[i]; }).length/total*100);
+    });
+    var maxStage = Math.max.apply(null, stagePcts) || 1;
+
+    // Institution counts + avg pct
+    var instMap = {}, instPct = {};
+    data.forEach(function(r){
+      instMap[r.inst]=(instMap[r.inst]||0)+1;
+      instPct[r.inst]=(instPct[r.inst]||0)+dbCalcPct(r.e);
+    });
+    var instList = Object.keys(instMap).sort(function(a,b){ return instMap[b]-instMap[a]; });
+    var maxInst = instMap[instList[0]] || 1;
+
+    // Alojamiento breakdown
+    var alojMap = {};
+    data.forEach(function(r){ alojMap[r.l||'—']=(alojMap[r.l||'—']||0)+1; });
+
+    // Render
+    var html =
+      // ── BREADCRUMB & TITLE ──
+      tabBreadcrumb(unitKey,'Inicio') +
+      '<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1.25rem">' +
+        '<div>' +
+          '<div style="font-size:20px;font-weight:800;color:var(--azul)">Panel de seguimiento de digitalización</div>' +
+          '<div style="font-size:12px;color:var(--muted);margin-top:2px">Control dinámico por institución, estado y alojamiento</div>' +
+        '</div>' +
+        '<button class="btn-prim" onclick="renderInicio(\''+unitKey+'\')" style="font-size:12px;padding:7px 14px">↻ Actualizar</button>' +
+      '</div>' +
+
+      // ── FILTROS ──
+      '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.25rem">' +
+        '<div style="min-width:180px;flex:1">' +
+          '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Institución</div>' +
+          '<select class="db-sel" onchange="window._dbFInst=this.value;window._dbRedraw()">'+fOpt(insts,fInst,'Todas')+'</select>' +
+        '</div>' +
+        '<div style="min-width:150px;flex:1">' +
+          '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Estado</div>' +
+          '<select class="db-sel" onchange="window._dbFEstado=this.value;window._dbRedraw()">'+fOpt(estados,fEstado,'Todos')+'</select>' +
+        '</div>' +
+        '<div style="min-width:150px;flex:1">' +
+          '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Alojamiento</div>' +
+          '<select class="db-sel" onchange="window._dbFAloj=this.value;window._dbRedraw()">'+fOpt(alojs,fAloj,'Todos')+'</select>' +
+        '</div>' +
+      '</div>' +
+
+      // ── KPI CARDS ──
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem">' +
+        kpiCard('Trámites en seguimiento', total, 'Total Trámites', '#0a2d6e', '📋') +
+        kpiCard('En operación', op, 'Completados', '#16a34a', '✅') +
+        kpiCard('En proceso', proc, 'En avance', '#d97706', '🔄') +
+        kpiCard('No iniciados', ni, 'Sin avance', '#dc2626', '⏸') +
+      '</div>' +
+
+      // ── CHARTS ROW ──
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.25rem">' +
+
+        // Left: stage completion
+        '<div class="card" style="padding:1.1rem 1.25rem">' +
+          '<div style="font-size:12px;font-weight:800;color:var(--azul);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid var(--azul-c)">Avance general por etapa</div>' +
+          DB_ETAPAS_LABELS.map(function(lbl,i){
+            var pct=stagePcts[i];
+            var barW=Math.round(pct/maxStage*100);
+            return '<div style="margin-bottom:7px">' +
+              '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">' +
+                '<span style="color:var(--texto);font-weight:500">'+esc(lbl)+'</span>' +
+                '<span style="color:var(--azul);font-weight:700">'+pct+'%</span>' +
+              '</div>' +
+              '<div style="height:10px;background:#e8eef8;border-radius:99px;overflow:hidden">' +
+                '<div style="height:100%;width:'+barW+'%;background:linear-gradient(90deg,#1455a4,#0a2d6e);border-radius:99px;transition:width .4s"></div>' +
+              '</div>' +
+            '</div>';
+          }).join('') +
+        '</div>' +
+
+        // Right: institution bar chart
+        '<div class="card" style="padding:1.1rem 1.25rem">' +
+          '<div style="font-size:12px;font-weight:800;color:var(--azul);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid var(--azul-c)">Trámites por institución</div>' +
+          '<div style="max-height:340px;overflow-y:auto">' +
+          instList.map(function(inst){
+            var cnt=instMap[inst];
+            var avg=Math.round((instPct[inst]/cnt)*100);
+            var barW=Math.round(cnt/maxInst*100);
+            var barColor=avg>=100?'#16a34a':avg>=60?'#1455a4':'#d97706';
+            return '<div style="margin-bottom:8px">' +
+              '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">' +
+                '<span style="color:var(--texto);font-weight:600;max-width:65%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(inst)+'</span>' +
+                '<span style="color:var(--muted)">'+cnt+' · <span style="color:'+barColor+';font-weight:700">'+avg+'%</span></span>' +
+              '</div>' +
+              '<div style="height:10px;background:#e8eef8;border-radius:99px;overflow:hidden">' +
+                '<div style="height:100%;width:'+barW+'%;background:'+barColor+';border-radius:99px"></div>' +
+              '</div>' +
+            '</div>';
+          }).join('') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      // ── DETAIL TABLE ──
+      '<div class="card" style="padding:0;overflow:hidden">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem 1.25rem;border-bottom:1px solid var(--borde)">' +
+          '<div style="font-size:12px;font-weight:800;color:var(--azul)">Detalle de trámites ('+total+')</div>' +
+          '<div style="display:flex;gap:8px;font-size:11px;color:var(--muted)">' +
+            '<span style="color:#16a34a;font-weight:700">● En operación: '+op+'</span>' +
+            '<span style="color:#d97706;font-weight:700">● En proceso: '+proc+'</span>' +
+            '<span style="color:#dc2626;font-weight:700">● No iniciado: '+ni+'</span>' +
+          '</div>' +
+        '</div>' +
+        '<div style="overflow-x:auto">' +
+        '<table style="width:100%;border-collapse:collapse;font-size:12.5px">' +
+          '<thead><tr style="background:#f0f4fb">' +
+            '<th style="padding:9px 12px;text-align:left;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--borde)">#</th>' +
+            '<th style="padding:9px 12px;text-align:left;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--borde)">Institución</th>' +
+            '<th style="padding:9px 12px;text-align:left;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--borde)">Trámite</th>' +
+            '<th style="padding:9px 12px;text-align:center;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--borde)">Avance</th>' +
+            '<th style="padding:9px 12px;text-align:left;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--borde)">Estado</th>' +
+            '<th style="padding:9px 12px;text-align:left;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--borde)">Alojamiento</th>' +
+          '</tr></thead>' +
+          '<tbody>' +
+          data.slice().sort(function(a,b){ return dbCalcPct(b.e)-dbCalcPct(a.e); }).map(function(r,i){
+            var pct=dbCalcPct(r.e);
+            var est=dbEstado(r.e);
+            var pctDisp=Math.round(pct*100);
+            var estColor=est==='En operación'?'#16a34a':est==='En proceso'?'#d97706':'#dc2626';
+            var estBg  =est==='En operación'?'#dcfce7':est==='En proceso'?'#fef3c7':'#fee2e2';
+            return '<tr style="border-bottom:1px solid var(--borde)">' +
+              '<td style="padding:8px 12px;color:var(--muted);font-weight:600">'+(i+1)+'</td>' +
+              '<td style="padding:8px 12px;font-weight:700;color:var(--azul)">'+esc(r.inst)+'</td>' +
+              '<td style="padding:8px 12px;max-width:320px;color:var(--texto)">'+esc(r.t)+'</td>' +
+              '<td style="padding:8px 12px;text-align:center">' +
+                '<div style="display:flex;align-items:center;gap:6px;justify-content:center">' +
+                  '<div style="width:60px;height:6px;background:#e8eef8;border-radius:99px;overflow:hidden">' +
+                    '<div style="height:100%;width:'+pctDisp+'%;background:'+(pct>=1?'#16a34a':pct>=0.6?'#1455a4':'#d97706')+';border-radius:99px"></div>' +
+                  '</div>' +
+                  '<span style="font-size:11.5px;font-weight:700;color:var(--texto);min-width:30px">'+pctDisp+'%</span>' +
+                '</div>' +
+              '</td>' +
+              '<td style="padding:8px 12px"><span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:'+estBg+';color:'+estColor+'">'+est+'</span></td>' +
+              '<td style="padding:8px 12px;color:var(--muted)">'+esc(r.l||'—')+'</td>' +
+            '</tr>';
+          }).join('') +
+          '</tbody>' +
+        '</table>' +
+        '</div>' +
+      '</div>';
+
+    app.innerHTML = html;
+  }
+
+  function kpiCard(title, val, sub, color, icon){
+    return '<div class="card" style="padding:1.1rem 1.25rem;border-left:4px solid '+color+'">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">' +
+        '<div style="font-size:11.5px;font-weight:700;color:var(--muted)">'+title+'</div>' +
+        '<span style="font-size:18px">'+icon+'</span>' +
+      '</div>' +
+      '<div style="font-size:32px;font-weight:900;color:'+color+';line-height:1">'+val+'</div>' +
+      '<div style="font-size:11px;color:var(--muted);margin-top:3px">'+sub+'</div>' +
+    '</div>';
+  }
+
+  // Expose redraw for filter selects
+  window._dbFInst   = fInst;
+  window._dbFEstado = fEstado;
+  window._dbFAloj   = fAloj;
+  window._dbRedraw  = function(){
+    fInst   = window._dbFInst;
+    fEstado = window._dbFEstado;
+    fAloj   = window._dbFAloj;
+    renderDash();
+  };
+
+  renderDash();
+
+  // Style selects
+  var style = document.getElementById('db-sel-style');
+  if(!style){
+    style = document.createElement('style');
+    style.id = 'db-sel-style';
+    style.textContent = '.db-sel{width:100%;padding:8px 10px;border:1.5px solid var(--borde);border-radius:8px;font-size:13px;font-family:inherit;background:#fff;outline:none;transition:border .2s}.db-sel:focus{border-color:var(--azul-m)}';
+    document.head.appendChild(style);
+  }
 }
 
 function renderModulos(unitKey) {
