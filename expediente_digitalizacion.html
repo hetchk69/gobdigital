@@ -1279,7 +1279,7 @@ function renderFlowSVG(key){
   var DH=nh('decision'), DW=nw('decision');
   var DEC_GAP=44;                  /* separación entre fondo del diamante y tope del paso */
   var TOP=DH+DEC_GAP+14;
-  var BOT=36;
+  var BOT=54;
   var MY=TOP, H=MY+BOT;
   var DY=MY-DEC_GAP-DH/2;         /* centro Y de todas las decisiones */
 
@@ -1310,17 +1310,18 @@ function renderFlowSVG(key){
       +'" stroke="#1455a4" stroke-width="1.3" marker-end="url(#aB)"/>');
   });
 
-  /* Flecha de RETORNO: fondo del diamante → curva bezier directa al nodo destino (offset +6px) */
+  /* Flecha de RETORNO: baja del diamante, viaja por debajo de los nodos, sube al destino */
   decIdx.forEach(function(di){
     var j=(data[di].retorno_a!==null&&data[di].retorno_a!==undefined&&data[di].retorno_a!=='')?parseInt(data[di].retorno_a):-1;
     if(j<0) return;
-    var rx=cx[di]+6;
-    var decBot=DY+DH/2;
-    var toX=cx[j], toTop=MY-nhh(data[j].tipo||'paso')+2;
-    /* Bezier: sale del fondo del diamante y curva hasta el tope del nodo destino */
-    var cpY=(decBot+toTop)/2+10; /* punto de control empuja la curva hacia abajo */
-    els.push('<path d="M'+rx+' '+decBot+' Q'+rx+' '+cpY+' '+toX+' '+toTop
-      +'" fill="none" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#aA)"/>');
+    var startX=cx[di]+6;
+    var startY=DY+DH/2;
+    var targetType=data[j].tipo||'paso';
+    var endX=cx[j];
+    var endY=MY+nhh(targetType);
+    var belowY=MY+nhh(targetType)+24;
+    var d='M'+startX+' '+startY+' C'+startX+' '+belowY+' '+endX+' '+belowY+' '+endX+' '+endY;
+    els.push('<path d="'+d+'" fill="none" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#aA)"/>');
   });
 
   /* Nodos */
@@ -1397,7 +1398,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v1.6</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v1.7</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
