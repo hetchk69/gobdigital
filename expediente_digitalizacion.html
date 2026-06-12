@@ -222,7 +222,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.3</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.4</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -1218,6 +1218,24 @@ function mostrarToast(msg){
 setInterval(function(){ if(gv('inst')) guardar(); }, 120000);
 
 // ── FLOW DIAGRAM VIEWER ──────────────────────────────────────
+var diagGAP={actual:30,propuesto:30};
+
+function adjustDiagGAP(key,delta){
+  diagGAP[key]=Math.max(10,Math.min(120,(diagGAP[key]||30)+delta));
+  refreshDiagIfVisible(key);
+}
+
+function buildDiagHTML(key){
+  var gap=diagGAP[key]||30;
+  var ctrl='<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;justify-content:flex-end">'
+    +'<span style="font-size:11px;color:var(--muted);font-weight:600">Espaciado</span>'
+    +'<button onclick="adjustDiagGAP(\''+key+'\',-10)" style="width:22px;height:22px;border:1.5px solid var(--borde);border-radius:5px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);line-height:1;padding:0;display:flex;align-items:center;justify-content:center">−</button>'
+    +'<span style="font-size:11px;font-weight:700;color:var(--azul-m);min-width:26px;text-align:center">'+gap+'</span>'
+    +'<button onclick="adjustDiagGAP(\''+key+'\',10)" style="width:22px;height:22px;border:1.5px solid var(--borde);border-radius:5px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);line-height:1;padding:0;display:flex;align-items:center;justify-content:center">+</button>'
+    +'</div>';
+  return '<div class="flow-diag-wrap">'+ctrl+renderFlowSVG(key)+'</div>';
+}
+
 function toggleFlowView(key, mode){
   var listEl  = document.getElementById('flujo-'+key+'-list');
   var diagEl  = document.getElementById('flujo-'+key+'-diag');
@@ -1226,7 +1244,7 @@ function toggleFlowView(key, mode){
   var diagBtn = document.getElementById('ftog-'+key+'-diag');
   if(!listEl||!diagEl) return;
   if(mode==='diag'){
-    diagEl.innerHTML = '<div class="flow-diag-wrap">'+renderFlowSVG(key)+'</div>';
+    diagEl.innerHTML = buildDiagHTML(key);
     listEl.style.display='none';
     if(btnsEl) btnsEl.style.display='none';
     diagEl.style.display='block';
@@ -1248,7 +1266,7 @@ function renderFlowSVG(key){
   var strks={inicio:'#16a34a',fin:'#2563eb',decision:'#d97706',paso:'#1455a4'};
   var NW={inicio:82,fin:82,decision:72,paso:100};
   var NH={inicio:30,fin:30,decision:72,paso:42};
-  var GAP=30, MLEFT=22, LT=9;
+  var GAP=diagGAP[key]||30, MLEFT=22, LT=9;
   function nw(t){return NW[t]||NW.paso;}
   function nh(t){return NH[t]||NH.paso;}
   function nhh(t){return nh(t)/2;}
@@ -1484,7 +1502,7 @@ function execAddNode(key, afterIdx, tipo){
 function refreshDiagIfVisible(key){
   var el=document.getElementById('flujo-'+key+'-diag');
   if(el&&el.style.display!=='none')
-    el.innerHTML='<div class="flow-diag-wrap">'+renderFlowSVG(key)+'</div>';
+    el.innerHTML=buildDiagHTML(key);
 }
 
 function showRetornoMenu(event, key, decIdx){
@@ -1526,7 +1544,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.3</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.4</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
