@@ -157,6 +157,21 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .btn-s:hover{border-color:var(--azul-m);color:var(--azul-m);background:var(--azul-c)}
 .btn-save-float{position:fixed;bottom:1.75rem;right:1.75rem;padding:12px 22px;background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;border:none;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(10,45,110,.35);transition:all .2s;z-index:50;display:flex;align-items:center;gap:7px}
 .btn-save-float:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(10,45,110,.45)}
+/* HIST VIEW */
+.hist-header{display:flex;align-items:center;justify-content:space-between;padding:1.75rem 2rem 1.25rem;flex-wrap:wrap;gap:1rem}
+.hist-header h2{font-size:20px;font-weight:800;color:var(--azul)}
+.hist-header p{font-size:13px;color:var(--muted);margin-top:2px}
+.hist-empty{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.hist-empty .ico{font-size:48px;margin-bottom:.75rem}
+.hist-empty p{font-size:14px;line-height:1.6}
+.hist-card{display:flex;align-items:center;gap:14px;padding:13px 1.5rem;border-bottom:1px solid var(--borde);cursor:pointer;transition:background .13s}
+.hist-card:hover{background:#f5f8ff}
+.hist-card-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hist-card-info{flex:1;min-width:0}
+.hist-card-title{font-size:14px;font-weight:700;color:var(--azul);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-card-meta{font-size:11.5px;color:var(--muted);margin-top:2px}
+.hist-card-del{padding:5px 10px;background:#fff;border:1.5px solid var(--borde);color:var(--rojo);border-radius:7px;font-size:12px;cursor:pointer;flex-shrink:0}
+.hist-card-del:hover{background:#fff5f5}
 .toast{position:fixed;bottom:5rem;right:1.75rem;background:#1c2333;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:all .3s;z-index:60;pointer-events:none}
 .toast.show{opacity:1;transform:translateY(0)}
 @media print{
@@ -182,11 +197,28 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
     <h1 id="topbar-title">Expediente de Digitalización — DIGER</h1>
   </div>
   <div class="tb-right">
-    <button class="btn-top btn-sec" onclick="verHistorial()">☰ Historial</button>
+    <button class="btn-top btn-sec" id="btn-volver" onclick="verHistorial()" style="display:none">← Volver</button>
     <button class="btn-top btn-pdf" onclick="window.print()">🖨 PDF</button>
   </div>
 </div>
 
+<!-- ══ VISTA: HISTORIAL ══ -->
+<div id="hist-view" style="display:none;background:var(--gris-f);min-height:calc(100vh - 48px)">
+  <div style="max-width:720px;margin:0 auto;padding:0 1rem 3rem">
+    <div class="hist-header">
+      <div>
+        <h2>Expediente de Digitalización</h2>
+        <p>Expedientes de trámites nuevos por institución</p>
+      </div>
+      <button class="btn btn-p" onclick="iniciarNuevoExp()">+ Nuevo expediente</button>
+    </div>
+    <div style="background:#fff;border:1.5px solid var(--borde);border-radius:14px;overflow:hidden">
+      <div id="hist-lista"></div>
+    </div>
+  </div>
+</div>
+
+<div id="form-view" style="display:none">
 <div class="wrap">
   <aside class="sidebar">
     <div class="sb-hdr">Secciones</div>
@@ -213,7 +245,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.6</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.7</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -505,17 +537,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
   </main>
 </div>
-
-<!-- HISTORIAL -->
-<div id="hist-overlay" style="display:none;position:fixed;inset:0;background:rgba(10,20,50,.45);z-index:80;align-items:center;justify-content:center;padding:1rem">
-  <div style="background:#fff;border-radius:18px;padding:1.75rem;width:100%;max-width:640px;max-height:80vh;overflow-y:auto;box-shadow:0 16px 48px rgba(10,45,110,.25)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
-      <div><h2 style="font-size:18px;font-weight:800;color:var(--azul)">Expedientes guardados</h2><p style="font-size:12px;color:var(--muted);margin-top:2px">Seleccione uno para editarlo</p></div>
-      <div style="display:flex;gap:8px"><button class="btn btn-p" onclick="nuevoExp()">+ Nuevo</button><button class="btn btn-s" onclick="cerrarHistorial()">✕ Cerrar</button></div>
-    </div>
-    <div id="hist-lista"></div>
-  </div>
-</div>
+</div><!-- /form-view -->
 
 <button class="btn-save-float" onclick="guardar()">💾 Guardar</button>
 <div class="toast" id="toast"></div>
@@ -922,7 +944,7 @@ document.addEventListener('DOMContentLoaded', async function(){
   renderFlujosActual();
   renderFlujosPropuesto();
   actualizarEstados();
-  nuevoExp();
+  verHistorial();
 });
 
 // ── GUARDAR / CARGAR ─────────────────────────────────────────
@@ -1105,34 +1127,45 @@ function recargarTabla(tbodyId, data, addFn, cols){
 
 // ── HISTORIAL ────────────────────────────────────────────────
 function verHistorial(){
+  document.getElementById('hist-view').style.display='block';
+  document.getElementById('form-view').style.display='none';
+  document.getElementById('btn-volver').style.display='none';
+  document.querySelector('.btn-save-float').style.display='none';
   var all=cargarTodos();
   var lista=document.getElementById('hist-lista');
   if(all.length===0){
-    lista.innerHTML='<p style="text-align:center;color:var(--muted);padding:2rem;font-size:13px">No hay expedientes guardados</p>';
+    lista.innerHTML='<div class="hist-empty"><div class="ico">📁</div><p>No hay expedientes registrados.<br>Crea el primero con el botón de arriba.</p></div>';
   } else {
     lista.innerHTML=all.map(function(exp,i){
       var ts=exp._ts?new Date(exp._ts).toLocaleDateString('es-HN'):'—';
       var tramNms=(exp.tramite_nombres||[]).filter(Boolean).join(', ')||exp.tramites_lista||'Sin trámites';
-      return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--gris-f);border:1.5px solid var(--borde);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:all .2s"'
-        +' onmouseover="this.style.borderColor=\'var(--azul-m)\'" onmouseout="this.style.borderColor=\'var(--borde)\'" onclick="cargarExp('+i+')">'
-        +'<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(exp.inst||'?').slice(0,2).toUpperCase()+'</div>'
-        +'<div style="flex:1;min-width:0">'
-          +'<div style="font-size:14px;font-weight:700;color:var(--azul);margin-bottom:2px">'+(exp.inst||'Sin institución')+'</div>'
-          +'<div style="font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(tramNms)+'</div>'
-          +'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+escHtml(exp.codigo_exp||'')+(exp.codigo_exp?' · ':'')+'Guardado: '+ts+'</div>'
+      return '<div class="hist-card" onclick="cargarExp('+i+')">'
+        +'<div class="hist-card-av">'+(exp.inst||'?').slice(0,2).toUpperCase()+'</div>'
+        +'<div class="hist-card-info">'
+          +'<div class="hist-card-title">'+(exp.inst||'Sin institución')+'</div>'
+          +'<div class="hist-card-meta">'+escHtml(tramNms)+'</div>'
+          +'<div class="hist-card-meta">'+escHtml(exp.codigo_exp||'')+(exp.codigo_exp?' · ':'')+'Guardado: '+ts+'</div>'
         +'</div>'
-        +'<button style="padding:5px 10px;background:#fff;border:1.5px solid var(--borde);color:var(--rojo);border-radius:7px;font-size:12px;cursor:pointer" onclick="event.stopPropagation();eliminarExp('+i+')" onmouseover="this.style.background=\'#fff5f5\'" onmouseout="this.style.background=\'#fff\'">✕</button>'
+        +'<button class="hist-card-del" onclick="event.stopPropagation();eliminarExp('+i+')">✕</button>'
       +'</div>';
     }).join('');
   }
-  document.getElementById('hist-overlay').style.display='flex';
+}
+
+function mostrarFormView(){
+  document.getElementById('hist-view').style.display='none';
+  document.getElementById('form-view').style.display='block';
+  document.getElementById('btn-volver').style.display='';
+  document.querySelector('.btn-save-float').style.display='flex';
 }
 
 function cargarExp(i){
   currentIdx=i;
   poblarFormulario(cargarTodos()[i]);
-  cerrarHistorial(); ir(0);
+  mostrarFormView(); ir(0);
 }
+
+function iniciarNuevoExp(){ nuevoExp(); mostrarFormView(); }
 
 async function eliminarExp(i){
   if(!confirm('¿Eliminar este expediente?')) return;
@@ -1157,10 +1190,9 @@ function nuevoExp(){
   renderFlujosPropuesto();
   ['tram-tabs-1','tram-tabs-2','tram-tabs-3','tram-tabs-5'].forEach(function(id){ var el=document.getElementById(id); if(el){el.style.display='none';el.innerHTML='';} });
   actualizarMeta(); actualizarEstados();
-  cerrarHistorial();
 }
 
-function cerrarHistorial(){ document.getElementById('hist-overlay').style.display='none'; }
+function cerrarHistorial(){ verHistorial(); }
 
 // ── UTILS ────────────────────────────────────────────────────
 function gv(id){ var el=document.getElementById(id); return el?(el.value||'').trim():''; }
@@ -1500,7 +1532,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.6</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.7</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
