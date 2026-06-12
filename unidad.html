@@ -962,8 +962,11 @@ async function renderInicio(unitKey) {
     });
 
     // Alojamiento
+    // Alojamiento por institución (una sola vez por inst, tomando el valor más frecuente)
+    var instAloj={};
+    data.forEach(function(r){ var k=(r.l||'—').toUpperCase().replace(/^PROPI[AO]$/,'PROPIO'); if(!instAloj[r.inst]) instAloj[r.inst]=k; });
     var alojMap={};
-    data.forEach(function(r){ var k=(r.l||'—').toUpperCase().replace(/^PROPI[AO]$/,'PROPIO'); alojMap[k]=(alojMap[k]||0)+1; });
+    Object.keys(instAloj).forEach(function(inst){ var k=instAloj[inst]; alojMap[k]=(alojMap[k]||0)+1; });
     var alojColors=['#1455a4','#16a34a','#f59e0b','#8b5cf6','#dc2626'];
     var alojSegs=Object.keys(alojMap).map(function(k,i){ return {v:alojMap[k],c:alojColors[i%5],l:k}; });
 
