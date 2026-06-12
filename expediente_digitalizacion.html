@@ -1310,7 +1310,7 @@ function renderFlowSVG(key){
       +'" stroke="#1455a4" stroke-width="1.3" marker-end="url(#aB)"/>');
   });
 
-  /* Flecha de RETORNO: baja del diamante, viaja por debajo de los nodos, sube al destino */
+  /* Flecha de RETORNO: routing ortogonal — baja recto, esquina redondeada, horizontal, sube recto */
   decIdx.forEach(function(di){
     var j=(data[di].retorno_a!==null&&data[di].retorno_a!==undefined&&data[di].retorno_a!=='')?parseInt(data[di].retorno_a):-1;
     if(j<0) return;
@@ -1319,8 +1319,18 @@ function renderFlowSVG(key){
     var targetType=data[j].tipo||'paso';
     var endX=cx[j];
     var endY=MY+nhh(targetType);
-    var belowY=MY+nhh(targetType)+24;
-    var d='M'+startX+' '+startY+' C'+startX+' '+belowY+' '+endX+' '+belowY+' '+endX+' '+endY;
+    var belowY=MY+nhh(targetType)+28;
+    var dx=Math.abs(endX-startX);
+    var r=Math.min(7, dx/2);
+    var goLeft=endX<startX;
+    var hTurn=goLeft?startX-r:startX+r;
+    var hArrive=goLeft?endX+r:endX-r;
+    var d='M'+startX+' '+startY
+         +' L'+startX+' '+(belowY-r)
+         +' Q'+startX+' '+belowY+' '+hTurn+' '+belowY
+         +' L'+hArrive+' '+belowY
+         +' Q'+endX+' '+belowY+' '+endX+' '+(belowY-r)
+         +' L'+endX+' '+endY;
     els.push('<path d="'+d+'" fill="none" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#aA)"/>');
   });
 
@@ -1398,7 +1408,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v1.7</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v1.8</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
