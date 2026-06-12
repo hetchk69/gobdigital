@@ -765,6 +765,60 @@ async function renderInicio(unitKey) {
   }
 
   // VERTICAL BAR CHART (institutions)
+  // STACKED HORIZONTAL BAR (institutions × estado)
+  function stackedHBar(rows){
+    var pL=188,pR=70,pT=8,rH=30,w=660;
+    var maxT=Math.max.apply(null,rows.map(function(r){ return r.total; }))||1;
+    var cW=w-pL-pR, h=pT+rows.length*rH+24;
+    var bg='<rect x="'+pL+'" y="'+pT+'" width="'+cW+'" height="'+(rows.length*rH)+'" fill="#f8faff" rx="4"/>';
+    var grid=[0.25,0.5,0.75,1].map(function(t){
+      var x=pL+t*cW;
+      return '<line x1="'+x.toFixed(1)+'" y1="'+pT+'" x2="'+x.toFixed(1)+'" y2="'+(pT+rows.length*rH)+'" stroke="#e8eef8" stroke-width="1" stroke-dasharray="3,2"/>';
+    }).join('');
+    var bars=rows.map(function(row,i){
+      var y=pT+i*rH, by=y+rH*.14, bh=rH*.72;
+      var totalW=(row.total/maxT)*cW;
+      var opW=row.total?Math.round((row.op/row.total)*totalW):0;
+      var prW=row.total?Math.round((row.proc/row.total)*totalW):0;
+      var niW=Math.max(0,Math.round(totalW)-opW-prW);
+      var short=row.label.length>26?row.label.slice(0,25)+'…':row.label;
+      var pct=Math.round(row.avgPct*100);
+      var pc=pct>=80?'#16a34a':pct>=50?'#1455a4':'#f59e0b';
+      return '<text x="'+(pL-6)+'" y="'+(by+bh*.65).toFixed(1)+'" text-anchor="end" '+FF+' font-size="10.5" fill="#1c2333">'+esc(short)+'</text>'+
+        '<rect x="'+pL+'" y="'+by.toFixed(1)+'" width="'+totalW.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="#e8eef8"/>'+
+        (opW>0?'<rect x="'+pL+'" y="'+by.toFixed(1)+'" width="'+opW+'" height="'+bh.toFixed(1)+'" rx="3" fill="#16a34a"/>':'')+
+        (prW>0?'<rect x="'+(pL+opW)+'" y="'+by.toFixed(1)+'" width="'+prW+'" height="'+bh.toFixed(1)+'" fill="#f59e0b"/>':'')+
+        (niW>0?'<rect x="'+(pL+opW+prW)+'" y="'+by.toFixed(1)+'" width="'+niW+'" height="'+bh.toFixed(1)+'" fill="#fca5a5"/>':'')+
+        '<text x="'+(pL+totalW+5).toFixed(1)+'" y="'+(by+bh*.65).toFixed(1)+'" '+FF+' font-size="9.5" fill="#94a3b8">'+row.total+'</text>'+
+        '<text x="'+(pL+cW+5).toFixed(1)+'" y="'+(by+bh*.65).toFixed(1)+'" '+FF+' font-size="11" font-weight="800" fill="'+pc+'">'+pct+'%</text>';
+    }).join('');
+    var legend=[{c:'#16a34a',l:'En operación'},{c:'#f59e0b',l:'En proceso'},{c:'#fca5a5',l:'No iniciado'}]
+      .map(function(g,i){ var lx=pL+i*150; return '<rect x="'+lx+'" y="'+(h-14)+'" width="14" height="7" rx="2" fill="'+g.c+'"/><text x="'+(lx+18)+'" y="'+(h-6)+'" '+FF+' font-size="10" fill="#64748b">'+g.l+'</text>'; }).join('');
+    return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="width:100%">'+bg+grid+bars+legend+'</svg>';
+  }
+
+  // RANKING CARD (top3 / bottom3 HTML)
+  function rankingCard(ranked){
+    function row(r,i,isTop){
+      var pct=Math.round(r.avgPct*100),col=isTop?'#16a34a':'#dc2626',bg=isTop?'#dcfce7':'#fee2e2';
+      var lbl=isTop?(i+1)+'°':'▼', short=r.inst.length>24?r.inst.slice(0,23)+'…':r.inst;
+      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">'+
+        '<div style="width:22px;height:22px;border-radius:50%;background:'+bg+';color:'+col+';font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+lbl+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:10.5px;font-weight:700;color:#1c2333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(short)+'</div>'+
+          '<div style="height:5px;background:#e8eef8;border-radius:99px;margin-top:4px"><div style="height:100%;width:'+Math.max(pct,2)+'%;background:'+col+';border-radius:99px"></div></div>'+
+        '</div>'+
+        '<div style="font-size:13px;font-weight:800;color:'+col+';min-width:36px;text-align:right">'+pct+'%</div>'+
+      '</div>';
+    }
+    var top=ranked.slice(0,3), bot=ranked.slice(-3).reverse();
+    return '<div style="font-size:10px;font-weight:800;color:#16a34a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Líderes en avance</div>'+
+      top.map(function(r,i){ return row(r,i,true); }).join('')+
+      '<div style="border-top:1px dashed var(--borde);margin:10px 0 10px"></div>'+
+      '<div style="font-size:10px;font-weight:800;color:#dc2626;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Requieren atención</div>'+
+      bot.map(function(r,i){ return row(r,i,false); }).join('');
+  }
+
   // LINE CHART
   function lineChart(series, xLabels){
     var pL=44,pR=20,pT=24,pB=58,w=600,h=230;
@@ -888,9 +942,24 @@ async function renderInicio(unitKey) {
     ].filter(function(s){ return s.data.some(function(v){ return v>0; }); });
 
     // Institution maps
-    var instMap={},instPct={};
-    data.forEach(function(r){ instMap[r.inst]=(instMap[r.inst]||0)+1; instPct[r.inst]=(instPct[r.inst]||0)+dbCalcPct(r.e); });
+    var instMap={},instPct={},instOp={},instProc={},instNi={};
+    data.forEach(function(r){
+      var p=dbCalcPct(r.e), inst=r.inst;
+      instMap[inst]=(instMap[inst]||0)+1;
+      instPct[inst]=(instPct[inst]||0)+p;
+      if(p>=1){ instOp[inst]=(instOp[inst]||0)+1; }
+      else if(p>0){ instProc[inst]=(instProc[inst]||0)+1; }
+      else { instNi[inst]=(instNi[inst]||0)+1; }
+    });
     var instList=Object.keys(instMap).sort(function(a,b){ return instMap[b]-instMap[a]; });
+    // Ranking: sorted by avg completion desc
+    var ranked=instList.map(function(inst){
+      return {inst:inst, avgPct:instPct[inst]/(instMap[inst]||1)};
+    }).sort(function(a,b){ return b.avgPct-a.avgPct; });
+    // Stacked bar rows: sorted by avg completion desc
+    var stackRows=ranked.map(function(r){
+      return {label:r.inst,op:instOp[r.inst]||0,proc:instProc[r.inst]||0,ni:instNi[r.inst]||0,total:instMap[r.inst],avgPct:r.avgPct};
+    });
 
     // Alojamiento
     var alojMap={};
@@ -918,55 +987,49 @@ async function renderInicio(unitKey) {
         '<select class="db-sel" onchange="window._dbFAloj=this.value;window._dbRedraw()">'+fOpt(alojs,fAloj,'Todos')+'</select></div>'+
       '</div>'+
 
-      // KPI cards
-      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.1rem">'+
-        kpiCard('Trámites en seguimiento',total,'Total Trámites','#0a2d6e','📋')+
-        kpiCard('En operación',op,'Completados','#16a34a','✅')+
-        kpiCard('En proceso',proc,'En avance','#f59e0b','🔄')+
-        kpiCard('No iniciados',ni,'Sin avance','#dc2626','⏸')+
+      // KPI cards — con badge de % y barra de progreso
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem">'+
+        kpiCard('Total trámites', total, [...new Set(data.map(function(r){return r.inst;}))].length+' instituciones', '#0a2d6e', null)+
+        kpiCard('En operación', op, 'Completados al 100%', '#16a34a', total?op/total:null)+
+        kpiCard('En proceso', proc, 'Avance parcial', '#f59e0b', total?proc/total:null)+
+        kpiCard('No iniciados', ni, 'Sin avance registrado', '#dc2626', total?ni/total:null)+
       '</div>'+
 
-      // Fila 1: Gauge + Donut + Pie
+      // Fila 1 (3 cols): Donut | Pie | Ranking
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.1rem">'+
         '<div class="card" style="padding:1rem 1.25rem">'+
-          '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Avance promedio global</div>'+
-          gaugeChart(avgPct,'de cumplimiento promedio')+
-        '</div>'+
-        '<div class="card" style="padding:1rem 1.25rem">'+
           '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Estado de trámites</div>'+
-          donutChart([
-            {v:op,  c:'#16a34a', l:'En operación'},
-            {v:proc,c:'#f59e0b', l:'En proceso'},
-            {v:ni,  c:'#dc2626', l:'No iniciado'}
-          ],total,'trámites')+
+          donutChart([{v:op,c:'#16a34a',l:'En operación'},{v:proc,c:'#f59e0b',l:'En proceso'},{v:ni,c:'#dc2626',l:'No iniciado'}],total,'trámites')+
         '</div>'+
         '<div class="card" style="padding:1rem 1.25rem">'+
           '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Distribución por alojamiento</div>'+
           pieChart(alojSegs)+
         '</div>'+
-      '</div>'+
-
-      // Fila 2: Barras verticales (instituciones)
-      '<div class="card" style="padding:1rem 1.25rem;margin-bottom:1.1rem;overflow-x:auto">'+
-        '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Trámites por institución</div>'+
-        vBarChart(instList,instMap,instPct)+
-        '<div style="display:flex;gap:18px;margin-top:.75rem;font-size:10.5px">'+
-          '<span><span style="display:inline-block;width:10px;height:10px;background:#16a34a;border-radius:2px;margin-right:4px"></span>100% avance</span>'+
-          '<span><span style="display:inline-block;width:10px;height:10px;background:#1455a4;border-radius:2px;margin-right:4px"></span>≥60% avance</span>'+
-          '<span><span style="display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:2px;margin-right:4px"></span>&lt;60% avance</span>'+
+        '<div class="card" style="padding:1rem 1.25rem">'+
+          '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Ranking de instituciones</div>'+
+          rankingCard(ranked)+
         '</div>'+
       '</div>'+
 
-      // Fila 3: Gráfico de líneas (DIGER vs PROPIO por etapa)
+      // Fila 2 (full): Stacked hbar por institución (op/proc/ni)
       '<div class="card" style="padding:1rem 1.25rem;margin-bottom:1.1rem;overflow-x:auto">'+
-        '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Avance por etapa según alojamiento</div>'+
-        lineChart(lineSeries, DB_ETAPAS_LABELS)+
+        '<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">'+
+          '<div style="font-size:15px;font-weight:800;color:var(--azul)">Estado por institución</div>'+
+          '<div style="font-size:11px;color:var(--muted)">Ordenado por % de avance promedio</div>'+
+        '</div>'+
+        stackedHBar(stackRows)+
       '</div>'+
 
-      // Fila 4: Barras horizontales (etapas)
-      '<div class="card" style="padding:1rem 1.25rem;margin-bottom:1.1rem;overflow-x:auto">'+
-        '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Cumplimiento por etapa del proceso</div>'+
-        hBarChart(DB_ETAPAS_LABELS,stageVals)+
+      // Fila 3 (2 cols): Líneas + Cumplimiento por etapa
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.1rem">'+
+        '<div class="card" style="padding:1rem 1.25rem;overflow-x:auto">'+
+          '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Avance por etapa según alojamiento</div>'+
+          lineChart(lineSeries, DB_ETAPAS_LABELS)+
+        '</div>'+
+        '<div class="card" style="padding:1rem 1.25rem;overflow-x:auto">'+
+          '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Cumplimiento por etapa del proceso</div>'+
+          hBarChart(DB_ETAPAS_LABELS,stageVals)+
+        '</div>'+
       '</div>'+
 
       // Tabla detalle
@@ -1015,14 +1078,16 @@ async function renderInicio(unitKey) {
     app.innerHTML = html;
   }
 
-  function kpiCard(title, val, sub, color, icon){
+  function kpiCard(title, val, sub, color, pct){
+    var barW = pct!=null ? Math.round(pct*100) : null;
     return '<div class="card" style="padding:1.1rem 1.25rem;border-left:4px solid '+color+'">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">' +
-        '<div style="font-size:11.5px;font-weight:700;color:var(--muted)">'+title+'</div>' +
-        '<span style="font-size:18px">'+icon+'</span>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">' +
+        '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">'+title+'</div>' +
+        (barW!=null?'<span style="font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:20px;background:'+color+'1a;color:'+color+'">'+barW+'%</span>':'') +
       '</div>' +
-      '<div style="font-size:32px;font-weight:900;color:'+color+';line-height:1">'+val+'</div>' +
-      '<div style="font-size:11px;color:var(--muted);margin-top:3px">'+sub+'</div>' +
+      '<div style="font-size:34px;font-weight:900;color:'+color+';line-height:1.05">'+val+'</div>' +
+      '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+sub+'</div>' +
+      (barW!=null?'<div style="height:3px;background:#e8eef8;border-radius:99px;margin-top:8px"><div style="height:100%;width:'+barW+'%;background:'+color+';border-radius:99px"></div></div>':'') +
     '</div>';
   }
 
