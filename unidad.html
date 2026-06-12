@@ -630,7 +630,7 @@ function renderModulos(unitKey) {
       if(m.subItems) {
         subHtml = '<div class="mod-sub-list">';
         m.subItems.forEach(function(si){
-          var siUrl = si.url + (inst ? '?inst=' + encodeURIComponent(inst) : '');
+          var siUrl = si.url;
           subHtml += '<a class="mod-sub-item" href="' + siUrl + '">' +
             '<div class="mod-sub-icon">' + (SVGS[si.icon]||'') + '</div>' +
             '<div><div class="mod-sub-name">' + esc(si.label) + '</div><div class="mod-sub-desc">' + esc(si.desc) + '</div></div>' +
