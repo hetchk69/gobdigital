@@ -765,6 +765,45 @@ async function renderInicio(unitKey) {
   }
 
   // VERTICAL BAR CHART (institutions)
+  // LINE CHART
+  function lineChart(series, xLabels){
+    var pL=44,pR=20,pT=24,pB=58,w=600,h=230;
+    var cW=w-pL-pR,cH=h-pT-pB,n=xLabels.length;
+    // Y-axis grid (0%, 25%, 50%, 75%, 100%)
+    var grid=[0,0.25,0.5,0.75,1].map(function(t){
+      var y=pT+cH-t*cH;
+      return '<line x1="'+pL+'" y1="'+y.toFixed(1)+'" x2="'+(w-pR)+'" y2="'+y.toFixed(1)+'" stroke="'+(t===0?'#c8d4e8':'#e8eef8')+'" stroke-width="'+(t===0?1.5:1)+'"/>'+
+        '<text x="'+(pL-5)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" '+FF+' font-size="9" fill="#94a3b8">'+Math.round(t*100)+'%</text>';
+    }).join('');
+    // X-axis labels
+    var xLabelsEl=xLabels.map(function(lbl,i){
+      var x=pL+(i/(n-1))*cW;
+      var short=lbl.length>10?lbl.slice(0,9)+'…':lbl;
+      return '<text x="'+x.toFixed(1)+'" y="'+(h-pB+14)+'" text-anchor="end" transform="rotate(-35,'+x.toFixed(1)+','+(h-pB+14)+')" '+FF+' font-size="9" fill="#64748b">'+esc(short)+'</text>';
+    }).join('');
+    // Lines + circles per series
+    var lines=series.map(function(s){
+      var pts=s.data.map(function(v,i){ return {x:pL+(i/(n-1))*cW, y:pT+cH-v*cH}; });
+      var poly='<polyline points="'+pts.map(function(p){ return p.x.toFixed(1)+','+p.y.toFixed(1); }).join(' ')+'" fill="none" stroke="'+s.color+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+      var dots=pts.map(function(p,i){
+        return '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="4" fill="white" stroke="'+s.color+'" stroke-width="2"/>'+
+          '<title>'+esc(xLabels[i])+': '+Math.round(s.data[i]*100)+'%</title>';
+      }).join('');
+      return poly+dots;
+    }).join('');
+    // Legend
+    var legend=series.map(function(s,i){
+      var lx=pL+i*160;
+      return '<rect x="'+lx+'" y="'+(h-14)+'" width="20" height="3" rx="1.5" fill="'+s.color+'"/>'+
+        '<circle cx="'+(lx+10)+'" cy="'+(h-13)+'" r="3.5" fill="white" stroke="'+s.color+'" stroke-width="2"/>'+
+        '<text x="'+(lx+26)+'" y="'+(h-9)+'" '+FF+' font-size="11" fill="#334155">'+esc(s.label)+'</text>';
+    }).join('');
+    return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="width:100%">'+
+      '<rect x="'+pL+'" y="'+pT+'" width="'+cW+'" height="'+cH+'" fill="#f8faff" rx="4"/>'+
+      grid+xLabelsEl+lines+legend+
+    '</svg>';
+  }
+
   function vBarChart(iList,iMap,iPct){
     var n=iList.length,pL=36,pR=10,pT=18,pB=52,w=Math.max(420,n*38+pL+pR),h=220;
     var cW=w-pL-pR,cH=h-pT-pB;
@@ -840,6 +879,14 @@ async function renderInicio(unitKey) {
       return total ? data.filter(function(r){ return r.e&&r.e[i]; }).length/total : 0;
     });
 
+    // Line chart series: DIGER vs PROPIO per etapa
+    var digerData = data.filter(function(r){ return (r.l||'').toUpperCase()==='DIGER'; });
+    var propioData = data.filter(function(r){ return (r.l||'').toUpperCase()==='PROPIO'; });
+    var lineSeries = [
+      { label:'DIGER', color:'#1455a4', data: DB_ETAPAS_LABELS.map(function(_,i){ return digerData.length ? digerData.filter(function(r){ return r.e&&r.e[i]; }).length/digerData.length : 0; }) },
+      { label:'PROPIO', color:'#e03e3e', data: DB_ETAPAS_LABELS.map(function(_,i){ return propioData.length ? propioData.filter(function(r){ return r.e&&r.e[i]; }).length/propioData.length : 0; }) }
+    ].filter(function(s){ return s.data.some(function(v){ return v>0; }); });
+
     // Institution maps
     var instMap={},instPct={};
     data.forEach(function(r){ instMap[r.inst]=(instMap[r.inst]||0)+1; instPct[r.inst]=(instPct[r.inst]||0)+dbCalcPct(r.e); });
@@ -910,7 +957,13 @@ async function renderInicio(unitKey) {
         '</div>'+
       '</div>'+
 
-      // Fila 3: Barras horizontales (etapas)
+      // Fila 3: Gráfico de líneas (DIGER vs PROPIO por etapa)
+      '<div class="card" style="padding:1rem 1.25rem;margin-bottom:1.1rem;overflow-x:auto">'+
+        '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Avance por etapa según alojamiento</div>'+
+        lineChart(lineSeries, DB_ETAPAS_LABELS)+
+      '</div>'+
+
+      // Fila 4: Barras horizontales (etapas)
       '<div class="card" style="padding:1rem 1.25rem;margin-bottom:1.1rem;overflow-x:auto">'+
         '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Cumplimiento por etapa del proceso</div>'+
         hBarChart(DB_ETAPAS_LABELS,stageVals)+
