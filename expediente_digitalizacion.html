@@ -1297,7 +1297,6 @@ function renderFlowSVG(key){
     var fromY=cy[i]+hh(step), toY=cy[j], rx=retX[i];
     els.push('<path d="M'+(CX+RW/2)+' '+fromY+' H'+rx+' V'+toY+' H'+(CX+RW/2)
       +'" fill="none" stroke="#d97706" stroke-width="1.1" stroke-dasharray="3.5,2" marker-end="url(#aA)"/>');
-    els.push('<text x="'+(rx+2)+'" y="'+((fromY+toY)/2)+'" font-size="7" fill="#d97706" font-style="italic" dominant-baseline="middle" font-family="Segoe UI,sans-serif">↩</text>');
   });
 
   /* Nodos */
