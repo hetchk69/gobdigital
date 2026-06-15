@@ -742,6 +742,36 @@ async function renderInicio(unitKey) {
     '</svg>';
   }
 
+  // INSTITUTION DONUT (one color per institution, legend on right)
+  var INST_PALETTE=['#1455a4','#16a34a','#f59e0b','#8b5cf6','#06b6d4','#f97316','#e879f9','#10b981','#ef4444','#6366f1','#84cc16','#0ea5e9','#d97706','#ec4899','#14b8a6','#a855f7'];
+  function instDonutChart(rows, total){
+    var cx=100,cy=105,r=78,inner=48;
+    var cur=-90,paths='';
+    rows.forEach(function(d){
+      if(!d.count) return;
+      var ang=(d.count/total)*360;
+      if(ang>=359.9){ paths+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+d.col+'"/><circle cx="'+cx+'" cy="'+cy+'" r="'+inner+'" fill="white"/>'; cur+=ang; return; }
+      var ea=cur+ang,sp=p2c(cx,cy,r,cur),ep=p2c(cx,cy,r,ea),si=p2c(cx,cy,inner,ea),ei=p2c(cx,cy,inner,cur),lg=ang>180?1:0;
+      paths+='<path d="M '+sp.x.toFixed(1)+' '+sp.y.toFixed(1)+' A '+r+' '+r+' 0 '+lg+' 1 '+ep.x.toFixed(1)+' '+ep.y.toFixed(1)+
+        ' L '+si.x.toFixed(1)+' '+si.y.toFixed(1)+' A '+inner+' '+inner+' 0 '+lg+' 0 '+ei.x.toFixed(1)+' '+ei.y.toFixed(1)+'Z" fill="'+d.col+'" stroke="white" stroke-width="2"/>';
+      cur=ea;
+    });
+    var center='<text x="'+cx+'" y="'+(cy-5)+'" text-anchor="middle" '+FF+' font-size="26" font-weight="900" fill="#0a2d6e">'+total+'</text>'+
+      '<text x="'+cx+'" y="'+(cy+13)+'" text-anchor="middle" '+FF+' font-size="10" fill="#64748b">trámites</text>';
+    // Legend: 2 columns of 7, to the right of the donut
+    var legX=212, perCol=Math.ceil(rows.length/2);
+    var legend=rows.map(function(d,i){
+      var col=Math.floor(i/perCol), row=i%perCol;
+      var lx=legX+col*118, ly=14+row*26;
+      var short=d.inst.length>13?d.inst.slice(0,12)+'…':d.inst;
+      var pct=Math.round(d.count/total*100);
+      return '<rect x="'+lx+'" y="'+ly+'" width="10" height="10" rx="2" fill="'+d.col+'"/>'+
+        '<text x="'+(lx+14)+'" y="'+(ly+9)+'" '+FF+' font-size="11" font-weight="700" fill="#1c2333">'+esc(short)+'</text>'+
+        '<text x="'+(lx+14)+'" y="'+(ly+20)+'" '+FF+' font-size="9.5" fill="#94a3b8">'+d.count+' trám. · '+pct+'%</text>';
+    }).join('');
+    return '<svg viewBox="0 0 458 210" xmlns="http://www.w3.org/2000/svg" style="width:100%">'+paths+center+legend+'</svg>';
+  }
+
   // PIE CHART
   function pieChart(segs){
     var cx=110,cy=90,r=78;
@@ -965,6 +995,11 @@ async function renderInicio(unitKey) {
     });
 
     // Alojamiento
+    // Institution donut rows (sorted by count desc, each with unique color)
+    var instRows = instList.map(function(inst, i){
+      return { inst:inst, count:instMap[inst], col:INST_PALETTE[i%INST_PALETTE.length] };
+    }).sort(function(a,b){ return b.count-a.count; });
+
     // Alojamiento por institución (una sola vez por inst, tomando el valor más frecuente)
     var instAloj={};
     data.forEach(function(r){ var k=(r.l||'—').toUpperCase().replace(/^PROPI[AO]$/,'PROPIO'); if(!instAloj[r.inst]) instAloj[r.inst]=k; });
@@ -1001,11 +1036,15 @@ async function renderInicio(unitKey) {
         kpiCard('No iniciados', ni, 'Sin avance registrado', '#dc2626', total?ni/total:null)+
       '</div>'+
 
-      // Fila 1 (2 cols): Donut | Ranking
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.1rem">'+
+      // Fila 1 (3 cols): Donut estado | Donut instituciones | Ranking
+      '<div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:12px;margin-bottom:1.1rem">'+
         '<div class="card" style="padding:1rem 1.25rem">'+
           '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Estado de trámites</div>'+
           donutChart([{v:op,c:'#16a34a',l:'En operación'},{v:proc,c:'#f59e0b',l:'En proceso'},{v:ni,c:'#dc2626',l:'No iniciado'}],total,'trámites')+
+        '</div>'+
+        '<div class="card" style="padding:1rem 1.25rem">'+
+          '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Trámites por institución</div>'+
+          instDonutChart(instRows, total)+
         '</div>'+
         '<div class="card" style="padding:1rem 1.25rem">'+
           '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Ranking de instituciones</div>'+
