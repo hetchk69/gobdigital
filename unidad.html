@@ -478,6 +478,9 @@ var app = document.getElementById('app');
 
 // Inicializar calState aquí para que esté disponible antes de renderUnitPage
 var calState = { y: new Date().getFullYear(), m: new Date().getMonth() };
+var calCache  = {};   // unitKey -> events[] (cargado desde Supabase)
+var calLoaded = {};   // unitKey -> bool (para no recargar si ya está en memoria)
+var CAL_SB_KEY = function(u){ return 'cal_' + u; };
 
 if (unitParam && UNITS[unitParam]) {
   renderUnitPage(unitParam, tabParam);
@@ -1298,12 +1301,36 @@ document.getElementById('modal-bg').addEventListener('click', function(e){
 // ════════════════════════════════════════════════════════════════
 // CALENDARIO
 // ════════════════════════════════════════════════════════════════
-function calKey(unitKey) { return 'diger_cal_' + unitKey; }
-function calEvents(unitKey) { return lsGet(calKey(unitKey), []); }
+function calEvents(unitKey) { return calCache[unitKey] || []; }
+
+function calSubscribe(unitKey) {
+  var sbKey = CAL_SB_KEY(unitKey);
+  sb.channel('cal-' + unitKey)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'diger_tram', filter: 'key=eq.' + sbKey },
+      function(payload) {
+        calCache[unitKey] = (payload.new && payload.new.value) ? payload.new.value : [];
+        if (CURRENT_UNIT === unitKey && document.getElementById('app')) renderCalendario(unitKey);
+      })
+    .subscribe();
+}
 
 function renderCalendario(unitKey) {
   CURRENT_UNIT = unitKey;
   var u = UNITS[unitKey];
+
+  if (!calLoaded[unitKey]) {
+    app.innerHTML = tabBreadcrumb(unitKey, 'Calendario') +
+      '<div style="padding:3rem;text-align:center;color:var(--muted)">Cargando calendario…</div>';
+    (async function() {
+      var res = await sb.from('diger_tram').select('value').eq('key', CAL_SB_KEY(unitKey)).maybeSingle();
+      calCache[unitKey] = (res.data && res.data.value) ? res.data.value : [];
+      calLoaded[unitKey] = true;
+      calSubscribe(unitKey);
+      renderCalendario(unitKey);
+    })();
+    return;
+  }
+
   var y = calState.y;
   var hoy = new Date();
   var events = calEvents(unitKey);
@@ -1416,26 +1443,28 @@ function calAddPrompt(fecha) {
     '<button class="btn-prim" onclick="calSaveEvent()">Guardar evento</button></div>');
 }
 
-function calSaveEvent() {
+async function calSaveEvent() {
   var titulo = document.getElementById('ev-titulo').value.trim();
   var fecha  = document.getElementById('ev-fecha').value;
   var hora   = document.getElementById('ev-hora').value;
   var desc   = document.getElementById('ev-desc').value.trim();
   if (!titulo) { alert('Ingrese el título del evento.'); return; }
   if (!fecha)  { alert('Seleccione una fecha.'); return; }
-  var evs = calEvents(CURRENT_UNIT);
+  var evs = calEvents(CURRENT_UNIT).slice();
   evs.push({ id: uid(), titulo: titulo, fecha: fecha, hora: hora, desc: desc });
-  lsSet(calKey(CURRENT_UNIT), evs);
+  calCache[CURRENT_UNIT] = evs;
   cerrarModal();
   var p = fecha.split('-'); calState.y = +p[0]; calState.m = +p[1]-1;
   renderCalendario(CURRENT_UNIT);
+  await sb.from('diger_tram').upsert({ key: CAL_SB_KEY(CURRENT_UNIT), value: evs, updated_at: new Date().toISOString() });
 }
 
-function calDelEvent(id) {
+async function calDelEvent(id) {
   if (!confirm('¿Eliminar este evento?')) return;
   var evs = calEvents(CURRENT_UNIT).filter(function(e){ return e.id !== id; });
-  lsSet(calKey(CURRENT_UNIT), evs);
+  calCache[CURRENT_UNIT] = evs;
   renderCalendario(CURRENT_UNIT);
+  await sb.from('diger_tram').upsert({ key: CAL_SB_KEY(CURRENT_UNIT), value: evs, updated_at: new Date().toISOString() });
 }
 
 // ════════════════════════════════════════════════════════════════
