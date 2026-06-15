@@ -262,7 +262,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v3.0</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v3.1</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -739,7 +739,136 @@ var TGR_RUBRO_NAMES = (function(){
 // Mapeo institución (código) → rubros permitidos. Fuente: portal TGR-1 (tgr1.sefin.gob.hn).
 // Las instituciones sin lista específica muestran el catálogo completo como respaldo.
 var TGR_INST_RUBROS = {
-  '1': ['11402','12121','12806']   // Congreso Nacional
+  '1':   ['11402','12121','12806'],                                                                        // Congreso Nacional
+  '2':   ['11402','12121','12499','12804','12806'],                                                        // Tribunal Superior de Cuentas
+  '3':   ['11402','12121','12806'],                                                                        // Comisionado Nacional de Derechos Humanos
+  '10':  ['11402','12121','12806'],                                                                        // Poder Judicial
+  '20':  ['11402','12121','12806'],                                                                        // Presidencia de la República
+  '21':  ['11402','12121','12806'],                                                                        // Programa de Asignación Familiar
+  '22':  ['11402','12121','12806'],                                                                        // Fondo Hondureño de Inversión Social
+  '23':  ['11402','12121','12806'],                                                                        // Consejo Hondureño de Ciencia y Tecnología
+  '24':  ['11402','12118','12121','12203','12204','12219','12806','15101'],                                 // Instituto de la Propiedad
+  '25':  ['11402','12121','12806'],                                                                        // Prog. Nac. de Prevención Rehabilitación y Reinserción Social
+  '26':  ['11402','12121','12806'],                                                                        // Instituto Nacional de la Juventud
+  '27':  ['11402','12121','12806'],                                                                        // Vice Presidencia de la República
+  '28':  ['11402','12121','12199','12499','12806','15101','15104'],                                        // Instituto Nacional de Conservación y Desarrollo Forestal
+  '29':  ['11402','12121','12806','12899'],                                                                // Comisión para la Promoción de la Alianza Público-Privada
+  '30':  ['11402','12121','12806'],                                                                        // Secretaría de la Presidencia
+  '31':  ['11402','12121','12806','15299'],                                                                // Inversión Estratégica de Honduras (INVEST-HONDURAS)
+  '32':  ['11402','12121','12806'],                                                                        // Instituto de Acceso a la Información Pública
+  '33':  ['11402','12121','12806'],                                                                        // Programa de Vivienda y Asentamientos Humanos
+  '34':  ['11402','12121','12806'],                                                                        // Despacho Ministerial de Socialización y Acomp. Digital
+  '35':  ['11402','12116','12117','12121','12302','12306','12417','12806','12899','15101','17603'],         // Instituto Hondureño de Geología y Minas
+  '36':  ['11402','12121','12806','15207','17603'],                                                        // Dirección Ejecutiva de Cultura, Artes y Deportes
+  '37':  ['11402','12121','12806','12899'],                                                                // Servicio de Administración de Rentas
+  '38':  ['11402','12806','12899'],                                                                        // Dirección Adjunta de Rentas Aduaneras
+  '39':  ['11402','12121'],                                                                                // Servicio Nacional de Emprendimiento y Pequeños Negocios
+  '40':  ['11402','12120','12121','12211','12806','12899'],                                                // Secretaría de Gobernación, Justicia y Descentralización
+  '41':  ['11402','12121','12806'],                                                                        // Dirección General de Investigación y Evaluación del Estado
+  '42':  ['11402','12121','12806','15299'],                                                                // Registro Nacional de las Personas
+  '43':  ['11402','12121','12806','15204'],                                                                // Instituto Nacional de Estadística
+  '44':  ['11402','12121','12806','15101'],                                                                // Instituto Nacional Agrario
+  '45':  ['11402','12102','12121','12201','12211','12416','12806','12899'],                                 // Instituto Nacional de Migración
+  '46':  ['11402','12121','12806','15101'],                                                                // Dirección General de Biodiversidad
+  '50':  ['11402','12121','12806','15204','15207','17605'],                                                // Secretaría de Seguridad
+  '51':  ['11402','12121','12806','12899','15299'],                                                        // Centro Nacional de Educación para el Trabajo (CENET)
+  '60':  ['11402','12121','12405','12806','15206'],                                                        // Secretaría de Educación
+  '61':  ['11402','12121','12806','15299'],                                                                // Ente Regulador de Servicios de Agua Potable y Saneamiento
+  '62':  ['12121','12199','12203','12209','12499','12806','15299'],                                        // Agencia de Regulación Sanitaria
+  '70':  ['11402','12120','12121','12208','12213','12413','12806','12899','15205'],                         // Secretaría de Agricultura y Ganadería
+  '71':  ['11402','12121','12804','12806'],                                                                // Dirección de Ciencia y Tecnología Agropecuaria
+  '72':  ['11402','12121','12806'],                                                                        // Servicio Nacional de Sanidad Agropecuaria
+  '80':  ['11402','12108','12120','12121','12201','12218','12806'],                                         // Secretaría de Relaciones Exteriores y Cooperación Internacional
+  '90':  ['11402','12121','12499','12806','15104','15203','15207','15299','17601','17603'],                 // Secretaría de Defensa Nacional
+  '91':  ['11402','11409','12115','12121','12806'],                                                        // Agencia Hondureña de Aeronáutica Civil
+  '100': ['11402','12121','12499','12806','12899'],                                                        // Secretaría de Finanzas
+  '101': ['11402','12121','12124','12301','12412','12806'],                                                // Comisión Nacional de Telecomunicaciones
+  '102': ['11110','11402','12121','12123','12209','12806','15101'],                                        // Comis. Administradora Zona Libre Turística Islas de la Bahía
+  '103': ['11402'],                                                                                        // Dirección General de Marina Mercante
+  '104': ['11402','12121','12801','12806','12899'],                                                        // Servicio Nacional de Acueductos y Alcantarillados (SANAA)
+  '110': ['11402'],                                                                                        // Secretaría de Obras Públicas, Transporte y Vivienda
+  '111': ['11402'],                                                                                        // Fondo Vial
+  '120': ['11402','11409','12121','12299','12409','12806','12899'],                                        // Secretaría de Salud
+  '121': ['11402','12105','12121','12202','12207','12806'],                                                // Instituto Hondureño de Seguridad Social (IHSS)
+  '122': ['11402'],                                                                                        // Dirección de Desarrollo y Fortalecimiento de Gobiernos Locales
+  '123': ['11402','11409','12121','12409','12806'],                                                        // Instituto Nacional de Jubilaciones y Pensiones de Empleados
+  '130': ['11402','12121','12410','12804','12806','15204'],                                                // Secretaría de Trabajo y Seguridad Social
+  '140': ['11402','12121','12199','12209','12309','12499','12801','12804','12806','12899','15102','15299','17601','17603','17604','18105','18302'], // Secretaría de Recursos Naturales y Ambiente
+  '141': ['11402','12121','12806','15102','15299','17603'],                                                // Dirección de Evaluación y Control Ambiental
+  '142': ['11402'],                                                                                        // Dirección General de Energía
+  '143': ['11402'],                                                                                        // Comisión Nacional de Energía
+  '144': ['11402','12121','12806','15101'],                                                                // Empresa Nacional de Energía Eléctrica (ENEE)
+  '145': ['11402','12121','12199','12499','12806','15104'],                                                // Empresa Hondureña de Telecomunicaciones (HONDUTEL)
+  '150': ['11402','12117','12120','12121','12199','12209','12299','12304','12406','12499','12806','12807','12899','15104','15217','17603'], // Secretaría de Infraestructura y Servicios Públicos
+  '151': ['11402'],                                                                                        // Dirección General de Protección al Consumidor
+  '152': ['11402'],                                                                                        // Instituto de Previsión Militar
+  '153': ['11402','12121','12806','15299'],                                                                // Instituto de la Propiedad Industrial
+  '160': ['11402','12121','12806'],                                                                        // Secretaría de Desarrollo Económico
+  '161': ['11402'],                                                                                        // Dirección General de la Marina Mercante
+  '170': ['11402'],                                                                                        // Secretaría de Turismo
+  '180': ['11402','12218','12806'],                                                                        // Secretaría de Educación Superior, Ciencia y Tecnología
+  '190': ['11402','12121','12806'],                                                                        // Secretaría de Desarrollo Social
+  '200': ['11402','12121','12404','12410','12499','12804','12806'],                                        // Universidad Nacional Autónoma de Honduras (UNAH)
+  '201': ['11402','12121','12806'],                                                                        // Universidad Pedagógica Nacional Francisco Morazán
+  '210': ['11402','12121','12499','12806'],                                                                // Universidad Nacional de Ciencias Forestales
+  '220': ['11402'],                                                                                        // Escuela Nacional de Ciencias Forestales
+  '230': ['11402'],                                                                                        // Escuela Agrícola Panamericana El Zamorano
+  '240': ['11402','12121','12806'],                                                                        // Universidad de San Pedro Sula
+  '241': ['11402'],                                                                                        // Universidad Tecnológica Centroamericana
+  '244': ['11402','12121','12806','17603'],                                                                // Universidad Nacional de Ingeniería
+  '250': ['11402'],                                                                                        // Centro Universitario Regional del Litoral Atlántico
+  '260': ['11402'],                                                                                        // Universidad Católica de Honduras
+  '270': ['11402','12121','12806'],                                                                        // Consejo Nacional de Educación Superior
+  '280': ['11402','12121','12806','15299'],                                                                // Comisión para la Defensa y Promoción de la Competencia
+  '281': ['11402','12121','12806'],                                                                        // Superintendencia del Sistema Financiero
+  '290': ['11402','11406','12121','12199','12499','12806','15199','15299'],                                 // Comisión Nacional de Bancos y Seguros
+  '310': ['11402','12121','12199','12203','12209','12806'],                                                // Instituto Hondureño del Café (IHCAFE)
+  '320': ['11402'],                                                                                        // Cámara de Comercio e Industrias de Tegucigalpa
+  '330': ['11402'],                                                                                        // Consejo Hondureño de la Empresa Privada
+  '340': ['11402'],                                                                                        // Federación de Municipios del Istmo Centroamericano
+  '350': ['11402'],                                                                                        // Asociación Nacional de Municipios de Honduras
+  '360': ['11402'],                                                                                        // Municipalidad de Tegucigalpa
+  '370': ['11402'],                                                                                        // Municipalidad de San Pedro Sula
+  '380': ['11402'],                                                                                        // Municipalidad de La Ceiba
+  '390': ['11402'],                                                                                        // Otras Municipalidades
+  '404': ['12121','12806','15101'],                                                                        // Dirección General de Pesca y Acuicultura
+  '409': ['11402','12121','12806','15299'],                                                                // Instituto Hondureño de Turismo (IHT)
+  '410': ['11402','12121','12806','15207','17603'],                                                        // Dirección Nacional de Vialidad
+  '411': ['11402','11409','12121','12299','12409','12806','12899'],                                        // Colegio Médico de Honduras
+  '412': ['11402','12121','12806'],                                                                        // Colegio de Abogados de Honduras
+  '413': ['12121','12806','15299','17603','17605'],                                                        // Colegio de Ingenieros Civiles de Honduras
+  '414': ['11402','12121','12806'],                                                                        // Colegio de Economistas de Honduras
+  '415': ['11402','12121','12806'],                                                                        // Colegio de Arquitectos de Honduras
+  '419': ['11402','12121','12806','17603'],                                                                // Colegio de Ingenieros Mecánicos, Eléctricos y Químicos
+  '422': ['12121','12806'],                                                                                // Colegio de Peritos Mercantiles y Contadores Públicos
+  '449': ['11402','12121','12205','12206','12404','12499','12801','12804','12806','12807','12899','15101','17101','17102','17201','17202','17203','17204','17205','17206','17207','17301','17302','17401','17402','17501','17601','17602','17603','17604','17605','17701','17801','18101','18102','18103','18104','18105','18106','18107','18108','18109','18110','18111','18112','18113','18114','18401','18402','18403','18404'], // Secretaría de Finanzas - Cuenta Única del Tesoro
+  '500': ['11203','11402','12121','12806'],                                                                // Municipalidad del Distrito Central
+  '501': ['11402'],                                                                                        // Alcaldía Municipal de Choluteca
+  '503': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Comayagua
+  '504': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Juticalpa
+  '505': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Gracias
+  '506': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Yoro
+  '507': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Santa Rosa de Copán
+  '508': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Siguatepeque
+  '509': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Danlí
+  '510': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Puerto Cortés
+  '511': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Tela
+  '512': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Trujillo
+  '513': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Roatán
+  '514': ['11402','12121','12199','12499','12806'],                                                        // Policía Nacional
+  '515': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Tocoa
+  '601': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Catacamas
+  '602': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Olanchito
+  '603': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de El Progreso
+  '604': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Villanueva
+  '605': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Choloma
+  '701': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de La Lima
+  '702': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Potrerillos
+  '703': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de San Manuel
+  '704': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Pimienta
+  '705': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Santa Cruz de Yojoa
+  '706': ['11402','12121','12806'],                                                                        // Alcaldía Municipal de Armenia Copán
+  '707': ['11402','12121','12806']                                                                         // Alcaldía Municipal de San Pedro Sula Norte
 };
 function tgrCodeOf(instValue){ var m=String(instValue||'').match(/^\s*(\d+)/); return m?m[1]:''; }
 function rubroLabel(code){ return code + ' - ' + (TGR_RUBRO_NAMES[code] || ('Rubro '+code)); }
@@ -2021,7 +2150,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v3.0</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v3.1</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
