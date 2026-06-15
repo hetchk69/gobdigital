@@ -831,8 +831,7 @@ async function renderInicio(unitKey) {
   function rankingCard(ranked){
     function row(r,i,isTop){
       var pct=Math.round(r.avgPct*100),col=isTop?'#16a34a':'#dc2626',bg=isTop?'#dcfce7':'#fee2e2';
-      var medal=['🥇','🥈','🥉'];
-      var lbl=isTop?(medal[i]||((i+1)+'°')):'▼';
+      var lbl=isTop?((i+1)+'°'):'▼';
       var short=r.inst.length>26?r.inst.slice(0,25)+'…':r.inst;
       return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+
         '<div style="width:32px;height:32px;border-radius:8px;background:'+bg+';color:'+col+';font-size:'+(isTop?'16px':'13px')+';font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1.5px solid '+col+'22">'+lbl+'</div>'+
@@ -1036,15 +1035,18 @@ async function renderInicio(unitKey) {
         kpiCard('No iniciados', ni, 'Sin avance registrado', '#dc2626', total?ni/total:null)+
       '</div>'+
 
-      // Fila 1 (3 cols): Donut estado | Donut instituciones | Ranking
-      '<div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:12px;margin-bottom:1.1rem">'+
+      // Fila 1 (2 cols): Donas fusionadas con toggle | Ranking
+      '<div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:1.1rem">'+
         '<div class="card" style="padding:1rem 1.25rem">'+
-          '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Estado de trámites</div>'+
-          donutChart([{v:op,c:'#16a34a',l:'En operación'},{v:proc,c:'#f59e0b',l:'En proceso'},{v:ni,c:'#dc2626',l:'No iniciado'}],total,'trámites')+
-        '</div>'+
-        '<div class="card" style="padding:1rem 1.25rem">'+
-          '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Trámites por institución</div>'+
-          instDonutChart(instRows, total)+
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">'+
+            '<div style="font-size:15px;font-weight:800;color:var(--azul)" id="_donut-title">Estado de trámites</div>'+
+            '<div style="display:flex;gap:4px">'+
+              '<button id="_btn-estado" onclick="window._switchDonut(\'estado\')" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;border:1.5px solid var(--azul);background:var(--azul);color:#fff;cursor:pointer">Por estado</button>'+
+              '<button id="_btn-inst" onclick="window._switchDonut(\'inst\')" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;border:1.5px solid var(--borde);background:#fff;color:var(--muted);cursor:pointer">Por institución</button>'+
+            '</div>'+
+          '</div>'+
+          '<div id="_donut-estado">'+donutChart([{v:op,c:'#16a34a',l:'En operación'},{v:proc,c:'#f59e0b',l:'En proceso'},{v:ni,c:'#dc2626',l:'No iniciado'}],total,'trámites')+'</div>'+
+          '<div id="_donut-inst" style="display:none">'+instDonutChart(instRows,total)+'</div>'+
         '</div>'+
         '<div class="card" style="padding:1rem 1.25rem">'+
           '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Ranking de instituciones</div>'+
@@ -1150,6 +1152,19 @@ async function renderInicio(unitKey) {
         '</div>';
       })();
 
+    window._switchDonut = function(tab){
+      var isEst = tab==='estado';
+      document.getElementById('_donut-estado').style.display = isEst?'':'none';
+      document.getElementById('_donut-inst').style.display  = isEst?'none':'';
+      document.getElementById('_donut-title').textContent   = isEst?'Estado de trámites':'Trámites por institución';
+      var bEst=document.getElementById('_btn-estado'), bInst=document.getElementById('_btn-inst');
+      bEst.style.background  = isEst?'var(--azul)':'#fff';
+      bEst.style.color       = isEst?'#fff':'var(--muted)';
+      bEst.style.borderColor = isEst?'var(--azul)':'var(--borde)';
+      bInst.style.background  = isEst?'#fff':'var(--azul)';
+      bInst.style.color       = isEst?'var(--muted)':'#fff';
+      bInst.style.borderColor = isEst?'var(--borde)':'var(--azul)';
+    };
     window._toggleInst = function(id){
       var tb=document.getElementById(id), ic=document.getElementById('ic-'+id);
       if(!tb) return;
