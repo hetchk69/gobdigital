@@ -385,44 +385,6 @@ var UNITS = {
     desc: 'Estado técnico y checklist de digitalización de trámites SOL.',
     modulos: [
       {
-        key:'tramites_estado',
-        label:'Trámites — Estado',
-        icon:'clipboard',
-        tipo:'Levantamiento',
-        tipoCls:'levantamiento',
-        desc:'Levantamiento del estado actual de trámites por institución (requisitos, canales, tiempo, costos).',
-        url:'tramites_estado.html',
-        versiones: [
-          'BANHPROVI','CANATURH / IHT','CNBS','CONATEL','CONSUCOOP',
-          'CONVIVIENDA','COPECO','IHADFA','IHCINE','IHTT','INPREMA',
-          'INPREUNAH','SAG','SECAPPH','SEN','SERNA','SGJD','SIT','SRECI'
-        ]
-      },
-      {
-        key:'tramites_tecnica',
-        label:'Trámites — Técnica',
-        icon:'file-search',
-        tipo:'Ficha Técnica',
-        tipoCls:'ficha',
-        desc:'Ficha técnica por trámite: flujo de actividades, requisitos normativos y racionalización SOL.',
-        url:'tramites_tecnica.html',
-        versiones: [
-          'BANHPROVI','CANATURH / IHT','CNBS','CONATEL','CONSUCOOP',
-          'CONVIVIENDA','COPECO','IHADFA','IHCINE','IHTT','INPREMA',
-          'INPREUNAH','SAG','SECAPPH','SEN','SERNA','SGJD','SIT','SRECI'
-        ]
-      },
-      {
-        key:'ficha_tramite',
-        label:'Ficha de Trámite Digitalizado',
-        icon:'clipboard',
-        tipo:'Ficha',
-        tipoCls:'ficha',
-        desc:'Ficha 2026 del trámite y evaluación de requerimientos mínimos de infraestructura SOL por institución.',
-        url:'ficha_tramite.html',
-        versiones: []
-      },
-      {
         key:'expediente_digitalizacion',
         label:'Expediente de Digitalización',
         icon:'folder-open',
@@ -430,9 +392,9 @@ var UNITS = {
         tipoCls:'levantamiento',
         desc:'Conjunto de documentos del proceso de digitalización institucional.',
         subItems: [
-          { label:'Expediente de trámites nuevos', icon:'folder-open', url:'expediente_digitalizacion.html', desc:'Justificación, proceso actual, requisitos y modelo propuesto.' },
-          { label:'Levantamiento de estado', icon:'clipboard', url:'tramites_estado.html', desc:'Estado actual de digitalización de trámites por institución.' },
-          { label:'Levantamiento técnico', icon:'file-search', url:'tramites_tecnica.html', desc:'Especificaciones técnicas del trámite a digitalizar.' }
+          { label:'Expediente de Trámites Nuevos', icon:'folder-open', url:'expediente_digitalizacion.html', desc:'Justificación, proceso actual, requisitos y modelo propuesto.' },
+          { label:'Estado de Trámites Actuales', icon:'clipboard', url:'tramites_estado.html', desc:'Estado actual de digitalización de trámites por institución.' },
+          { label:'Documentación Técnica de Trámites Nuevos', icon:'file-search', url:'tramites_tecnica.html', desc:'Especificaciones técnicas del trámite a digitalizar.' }
         ]
       },
       {
@@ -449,18 +411,18 @@ var UNITS = {
     // Documentos fijos del sistema (aparecen en la pestaña Documentos y en el portal institucional)
     documentosFijos: [
       {
-        nombre:'Instituciones',
-        tipo:'Control',
-        desc:'Avance de digitalización por etapas, checklists editables y notas de seguimiento por institución.',
-        url:'instituciones.html',
-        icon:'clipboard'
-      },
-      {
         nombre:'Directorio de Contactos',
         tipo:'Registro',
         desc:'Consolidado de contactos institucionales por institución, extraídos de reuniones y enlaces técnicos.',
         url:'contactos.html',
         icon:'users'
+      },
+      {
+        nombre:'Instituciones',
+        tipo:'Control',
+        desc:'Avance de digitalización por etapas, checklists editables y notas de seguimiento por institución.',
+        url:'instituciones.html',
+        icon:'clipboard'
       }
     ]
   }
@@ -1487,66 +1449,41 @@ function docuItems(unitKey) { return lsGet(docuKey(unitKey), []); }
 function renderDocumentos(unitKey) {
   CURRENT_UNIT = unitKey;
   var u = UNITS[unitKey];
-  var fijos = u.documentosFijos || [];
-  var items = docuItems(unitKey).slice().sort(function(a,b){ return (b.fecha||'').localeCompare(a.fecha||''); });
-  var total = fijos.length + items.length;
-
-  // Documentos fijos del sistema (no editables / no eliminables)
-  var fijosHtml = fijos.map(function(d){
-    return '<div class="dr-item">' +
-      '<div class="dr-ico">' + (SVGS['building'] || DOC_ICO) + '</div>' +
-      '<div class="dr-info"><div class="dr-name">' + esc(d.nombre) + '</div>' +
-        '<div class="dr-meta">' +
-          '<span class="dr-badge" style="background:#dcfce7;color:#15803d">Sistema</span>' +
-          (d.tipo ? '<span class="dr-badge">' + esc(d.tipo) + '</span>' : '') +
-          (d.desc ? '<span>' + esc(d.desc) + '</span>' : '') +
-        '</div></div>' +
-      '<div class="dr-acts">' +
-        '<a class="dr-open" href="' + esc(d.url) + '">Abrir →</a>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-
-  // Documentos agregados por el usuario
-  var userHtml = items.map(function(d){
-    return '<div class="dr-item">' +
-      '<div class="dr-ico">' + DOC_ICO + '</div>' +
-      '<div class="dr-info"><div class="dr-name">' + esc(d.nombre) + '</div>' +
-        '<div class="dr-meta">' +
-          (d.tipo ? '<span class="dr-badge">' + esc(d.tipo) + '</span>' : '') +
-          (d.fecha ? '<span>📅 ' + esc(d.fecha) + '</span>' : '') +
-          (d.autor ? '<span>👤 ' + esc(d.autor) + '</span>' : '') +
-        '</div></div>' +
-      '<div class="dr-acts">' +
-        (d.url ? '<a class="dr-open" href="' + esc(d.url) + '" target="_blank" rel="noopener">Abrir →</a>' : '') +
-        '<button class="dr-del" onclick="docDel(\'' + d.id + '\')">✕</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-
-  var listHtml = fijosHtml + userHtml;
-  if (!total) {
-    listHtml = '<div class="tab-empty"><div class="ico">' + DOC_ICO.replace(/width="20" height="20"/,'width="40" height="40"') + '</div>' +
-      '<p>No hay documentos registrados en esta unidad.<br>Agregue el primero con el botón de arriba.</p></div>';
-  }
-
-  // Modules section
   var isAdmin = ses.role === 'admin';
   var acc = ses.access || {};
-  var visibles = u.modulos.filter(function(m){ return isAdmin || acc[m.key]; });
-  var modsHtml = '';
-  if (visibles.length > 0) {
-    modsHtml = '<div class="card" style="padding:0;overflow:hidden;margin-bottom:1rem">' +
-      '<div style="padding:.85rem 1.25rem .5rem;border-bottom:1px solid var(--borde)">' +
-        '<div class="sec-title" style="margin:0;border:none;padding:0">📂 Módulos — ' + esc(u.label) + '</div>' +
-      '</div>' +
-      '<div class="mod-list">';
-    visibles.forEach(function(m, idx){
+
+  // --- Build unified item list ---
+  var unified = [];
+
+  // Visible modules
+  u.modulos.filter(function(m){ return isAdmin || acc[m.key]; }).forEach(function(m){
+    unified.push({ _t:'modulo', _name: m.label, m: m });
+  });
+
+  // Fixed system docs
+  (u.documentosFijos || []).forEach(function(d){
+    unified.push({ _t:'fijo', _name: d.nombre, d: d });
+  });
+
+  // User-uploaded docs
+  docuItems(unitKey).forEach(function(d){
+    unified.push({ _t:'user', _name: d.nombre, d: d });
+  });
+
+  // Sort all alphabetically (ignore case/accents)
+  unified.sort(function(a,b){ return a._name.localeCompare(b._name,'es',{sensitivity:'base'}); });
+
+  var total = unified.length;
+
+  var listHtml = unified.map(function(entry, idx){
+    if (entry._t === 'modulo') {
+      var m = entry.m;
+      var hasChev = !!m.subItems;
       var subHtml = '';
-      if(m.subItems){
-        subHtml = '<div class="mod-sub-list">';
+      if (hasChev) {
+        subHtml = '<div class="mod-sub-list" id="mdsub-' + idx + '" style="display:none">';
         m.subItems.forEach(function(si){
-          subHtml += '<a class="mod-sub-item" href="' + si.url + '">' +
+          subHtml += '<a class="mod-sub-item" href="' + esc(si.url) + '">' +
             '<div class="mod-sub-icon">' + (SVGS[si.icon]||'') + '</div>' +
             '<div><div class="mod-sub-name">' + esc(si.label) + '</div><div class="mod-sub-desc">' + esc(si.desc) + '</div></div>' +
             '<span class="btn-open">Abrir →</span>' +
@@ -1554,34 +1491,77 @@ function renderDocumentos(unitKey) {
         });
         subHtml += '</div>';
       }
-      modsHtml +=
-        '<div class="mod-row" id="modrow-' + idx + '">' +
-          '<div class="mod-row-head" style="cursor:default">' +
-            '<div class="mod-row-icon" style="color:var(--azul-m)">' + (SVGS[m.icon]||m.icon) + '</div>' +
-            '<div class="mod-row-name">' + esc(m.label) + '</div>' +
-            '<div><span class="mod-type-badge ' + (m.tipoCls||'') + '">' + esc(m.tipo||'Módulo') + '</span></div>' +
-            '<div class="mod-row-desc">' + esc(m.desc) + '</div>' +
-            '<div class="mod-row-actions">' +
-              (m.url ? '<a class="btn-open" href="' + m.url + '">Abrir →</a>' : '') +
-            '</div>' +
+      return '<div class="dr-item" style="flex-wrap:wrap;cursor:' + (hasChev?'pointer':'default') + '" ' +
+          (hasChev ? 'onclick="toggleDocSub(' + idx + ')"' : '') + '>' +
+        '<div class="dr-ico" style="color:var(--azul-m)">' + (SVGS[m.icon]||DOC_ICO) + '</div>' +
+        '<div class="dr-info">' +
+          '<div class="dr-name">' + esc(m.label) + '</div>' +
+          '<div class="dr-meta">' +
+            '<span class="dr-badge" style="background:#dbeafe;color:#1d4ed8">Módulo</span>' +
+            '<span class="mod-type-badge ' + (m.tipoCls||'') + '" style="font-size:11px">' + esc(m.tipo||'') + '</span>' +
+            '<span>' + esc(m.desc) + '</span>' +
           '</div>' +
-          subHtml +
-        '</div>';
-    });
-    modsHtml += '</div></div>';
+        '</div>' +
+        '<div class="dr-acts">' +
+          (m.url ? '<a class="dr-open" href="' + esc(m.url) + '" onclick="event.stopPropagation()">Abrir →</a>' : '') +
+          (hasChev ? '<span id="mdchev-' + idx + '" style="font-size:18px;color:var(--muted);transition:transform .2s;display:inline-block">›</span>' : '') +
+        '</div>' +
+        (hasChev ? '<div style="width:100%">' + subHtml + '</div>' : '') +
+      '</div>';
+    } else if (entry._t === 'fijo') {
+      var d = entry.d;
+      return '<div class="dr-item">' +
+        '<div class="dr-ico">' + (SVGS[d.icon] || DOC_ICO) + '</div>' +
+        '<div class="dr-info"><div class="dr-name">' + esc(d.nombre) + '</div>' +
+          '<div class="dr-meta">' +
+            '<span class="dr-badge" style="background:#dcfce7;color:#15803d">Sistema</span>' +
+            (d.tipo ? '<span class="dr-badge">' + esc(d.tipo) + '</span>' : '') +
+            (d.desc ? '<span>' + esc(d.desc) + '</span>' : '') +
+          '</div></div>' +
+        '<div class="dr-acts"><a class="dr-open" href="' + esc(d.url) + '">Abrir →</a></div>' +
+      '</div>';
+    } else {
+      var d = entry.d;
+      return '<div class="dr-item">' +
+        '<div class="dr-ico">' + DOC_ICO + '</div>' +
+        '<div class="dr-info"><div class="dr-name">' + esc(d.nombre) + '</div>' +
+          '<div class="dr-meta">' +
+            (d.tipo ? '<span class="dr-badge">' + esc(d.tipo) + '</span>' : '') +
+            (d.fecha ? '<span>📅 ' + esc(d.fecha) + '</span>' : '') +
+            (d.autor ? '<span>👤 ' + esc(d.autor) + '</span>' : '') +
+          '</div></div>' +
+        '<div class="dr-acts">' +
+          (d.url ? '<a class="dr-open" href="' + esc(d.url) + '" target="_blank" rel="noopener">Abrir →</a>' : '') +
+          '<button class="dr-del" onclick="docDel(\'' + d.id + '\')">✕</button>' +
+        '</div>' +
+      '</div>';
+    }
+  }).join('');
+
+  if (!total) {
+    listHtml = '<div class="tab-empty"><div class="ico">' + DOC_ICO.replace(/width="20" height="20"/,'width="40" height="40"') + '</div>' +
+      '<p>No hay documentos registrados en esta unidad.<br>Agregue el primero con el botón de arriba.</p></div>';
   }
 
   app.innerHTML =
-    tabBreadcrumb(unitKey, 'Documentos') +
+    tabBreadcrumb(unitKey, 'Módulos y Documentos') +
     '<div class="welcome"><div class="badge">' + esc(u.label) + '</div>' +
-      '<h2>Documentos</h2><p>Registro central de documentos y módulos de la unidad.</p></div>' +
-    modsHtml +
+      '<h2>Módulos y Documentos</h2><p>Acceso a módulos y registro de documentos de la unidad.</p></div>' +
     '<div class="tab-toolbar">' +
-      '<div style="font-size:13px;color:var(--muted);font-weight:600">' + total + ' documento' + (total!==1?'s':'') + '</div>' +
+      '<div style="font-size:13px;color:var(--muted);font-weight:600">' + total + ' elemento' + (total!==1?'s':'') + '</div>' +
       '<button class="btn-prim" onclick="docAddPrompt()">+ Agregar documento</button>' +
     '</div>' +
     listHtml;
 }
+
+window.toggleDocSub = function(idx) {
+  var panel = document.getElementById('mdsub-' + idx);
+  var chev  = document.getElementById('mdchev-' + idx);
+  if (!panel) return;
+  var open = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  if (chev) chev.style.transform = open ? 'rotate(90deg)' : '';
+};
 
 function docAddPrompt() {
   var hoy = new Date().toISOString().split('T')[0];
