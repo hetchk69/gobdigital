@@ -922,7 +922,7 @@ async function renderInicio(unitKey) {
 
   // HORIZONTAL BAR CHART (stages)
   function hBarChart(labels,values){
-    var pL=190,pR=58,pT=24,rH=34,w=580,axH=22;
+    var pL=190,pR=58,pT=24,rH=42,w=580,axH=24;
     var cW=w-pL-pR,barsH=labels.length*rH,h=pT+barsH+axH+4;
     var bg='<rect x="'+pL+'" y="'+pT+'" width="'+cW+'" height="'+barsH+'" fill="#f8faff" rx="4"/>';
     var ticks=[0,0.25,0.5,0.75,1].map(function(t){
@@ -939,7 +939,7 @@ async function renderInicio(unitKey) {
         '<rect x="'+pL+'" y="'+by.toFixed(1)+'" width="'+bw+'" height="'+bh.toFixed(1)+'" rx="'+(bh/2)+'" fill="'+col+'"/>'+
         '<text x="'+(pL+bw+6)+'" y="'+(by+bh*.66+1).toFixed(1)+'" '+FF+' font-size="13" font-weight="800" fill="'+col+'">'+Math.round(val*100)+'%</text>';
     }).join('');
-    return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" style="width:100%">'+bg+ticks+bars+'</svg>';
+    return '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block">'+bg+ticks+bars+'</svg>';
   }
 
   function renderDash(){
@@ -1069,9 +1069,9 @@ async function renderInicio(unitKey) {
           '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Distribución por alojamiento</div>'+
           pieChart(alojSegs)+
         '</div>'+
-        '<div class="card" style="padding:1rem 1.25rem;overflow-x:auto">'+
-          '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Cumplimiento por etapa del proceso</div>'+
-          hBarChart(DB_ETAPAS_LABELS,stageVals)+
+        '<div class="card" style="padding:1rem 1.25rem;display:flex;flex-direction:column">'+
+          '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c);flex-shrink:0">Cumplimiento por etapa del proceso</div>'+
+          '<div style="flex:1;min-height:0">'+hBarChart(DB_ETAPAS_LABELS,stageVals)+'</div>'+
         '</div>'+
       '</div>'+
 
