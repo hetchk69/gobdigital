@@ -64,6 +64,18 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .tp.on{border-color:var(--azul-m);background:linear-gradient(135deg,#dde9ff,#c8dbff);color:var(--azul);font-weight:700}
 .tp.on-v{border-color:var(--verde);background:var(--verde-c);color:var(--verde);font-weight:700}
 .tp input{display:none}
+/* PERFILES (estilo etapas de instituciones.html) */
+.perfiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.5rem;margin-top:.5rem}
+.perfil-item{border:1.5px solid var(--borde);background:#fafbfd;border-radius:9px;padding:8px 10px;transition:all .15s;user-select:none}
+.perfil-head{display:flex;align-items:flex-start;gap:8px;cursor:pointer}
+.perfil-item:hover{border-color:var(--azul-m);background:var(--azul-c)}
+.perfil-item.checked{border-color:var(--verde);background:#f0fdf4}
+.perfil-item.checked:hover{background:#f0fdf4}
+.perfil-cb{width:20px;height:20px;border-radius:5px;border:1.5px solid #c8d5ee;background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--verde);flex-shrink:0;transition:all .15s}
+.perfil-item.checked .perfil-cb{background:var(--verde);border-color:var(--verde);color:#fff}
+.perfil-name{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--texto);line-height:1.3;padding-top:1px}
+.perfil-det{margin-top:.55rem;display:grid;gap:.4rem}
+.perfil-det input{padding:7px 9px;border:1.5px solid var(--borde);border-radius:7px;font-size:12px;font-family:inherit;width:100%}
 /* DYNAMIC TABLE */
 .dtbl{width:100%;border-collapse:collapse;font-size:13px}
 .dtbl th{background:var(--azul);color:#fff;padding:9px 11px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:left}
@@ -226,6 +238,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
     <div class="sbi" id="sb1" onclick="ir(1)"><div class="sbi-dot"></div>Ficha del trámite</div>
     <div class="sbi" id="sb2" onclick="ir(2)"><div class="sbi-dot"></div>Marco legal y documentación</div>
     <div class="sbi" id="sb3" onclick="ir(3)"><div class="sbi-dot"></div>Proceso actual</div>
+    <div class="sbi" id="sb4" onclick="ir(4)"><div class="sbi-dot"></div>Infraestructura SOL</div>
     <div class="sbi" id="sb5" onclick="ir(5)"><div class="sbi-dot"></div>Modelo propuesto</div>
     <div class="sbi" id="sb6" onclick="ir(6)"><div class="sbi-dot"></div>Estado del expediente</div>
     <div class="sb-div"></div>
@@ -245,7 +258,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.8</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.9</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -330,69 +343,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
       <div class="sec-title">📋 Ficha del trámite</div>
       <div class="tram-tab-bar" id="tram-tabs-1" style="display:none"></div>
       <div id="fichas-wrap"></div>
-
-      <!-- ── REQUERIMIENTOS MÍNIMOS DE INFRAESTRUCTURA SOL (una vez por expediente) ── -->
-      <div style="margin:1.6rem 0 1.1rem;padding-top:1.2rem;border-top:2px dashed var(--azul-c)">
-        <div class="sec-title" style="margin-bottom:.4rem">🖥 Requerimientos mínimos de infraestructura SOL</div>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:1rem">Evaluación de la institución frente a los requerimientos mínimos para alojar la plataforma SOL. Se completa una sola vez por expediente.</p>
-      </div>
-
-      <div class="card accent">
-        <div class="ct">Perfiles técnicos y transferencia de capacidades</div>
-        <div class="f">
-          <label>¿Cuenta con personal técnico capacitado?</label>
-          <div class="tg" id="tg-personal">
-            <label class="tp"><input type="radio" name="infra_personal" value="Sí"> Sí</label>
-            <label class="tp"><input type="radio" name="infra_personal" value="No"> No</label>
-            <label class="tp"><input type="radio" name="infra_personal" value="Parcialmente"> Parcialmente</label>
-          </div>
-        </div>
-        <div class="f">
-          <label>Perfiles disponibles o requeridos <span style="font-weight:400;color:var(--muted)">— marque cada perfil e indique nombre y correo institucional</span></label>
-          <div id="perfiles-grid"></div>
-        </div>
-        <div class="g2">
-          <div class="f"><label>Cantidad total de personal TI</label><input type="number" id="infra_personal_ti" placeholder="Ej: 8" min="0"></div>
-          <div class="f"><label>Responsable técnico de SOL</label><input type="text" id="infra_resp_sol" placeholder="Nombre, cargo y contacto"></div>
-        </div>
-        <div class="f">
-          <label>¿Requiere acompañamiento o talleres?</label>
-          <div class="tg" id="tg-acomp">
-            <label class="tp"><input type="radio" name="infra_acomp" value="Sí"> Sí</label>
-            <label class="tp"><input type="radio" name="infra_acomp" value="No"> No</label>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="ct">Data center y condiciones operativas</div>
-        <div class="g3">
-          <div class="f"><label>Modalidad</label>
-            <select id="infra_dc_modalidad"><option value="">— Seleccione —</option><option>Data center propio</option><option>Nube pública</option><option>Nube privada</option><option>Híbrido</option><option>Tercerizado / Hosting</option></select>
-          </div>
-          <div class="f"><label>Virtualización</label>
-            <select id="infra_dc_virt" onchange="toggleVirtOtro()"><option value="">— Seleccione —</option><option>VMware</option><option>Hyper-V</option><option>Proxmox</option><option>KVM</option><option>Sin virtualización</option><option>Otro</option></select>
-          </div>
-          <div class="f"><label>Disponibilidad estimada</label><input type="text" id="infra_dc_disp" placeholder="Ej: 99.5%"></div>
-        </div>
-        <div class="f" id="virt-otro-wrap" style="display:none"><label>Especifique la virtualización <span class="star">*</span></label><input type="text" id="infra_dc_virt_otro" placeholder="Indique la solución de virtualización utilizada"></div>
-        <div class="f">
-          <label>Condiciones operativas</label>
-          <div id="datacenter-grid" class="chk-grid-infra"></div>
-        </div>
-        <div class="f"><label>Observaciones del data center</label><textarea id="infra_dc_obs" rows="2" placeholder="Detalles sobre las condiciones del data center..."></textarea></div>
-      </div>
-
-      <div class="card">
-        <div class="ct">Requerimientos mínimos por servidor</div>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:1rem">Para cada requerimiento indique el estado de cumplimiento y registre la capacidad actual, brecha o evidencia.</p>
-        <div id="infra-checklist"></div>
-      </div>
-
-      <div class="card">
-        <div class="ct">Plan de adecuación</div>
-        <div class="f"><textarea id="infra_plan" rows="4" placeholder="Acciones necesarias para alcanzar los requerimientos mínimos, presupuesto o fecha estimada..."></textarea></div>
-      </div>
 
       <div class="nav">
         <button class="btn btn-s" onclick="ir(0)">← Anterior</button>
@@ -497,10 +447,77 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
       <div class="nav">
         <button class="btn btn-s" onclick="ir(2)">← Anterior</button>
-        <button class="btn btn-p" onclick="ir(5)">Siguiente →</button>
+        <button class="btn btn-p" onclick="ir(4)">Siguiente →</button>
       </div>
     </div>
 
+    <!-- ══ SECCIÓN 4: INFRAESTRUCTURA SOL ══ -->
+    <div class="sec" id="sec4">
+      <div class="sec-title">🖥 Requerimientos mínimos de infraestructura SOL</div>
+      <p style="font-size:12px;color:var(--muted);margin:-0.9rem 0 1.2rem">Evaluación de la institución frente a los requerimientos mínimos para alojar la plataforma SOL. Se completa una sola vez por expediente.</p>
+
+      <div class="card accent">
+        <div class="ct">Perfiles técnicos y transferencia de capacidades</div>
+        <div class="f">
+          <label>¿Cuenta con personal técnico capacitado?</label>
+          <div class="tg" id="tg-personal">
+            <label class="tp"><input type="radio" name="infra_personal" value="Sí"> Sí</label>
+            <label class="tp"><input type="radio" name="infra_personal" value="No"> No</label>
+            <label class="tp"><input type="radio" name="infra_personal" value="Parcialmente"> Parcialmente</label>
+          </div>
+        </div>
+        <div class="f">
+          <label>Perfiles disponibles o requeridos <span style="font-weight:400;color:var(--muted)">— marque cada perfil e indique nombre y correo institucional</span></label>
+          <div id="perfiles-grid" class="perfiles-grid"></div>
+        </div>
+        <div class="g2">
+          <div class="f"><label>Cantidad total de personal TI</label><input type="number" id="infra_personal_ti" placeholder="Ej: 8" min="0"></div>
+          <div class="f"><label>Responsable técnico de SOL</label><input type="text" id="infra_resp_sol" placeholder="Nombre, cargo y contacto"></div>
+        </div>
+        <div class="f">
+          <label>¿Requiere acompañamiento o talleres?</label>
+          <div class="tg" id="tg-acomp">
+            <label class="tp"><input type="radio" name="infra_acomp" value="Sí"> Sí</label>
+            <label class="tp"><input type="radio" name="infra_acomp" value="No"> No</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Data center y condiciones operativas</div>
+        <div class="g3">
+          <div class="f"><label>Modalidad</label>
+            <select id="infra_dc_modalidad"><option value="">— Seleccione —</option><option>Data center propio</option><option>Nube pública</option><option>Nube privada</option><option>Híbrido</option><option>Tercerizado / Hosting</option></select>
+          </div>
+          <div class="f"><label>Virtualización</label>
+            <select id="infra_dc_virt" onchange="toggleVirtOtro()"><option value="">— Seleccione —</option><option>VMware</option><option>Hyper-V</option><option>Proxmox</option><option>KVM</option><option>Sin virtualización</option><option>Otro</option></select>
+          </div>
+          <div class="f"><label>Disponibilidad estimada</label><input type="text" id="infra_dc_disp" placeholder="Ej: 99.5%"></div>
+        </div>
+        <div class="f" id="virt-otro-wrap" style="display:none"><label>Especifique la virtualización <span class="star">*</span></label><input type="text" id="infra_dc_virt_otro" placeholder="Indique la solución de virtualización utilizada"></div>
+        <div class="f">
+          <label>Condiciones operativas</label>
+          <div id="datacenter-grid"></div>
+        </div>
+        <div class="f"><label>Observaciones del data center</label><textarea id="infra_dc_obs" rows="2" placeholder="Detalles sobre las condiciones del data center..."></textarea></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Requerimientos mínimos por servidor</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:1rem">Para cada requerimiento indique el estado de cumplimiento y registre la capacidad actual, brecha o evidencia.</p>
+        <div id="infra-checklist"></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Plan de adecuación</div>
+        <div class="f"><textarea id="infra_plan" rows="4" placeholder="Acciones necesarias para alcanzar los requerimientos mínimos, presupuesto o fecha estimada..."></textarea></div>
+      </div>
+
+      <div class="nav">
+        <button class="btn btn-s" onclick="ir(3)">← Anterior</button>
+        <button class="btn btn-p" onclick="ir(5)">Siguiente →</button>
+      </div>
+    </div>
 
     <!-- ══ SECCIÓN 5: MODELO PROPUESTO ══ -->
     <div class="sec" id="sec5">
@@ -572,7 +589,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
       </div>
 
       <div class="nav">
-        <button class="btn btn-s" onclick="ir(3)">← Anterior</button>
+        <button class="btn btn-s" onclick="ir(4)">← Anterior</button>
         <button class="btn btn-p" onclick="ir(6)">Siguiente →</button>
       </div>
     </div>
@@ -785,20 +802,29 @@ function renderPerfilesInfra(){
   var g = document.getElementById('perfiles-grid');
   if(!g) return;
   g.innerHTML = PERFILES.map(function(p,k){
-    return '<div style="border:1.5px solid var(--borde);border-radius:9px;padding:.6rem .75rem;margin-bottom:.5rem;background:#fafbfd">'
-      + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer">'
-        + '<input type="checkbox" id="perfil_chk_'+k+'" onchange="togglePerfil('+k+')"> '+escHtml(p)+'</label>'
-      + '<div id="perfil_det_'+k+'" style="display:none;margin-top:.55rem"><div class="g2">'
-        + '<div class="f" style="margin:0"><input type="text" id="perfil_nom_'+k+'" placeholder="Nombre de la persona" style="font-size:12.5px"></div>'
-        + '<div class="f" style="margin:0"><input type="email" id="perfil_mail_'+k+'" placeholder="Correo institucional" style="font-size:12.5px"></div>'
-      + '</div></div>'
+    return '<div class="perfil-item" id="perfil_item_'+k+'">'
+      + '<div class="perfil-head" onclick="togglePerfil('+k+')">'
+        + '<input type="checkbox" id="perfil_chk_'+k+'" style="display:none">'
+        + '<div class="perfil-cb" id="perfil_cb_'+k+'"></div>'
+        + '<div class="perfil-name">'+escHtml(p)+'</div>'
+      + '</div>'
+      + '<div class="perfil-det" id="perfil_det_'+k+'" style="display:none">'
+        + '<input type="text" id="perfil_nom_'+k+'" placeholder="Nombre de la persona" onclick="event.stopPropagation()">'
+        + '<input type="email" id="perfil_mail_'+k+'" placeholder="Correo institucional" onclick="event.stopPropagation()">'
+      + '</div>'
     + '</div>';
   }).join('');
 }
-function togglePerfil(k){
+function togglePerfil(k, forceState){
   var chk = document.getElementById('perfil_chk_'+k);
-  var det = document.getElementById('perfil_det_'+k);
-  if(det) det.style.display = (chk && chk.checked) ? '' : 'none';
+  if(!chk) return;
+  if(forceState===undefined) chk.checked = !chk.checked; else chk.checked = forceState;
+  var item = document.getElementById('perfil_item_'+k);
+  var cb   = document.getElementById('perfil_cb_'+k);
+  var det  = document.getElementById('perfil_det_'+k);
+  if(item) item.classList.toggle('checked', chk.checked);
+  if(cb) cb.textContent = chk.checked ? '✓' : '';
+  if(det) det.style.display = chk.checked ? '' : 'none';
 }
 function renderDatacenterCond(){
   var g = document.getElementById('datacenter-grid');
@@ -859,7 +885,7 @@ function poblarInfra(inf){
   if(inf.acomp){ var a=document.querySelector('input[name="infra_acomp"][value="'+inf.acomp+'"]'); if(a)a.checked=true; }
   (inf.perfiles||[]).forEach(function(pf){
     var k = PERFILES.indexOf(pf.perfil);
-    if(k>=0){ var chk=document.getElementById('perfil_chk_'+k); if(chk){chk.checked=true; togglePerfil(k);} sv('perfil_nom_'+k,pf.nombre||''); sv('perfil_mail_'+k,pf.correo||''); }
+    if(k>=0){ togglePerfil(k, true); sv('perfil_nom_'+k,pf.nombre||''); sv('perfil_mail_'+k,pf.correo||''); }
   });
   sv('infra_personal_ti',inf.personal_ti||''); sv('infra_resp_sol',inf.resp_sol||'');
   sv('infra_dc_modalidad',inf.dc_modalidad||''); sv('infra_dc_virt',inf.dc_virt||''); toggleVirtOtro(); sv('infra_dc_virt_otro',inf.dc_virt_otro||'');
@@ -1951,7 +1977,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.8</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.9</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
