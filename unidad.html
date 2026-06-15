@@ -717,7 +717,8 @@ async function renderInicio(unitKey) {
 
   // DONUT CHART
   function donutChart(segs,centerTxt,centerSub){
-    var cx=110,cy=95,r=72,inner=44;
+    // Same viewBox ratio as instDonutChart (458×210) so both tabs look identical size
+    var cx=105,cy=105,r=80,inner=50;
     var total=segs.reduce(function(s,g){ return s+g.v; },0)||1;
     var cur=-90,paths='';
     segs.forEach(function(g){
@@ -729,15 +730,19 @@ async function renderInicio(unitKey) {
         ' L '+si.x.toFixed(1)+' '+si.y.toFixed(1)+' A '+inner+' '+inner+' 0 '+lg+' 0 '+ei.x.toFixed(1)+' '+ei.y.toFixed(1)+'Z" fill="'+g.c+'" stroke="white" stroke-width="2"/>';
       cur=ea;
     });
+    // Legend on the right — same layout as instDonutChart
+    var legX=228;
     var legend=segs.map(function(g,i){
-      var lx=8+(i%2)*110,ly=200+(Math.floor(i/2)*16);
-      return '<rect x="'+lx+'" y="'+ly+'" width="10" height="10" rx="2" fill="'+g.c+'"/>'+
-        '<text x="'+(lx+14)+'" y="'+(ly+9)+'" '+FF+' font-size="10" fill="#64748b">'+esc(g.l)+' ('+g.v+')</text>';
+      var ly=40+i*44;
+      var pct=Math.round(g.v/total*100);
+      return '<rect x="'+legX+'" y="'+ly+'" width="12" height="12" rx="3" fill="'+g.c+'"/>'+
+        '<text x="'+(legX+18)+'" y="'+(ly+11)+'" '+FF+' font-size="14" font-weight="700" fill="#1c2333">'+esc(g.l)+'</text>'+
+        '<text x="'+(legX+18)+'" y="'+(ly+26)+'" '+FF+' font-size="12" fill="#94a3b8">'+g.v+' trám. · '+pct+'%</text>';
     }).join('');
-    return '<svg viewBox="0 0 220 230" xmlns="http://www.w3.org/2000/svg" style="width:100%">'+
+    return '<svg viewBox="0 0 458 210" xmlns="http://www.w3.org/2000/svg" style="width:100%">'+
       paths+
-      '<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" '+FF+' font-size="22" font-weight="900" fill="#0a2d6e">'+centerTxt+'</text>'+
-      '<text x="'+cx+'" y="'+(cy+13)+'" text-anchor="middle" '+FF+' font-size="10" fill="#64748b">'+esc(centerSub)+'</text>'+
+      '<text x="'+cx+'" y="'+(cy-5)+'" text-anchor="middle" '+FF+' font-size="30" font-weight="900" fill="#0a2d6e">'+centerTxt+'</text>'+
+      '<text x="'+cx+'" y="'+(cy+16)+'" text-anchor="middle" '+FF+' font-size="12" fill="#64748b">'+esc(centerSub)+'</text>'+
       legend+
     '</svg>';
   }
