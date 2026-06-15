@@ -51,6 +51,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .f textarea{min-height:80px;resize:vertical;line-height:1.6}
 .f .hint{font-size:11px;color:var(--muted);margin-top:3px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.tram-row{display:grid;grid-template-columns:1fr 1fr;gap:13px;align-items:end;margin-bottom:1rem}
+.tram-row:last-child{margin-bottom:0}
+.tram-row .f{margin-bottom:0}
+.tram-row label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
 /* TRAMITE TABS */
 .tram-tab-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1.5px solid var(--borde)}
@@ -258,7 +262,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v2.9</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v3.0</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -306,7 +310,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
           <span class="hint">Entre 1 y 10 trámites por expediente</span>
         </div>
         <div id="tramites-nombres-wrap">
-          <div class="g2" style="align-items:end">
+          <div class="tram-row">
             <div class="f">
               <label>Trámite 1 <span class="star">*</span></label>
               <input type="text" id="tnam-0" placeholder="Nombre completo del trámite" oninput="actualizarMeta();actualizarTabsTramite()">
@@ -326,10 +330,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
           <div class="f"><label>Cargo</label><input type="text" id="contacto_cargo" placeholder="Cargo / función"></div>
           <div class="f"><label>Correo</label><input type="email" id="contacto_correo" placeholder="correo@inst.gob.hn"></div>
         </div>
-        <div class="g2">
-          <div class="f"><label>Teléfono de contacto</label><input type="text" id="contacto_tel" placeholder="+504 0000-0000"></div>
-          <div class="f"><label>Extensión / WhatsApp</label><input type="text" id="contacto_ext" placeholder="Extensión o número de WhatsApp"></div>
-        </div>
+        <div class="f" style="max-width:50%"><label>Teléfono de contacto</label><input type="text" id="contacto_tel" placeholder="+504 0000-0000"></div>
       </div>
 
       <div class="nav">
@@ -724,15 +725,43 @@ var TGR_RUBROS = [
   '12218 - Registro nacional de las personas','12219 - Registro derechos de autor y conexos',
   '12299 - Derechos varios','12301 - Concesiones y frecuencias radioeléctricas','12399 - Regalías varias'
 ];
+// Nombres de rubros adicionales (no incluidos en la lista general, usados en mapeos por institución)
+var TGR_RUBRO_EXTRA = {
+  '12806':'Devoluciones de ejercicios fiscales anteriores por pagos en exceso'
+};
+// Lookup código → nombre, construido desde TGR_RUBROS + extras
+var TGR_RUBRO_NAMES = (function(){
+  var m = {};
+  TGR_RUBROS.forEach(function(s){ var p=s.indexOf(' - '); if(p>0) m[s.slice(0,p).trim()] = s.slice(p+3); });
+  Object.keys(TGR_RUBRO_EXTRA).forEach(function(c){ m[c]=TGR_RUBRO_EXTRA[c]; });
+  return m;
+})();
+// Mapeo institución (código) → rubros permitidos. Fuente: portal TGR-1 (tgr1.sefin.gob.hn).
+// Las instituciones sin lista específica muestran el catálogo completo como respaldo.
+var TGR_INST_RUBROS = {
+  '1': ['11402','12121','12806']   // Congreso Nacional
+};
+function tgrCodeOf(instValue){ var m=String(instValue||'').match(/^\s*(\d+)/); return m?m[1]:''; }
+function rubroLabel(code){ return code + ' - ' + (TGR_RUBRO_NAMES[code] || ('Rubro '+code)); }
 function tgrInstOptions(){
   return '<option value="">— Seleccione institución —</option>'
     + TGR_INST.map(function(v){ return '<option>'+escHtml(v)+'</option>'; }).join('')
     + '<option>Otra (especificar en observaciones)</option>';
 }
-function tgrRubroOptions(){
-  return '<option value="">— Seleccione rubro —</option>'
-    + TGR_RUBROS.map(function(v){ return '<option>'+escHtml(v)+'</option>'; }).join('')
-    + '<option>Otro (especificar en observaciones)</option>';
+function tgrRubroOptionsFor(instValue){
+  var code = tgrCodeOf(instValue);
+  var list = TGR_INST_RUBROS[code];
+  var opts = '<option value="">— Seleccione rubro —</option>';
+  if(list && list.length){
+    opts += list.map(function(c){ return '<option>'+escHtml(rubroLabel(c))+'</option>'; }).join('');
+  } else {
+    opts += TGR_RUBROS.map(function(v){ return '<option>'+escHtml(v)+'</option>'; }).join('');
+  }
+  return opts + '<option>Otro (especificar en observaciones)</option>';
+}
+function onTgrInstChange(i){
+  var sel = document.getElementById('tgr_rubro_'+i);
+  if(sel) sel.innerHTML = tgrRubroOptionsFor(gv('tgr_inst_'+i));
 }
 function togglePago(i){
   var m = gv('metodo_pago_'+i);
@@ -829,11 +858,25 @@ function togglePerfil(k, forceState){
 function renderDatacenterCond(){
   var g = document.getElementById('datacenter-grid');
   if(!g) return;
-  g.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.45rem';
+  g.className = 'perfiles-grid';
   g.innerHTML = DATACENTER_COND.map(function(c,k){
-    return '<label style="display:flex;align-items:center;gap:7px;font-size:12.5px;border:1.5px solid var(--borde);border-radius:8px;padding:.5rem .65rem;background:#fafbfd;cursor:pointer">'
-      + '<input type="checkbox" id="dc_cond_'+k+'"> '+escHtml(c)+'</label>';
+    return '<div class="perfil-item" id="dc_item_'+k+'">'
+      + '<div class="perfil-head" onclick="toggleDcCond('+k+')">'
+        + '<input type="checkbox" id="dc_cond_'+k+'" style="display:none">'
+        + '<div class="perfil-cb" id="dc_cb_'+k+'"></div>'
+        + '<div class="perfil-name">'+escHtml(c)+'</div>'
+      + '</div>'
+    + '</div>';
   }).join('');
+}
+function toggleDcCond(k, forceState){
+  var chk = document.getElementById('dc_cond_'+k);
+  if(!chk) return;
+  if(forceState===undefined) chk.checked = !chk.checked; else chk.checked = forceState;
+  var item = document.getElementById('dc_item_'+k);
+  var cb   = document.getElementById('dc_cb_'+k);
+  if(item) item.classList.toggle('checked', chk.checked);
+  if(cb) cb.textContent = chk.checked ? '✓' : '';
 }
 function renderInfraChecklist(){
   var wrap = document.getElementById('infra-checklist');
@@ -890,7 +933,7 @@ function poblarInfra(inf){
   sv('infra_personal_ti',inf.personal_ti||''); sv('infra_resp_sol',inf.resp_sol||'');
   sv('infra_dc_modalidad',inf.dc_modalidad||''); sv('infra_dc_virt',inf.dc_virt||''); toggleVirtOtro(); sv('infra_dc_virt_otro',inf.dc_virt_otro||'');
   sv('infra_dc_disp',inf.dc_disp||''); sv('infra_dc_obs',inf.dc_obs||''); sv('infra_plan',inf.plan||'');
-  (inf.dc_cond||[]).forEach(function(c){ var k=DATACENTER_COND.indexOf(c); if(k>=0){ var el=document.getElementById('dc_cond_'+k); if(el)el.checked=true; } });
+  (inf.dc_cond||[]).forEach(function(c){ var k=DATACENTER_COND.indexOf(c); if(k>=0) toggleDcCond(k, true); });
   var ci=0;
   INFRA_REQS.forEach(function(grp,gi){ grp.items.forEach(function(item,ii){
     var row=(inf.checklist||[])[ci++]; if(row){ sv('infra_st_'+gi+'_'+ii,row.status||'Pendiente'); sv('infra_ob_'+gi+'_'+ii,row.obs||''); }
@@ -948,7 +991,7 @@ function actualizarNumTramites(){
   var wrap = document.getElementById('tramites-nombres-wrap');
   wrap.innerHTML = '';
   for(var i=0; i<n; i++){
-    wrap.innerHTML += '<div class="g2" style="align-items:end">'
+    wrap.innerHTML += '<div class="tram-row">'
       + '<div class="f"><label>Trámite ' + (i+1) + ' <span class="star">*</span></label>'
       + '<input type="text" id="tnam-'+i+'" placeholder="Nombre completo del trámite ' + (i+1) + '" oninput="actualizarTabsTramite()"></div>'
       + '<div class="f"><label>Área o dirección responsable</label>'
@@ -1032,8 +1075,8 @@ function fichaHTML(i, nombre, show){
       + '</div>'
       + '<div id="pago-tgr-'+i+'" style="display:none">'
         + '<div class="g2">'
-          + '<div class="f"><label>Institución (TGR)</label><select id="tgr_inst_'+i+'">'+tgrInstOptions()+'</select></div>'
-          + '<div class="f"><label>Rubro (TGR)</label><select id="tgr_rubro_'+i+'">'+tgrRubroOptions()+'</select></div>'
+          + '<div class="f"><label>Institución (TGR)</label><select id="tgr_inst_'+i+'" onchange="onTgrInstChange('+i+')">'+tgrInstOptions()+'</select></div>'
+          + '<div class="f"><label>Rubro (TGR)</label><select id="tgr_rubro_'+i+'">'+tgrRubroOptionsFor('')+'</select></div>'
         + '</div>'
         + '<div class="g2">'
           + '<div class="f"><label>Monto específico (Lps.) <span class="star">*</span></label><input type="number" id="tgr_monto_'+i+'" placeholder="Valor que la institución cobra por este trámite" min="0" step="0.01"></div>'
@@ -1355,7 +1398,7 @@ function recolectar(){
 
   // Apertura
   ['inst','fecha_apertura','analista','codigo_exp','dir_sede','contacto_nombre','contacto_cargo',
-   'contacto_correo','contacto_tel','contacto_ext'].forEach(function(id){ d[id]=gv(id); });
+   'contacto_correo','contacto_tel'].forEach(function(id){ d[id]=gv(id); });
   d.num_tramites = tramiteCount;
   d.tramite_nombres = [];
   d.tramite_areas = [];
@@ -1461,7 +1504,7 @@ function cargarTodos(){ return expCache; }
 function poblarFormulario(d){
   // Apertura
   ['inst','fecha_apertura','analista','codigo_exp','dir_sede','contacto_nombre','contacto_cargo',
-   'contacto_correo','contacto_tel','contacto_ext'].forEach(function(id){ sv(id, d[id]||''); });
+   'contacto_correo','contacto_tel'].forEach(function(id){ sv(id, d[id]||''); });
 
   // Requisitos/acciones por trámite (antes de render para que aparezcan)
   reqsTram = d.reqs_tram ? d.reqs_tram.map(function(r){ return r||[]; }) : [[]];
@@ -1485,6 +1528,7 @@ function poblarFormulario(d){
     'horario','telefono','email_tramite','sitio_web'];
   if(d.tramites) d.tramites.forEach(function(ft,t){
     fichaFields.forEach(function(f){ sv(f+'_'+t, ft[f]||''); });
+    onTgrInstChange(t); sv('tgr_rubro_'+t, ft.tgr_rubro||'');  // rubros dependen de la institución
     if(ft.alcance){ var al=document.querySelector('input[name="alcance_'+t+'"][value="'+ft.alcance+'"]'); if(al) al.checked=true; }
     togglePago(t);
   });
@@ -1627,7 +1671,7 @@ function nuevoExp(){
   document.querySelectorAll('[id^="est-"]').forEach(function(el){ el.value='Pendiente'; });
   ['legal-tbody','docs-tbody','docint-tbody'].forEach(function(id){ var el=document.getElementById(id); if(el) el.innerHTML=''; });
   sv('num_tramites','1');
-  document.getElementById('tramites-nombres-wrap').innerHTML='<div class="g2" style="align-items:end"><div class="f"><label>Trámite 1 <span class="star">*</span></label><input type="text" id="tnam-0" placeholder="Nombre completo del trámite" oninput="actualizarMeta();actualizarTabsTramite()"></div><div class="f"><label>Área o dirección responsable</label><input type="text" id="area_resp-0" placeholder="Unidad interna que gestiona el trámite"></div></div>';
+  document.getElementById('tramites-nombres-wrap').innerHTML='<div class="tram-row"><div class="f"><label>Trámite 1 <span class="star">*</span></label><input type="text" id="tnam-0" placeholder="Nombre completo del trámite" oninput="actualizarMeta();actualizarTabsTramite()"></div><div class="f"><label>Área o dirección responsable</label><input type="text" id="area_resp-0" placeholder="Unidad interna que gestiona el trámite"></div></div>';
   renderFichasPanels();
   renderFlujosActual();
   renderFlujosPropuesto();
@@ -1977,7 +2021,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v2.9</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v3.0</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
