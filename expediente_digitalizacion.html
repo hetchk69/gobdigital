@@ -262,7 +262,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v3.8</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v3.9</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -320,7 +320,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
           <div class="tram-row">
             <div class="f">
               <label>Trámite 1 <span class="star">*</span> <span class="tram-cod" id="tcod-0"></span></label>
-              <input type="text" id="tnam-0" placeholder="Nombre completo del trámite" oninput="actualizarMeta();actualizarTabsTramite()">
+              <input type="text" id="tnam-0" placeholder="Nombre completo del trámite" oninput="actualizarMeta();actualizarTabsTramite();syncNombreTramite(0)">
             </div>
             <div class="f" style="max-width:380px">
               <label>Área o dirección responsable</label>
@@ -1219,7 +1219,7 @@ function actualizarNumTramites(){
     wrap.innerHTML += '<div class="tram-row">'
       + '<div class="f"><label>Trámite ' + (i+1) + ' <span class="star">*</span>'
       + ' <span class="tram-cod" id="tcod-'+i+'"></span></label>'
-      + '<input type="text" id="tnam-'+i+'" placeholder="Nombre completo del trámite ' + (i+1) + '" oninput="actualizarTabsTramite()"></div>'
+      + '<input type="text" id="tnam-'+i+'" placeholder="Nombre completo del trámite ' + (i+1) + '" oninput="actualizarTabsTramite();syncNombreTramite('+i+')"></div>'
       + '<div class="f" style="max-width:380px"><label>Área o dirección responsable</label>'
       + '<input type="text" id="area_resp-'+i+'" placeholder="Unidad interna que gestiona el trámite"></div>'
       + '</div>';
@@ -1252,6 +1252,16 @@ function actualizarCodsTramite(){
     if(el) el.textContent = codes[i];
   }
   actualizarTabsTramite();
+}
+
+function syncNombreTramite(i){
+  var src = document.getElementById('tnam-'+i);
+  var dst = document.getElementById('nombre_tramite_'+i);
+  if(src && dst) dst.value = src.value;
+}
+
+function syncAllNombreTramites(){
+  for(var i=0;i<tramiteCount;i++) syncNombreTramite(i);
 }
 
 function actualizarTabsTramite(){
@@ -1292,6 +1302,7 @@ function renderFichasPanels(){
     wrap.innerHTML += fichaHTML(i, names[i], show);
   }
   for(var k=0; k<tramiteCount; k++){ renderReqFichaRows(k); togglePago(k); }
+  syncAllNombreTramites();
 }
 
 function fichaHTML(i, nombre, show){
@@ -1943,7 +1954,7 @@ function nuevoExp(){
   ['legal-tbody','docs-tbody','docint-tbody'].forEach(function(id){ var el=document.getElementById(id); if(el) el.innerHTML=''; });
   sv('num_tramites','1');
   sv('num_tramites_prod','0');
-  document.getElementById('tramites-nombres-wrap').innerHTML='<div class="tram-row"><div class="f"><label>Trámite 1 <span class="star">*</span> <span class="tram-cod" id="tcod-0"></span></label><input type="text" id="tnam-0" placeholder="Nombre completo del trámite" oninput="actualizarMeta();actualizarTabsTramite()"></div><div class="f" style="max-width:380px"><label>Área o dirección responsable</label><input type="text" id="area_resp-0" placeholder="Unidad interna que gestiona el trámite"></div></div>';
+  document.getElementById('tramites-nombres-wrap').innerHTML='<div class="tram-row"><div class="f"><label>Trámite 1 <span class="star">*</span> <span class="tram-cod" id="tcod-0"></span></label><input type="text" id="tnam-0" placeholder="Nombre completo del trámite" oninput="actualizarMeta();actualizarTabsTramite();syncNombreTramite(0)"></div><div class="f" style="max-width:380px"><label>Área o dirección responsable</label><input type="text" id="area_resp-0" placeholder="Unidad interna que gestiona el trámite"></div></div>';
   var cbs = document.getElementById('contacto-buscar');
   if(cbs) cbs.value = '';
   renderFichasPanels();
@@ -2295,7 +2306,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v3.8</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v3.9</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
