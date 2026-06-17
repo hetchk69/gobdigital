@@ -51,10 +51,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .f textarea{min-height:80px;resize:vertical;line-height:1.6}
 .f .hint{font-size:11px;color:var(--muted);margin-top:3px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
-.tram-row{display:grid;grid-template-columns:1fr 1fr;gap:13px;align-items:end;margin-bottom:1rem}
+.tram-row{display:flex;flex-direction:column;gap:8px;margin-bottom:.8rem;padding:12px 14px;background:var(--gris-f);border-radius:8px;border:1px solid var(--borde)}
 .tram-row:last-child{margin-bottom:0}
 .tram-row .f{margin-bottom:0}
-.tram-row label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tram-cod{display:inline-flex;align-items:center;font-size:11px;font-weight:700;color:var(--azul-m);background:var(--azul-c);border-radius:4px;padding:1px 7px;margin-left:8px;letter-spacing:.04em;vertical-align:middle;border:1px solid #c8dbff}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
 /* TRAMITE TABS */
 .tram-tab-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1.5px solid var(--borde)}
@@ -262,7 +262,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v3.3</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v3.4</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -304,18 +304,25 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
       <div class="card accent">
         <div class="ct">Trámites a digitalizar</div>
-        <div class="f" style="max-width:260px">
-          <label>¿Cuántos trámites se van a modelar? <span class="star">*</span></label>
-          <input type="number" id="num_tramites" min="1" max="10" value="1" oninput="actualizarNumTramites()" placeholder="Ej: 3">
-          <span class="hint">Entre 1 y 10 trámites por expediente</span>
+        <div class="g2" style="margin-bottom:1rem">
+          <div class="f">
+            <label>¿Cuántos trámites se van a modelar? <span class="star">*</span></label>
+            <input type="number" id="num_tramites" min="1" max="10" value="1" oninput="actualizarNumTramites()" placeholder="Ej: 3" style="max-width:160px">
+            <span class="hint">Entre 1 y 10 trámites por expediente</span>
+          </div>
+          <div class="f">
+            <label>¿Cuántos trámites hay en plataforma actualmente?</label>
+            <input type="number" id="num_tramites_prod" min="0" value="0" oninput="actualizarCodsTramite()" placeholder="Ej: 6" style="max-width:160px">
+            <span class="hint">Define el número de inicio para los códigos</span>
+          </div>
         </div>
         <div id="tramites-nombres-wrap">
           <div class="tram-row">
             <div class="f">
-              <label>Trámite 1 <span class="star">*</span></label>
+              <label>Trámite 1 <span class="star">*</span> <span class="tram-cod" id="tcod-0"></span></label>
               <input type="text" id="tnam-0" placeholder="Nombre completo del trámite" oninput="actualizarMeta();actualizarTabsTramite()">
             </div>
-            <div class="f">
+            <div class="f" style="max-width:380px">
               <label>Área o dirección responsable</label>
               <input type="text" id="area_resp-0" placeholder="Unidad interna que gestiona el trámite">
             </div>
@@ -325,6 +332,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
       <div class="card">
         <div class="ct">Contacto institucional principal</div>
+        <div class="f" style="margin-bottom:.9rem">
+          <label>Buscar en registros de asistencia</label>
+          <select id="contacto-buscar" disabled onchange="seleccionarContacto(this)" style="background:var(--gris-f);color:var(--muted)">
+            <option value="">— Seleccione institución primero —</option>
+          </select>
+          <span class="hint">Se activa al elegir la institución</span>
+        </div>
         <div class="g3">
           <div class="f"><label>Nombre</label><input type="text" id="contacto_nombre" placeholder="Nombre completo"></div>
           <div class="f"><label>Cargo</label><input type="text" id="contacto_cargo" placeholder="Cargo / función"></div>
@@ -1110,6 +1124,51 @@ function generarCodigo(){
   var seq = String((currentIdx !== null ? currentIdx : all.length) + 1).padStart(2,'0');
   cod.value = 'EXP-' + abbr + '-' + year + '-' + seq;
   actualizarMeta();
+  actualizarCodsTramite();
+  cargarContactosAsistencias();
+}
+
+var _contactosAsis = [];
+async function cargarContactosAsistencias(){
+  var inst = gv('inst');
+  var sel = document.getElementById('contacto-buscar');
+  if(!sel) return;
+  if(!inst){
+    sel.innerHTML = '<option value="">— Seleccione institución primero —</option>';
+    sel.disabled = true; return;
+  }
+  sel.disabled = true;
+  sel.innerHTML = '<option value="">Cargando...</option>';
+  var res = await _sb.from('asistencias')
+    .select('nombre,cargo,correo,telefono')
+    .ilike('institucion','%'+inst+'%')
+    .order('nombre');
+  _contactosAsis = res.data || [];
+  sel.innerHTML = '<option value="">— Seleccionar enlace desde asistencias —</option>';
+  if(_contactosAsis.length){
+    _contactosAsis.forEach(function(c,idx){
+      var opt = document.createElement('option');
+      opt.value = idx;
+      opt.textContent = (c.nombre||'(sin nombre)') + (c.cargo ? ' — '+c.cargo : '');
+      sel.appendChild(opt);
+    });
+  } else {
+    var opt2 = document.createElement('option');
+    opt2.disabled = true; opt2.textContent = 'Sin registros para esta institución';
+    sel.appendChild(opt2);
+  }
+  sel.disabled = false;
+}
+
+function seleccionarContacto(sel){
+  var idx = parseInt(sel.value);
+  if(isNaN(idx) || idx < 0) return;
+  var c = _contactosAsis[idx];
+  if(!c) return;
+  sv('contacto_nombre', c.nombre||'');
+  sv('contacto_cargo', c.cargo||'');
+  sv('contacto_correo', c.correo||'');
+  sv('contacto_tel', c.telefono||'');
 }
 
 // ── TRAMITES DINÁMICOS ──────────────────────────────────────
@@ -1127,14 +1186,16 @@ function actualizarNumTramites(){
   wrap.innerHTML = '';
   for(var i=0; i<n; i++){
     wrap.innerHTML += '<div class="tram-row">'
-      + '<div class="f"><label>Trámite ' + (i+1) + ' <span class="star">*</span></label>'
+      + '<div class="f"><label>Trámite ' + (i+1) + ' <span class="star">*</span>'
+      + ' <span class="tram-cod" id="tcod-'+i+'"></span></label>'
       + '<input type="text" id="tnam-'+i+'" placeholder="Nombre completo del trámite ' + (i+1) + '" oninput="actualizarTabsTramite()"></div>'
-      + '<div class="f"><label>Área o dirección responsable</label>'
+      + '<div class="f" style="max-width:380px"><label>Área o dirección responsable</label>'
       + '<input type="text" id="area_resp-'+i+'" placeholder="Unidad interna que gestiona el trámite"></div>'
       + '</div>';
   }
 
   if(activeTram >= n) activeTram = n-1;
+  actualizarCodsTramite();
   actualizarTabsTramite();
   renderFichasPanels();
 }
@@ -1145,8 +1206,26 @@ function getTramNombres(){
   return names;
 }
 
+function getTramCodigos(){
+  var inst = gv('inst');
+  var prod = parseInt(gv('num_tramites_prod'))||0;
+  var codes = [];
+  for(var i=0; i<tramiteCount; i++) codes.push(inst ? (inst + '-' + String(prod+i+1).padStart(2,'0')) : '');
+  return codes;
+}
+
+function actualizarCodsTramite(){
+  var codes = getTramCodigos();
+  for(var i=0; i<tramiteCount; i++){
+    var el = document.getElementById('tcod-'+i);
+    if(el) el.textContent = codes[i];
+  }
+  actualizarTabsTramite();
+}
+
 function actualizarTabsTramite(){
   var names = getTramNombres();
+  var codes = getTramCodigos();
   var secIds = ['tram-tabs-1','tram-tabs-2','tram-tabs-3','tram-tabs-5'];
   secIds.forEach(function(sid){
     var el = document.getElementById(sid);
@@ -1154,8 +1233,9 @@ function actualizarTabsTramite(){
     if(tramiteCount <= 1){ el.style.display='none'; el.innerHTML=''; return; }
     el.style.display='flex';
     el.innerHTML = names.map(function(nm,i){
+      var codHtml = codes[i] ? '<span style="font-size:10px;font-weight:700;opacity:.8;margin-right:4px">'+escHtml(codes[i])+'</span>' : '';
       return '<button class="ttab'+(i===activeTram?' active':'')+'" onclick="selTram('+i+')">'
-        + escHtml(nm.length > 22 ? nm.slice(0,20)+'…' : nm) + '</button>';
+        + codHtml + escHtml(nm.length > 18 ? nm.slice(0,16)+'…' : nm) + '</button>';
     }).join('');
   });
 }
@@ -1184,8 +1264,10 @@ function renderFichasPanels(){
 }
 
 function fichaHTML(i, nombre, show){
+  var codes = getTramCodigos();
+  var codBadge = codes[i] ? ' <span class="tram-cod">'+escHtml(codes[i])+'</span>' : '';
   return '<div id="ficha-panel-'+i+'" style="'+(show?'':'display:none')+'">'
-    + '<div class="card accent"><div class="ct">Datos generales — ' + escHtml(nombre) + '</div>'
+    + '<div class="card accent"><div class="ct">Datos generales — ' + escHtml(nombre) + codBadge + '</div>'
       + '<div class="f"><label>Nombre completo del trámite <span class="star">*</span></label><input type="text" id="nombre_tramite_'+i+'" placeholder="Nombre oficial del trámite"></div>'
       + '<div class="g3">'
         + '<div class="f"><label>Nombre corto / abreviatura</label><input type="text" id="nombre_corto_'+i+'" placeholder="Nombre común"></div>'
@@ -1552,6 +1634,7 @@ function recolectar(){
   ['inst','fecha_apertura','analista','codigo_exp','dir_sede','contacto_nombre','contacto_cargo',
    'contacto_correo','contacto_tel'].forEach(function(id){ d[id]=gv(id); });
   d.num_tramites = tramiteCount;
+  d.num_tramites_prod = parseInt(gv('num_tramites_prod'))||0;
   d.tramite_nombres = [];
   d.tramite_areas = [];
   for(var i=0;i<tramiteCount;i++){ d.tramite_nombres.push(gv('tnam-'+i)); d.tramite_areas.push(gv('area_resp-'+i)); }
@@ -1665,6 +1748,7 @@ function poblarFormulario(d){
   // Tramites count + nombres + áreas
   tramiteCount = d.num_tramites || 1;
   sv('num_tramites', tramiteCount);
+  sv('num_tramites_prod', d.num_tramites_prod||0);
   actualizarNumTramites();
   if(d.tramite_nombres) d.tramite_nombres.forEach(function(nm,i){ sv('tnam-'+i, nm||''); });
   if(d.tramite_areas) d.tramite_areas.forEach(function(ar,i){ sv('area_resp-'+i, ar||''); });
@@ -1704,6 +1788,7 @@ function poblarFormulario(d){
   while(flujosActual.length < tramiteCount) flujosActual.push([]);
   while(flujosPropuesto.length < tramiteCount) flujosPropuesto.push([]);
   activeTram = 0;
+  actualizarCodsTramite();
   renderFlujosActual();
   renderFlujosPropuesto();
   renderModeloReqs(0);
@@ -1824,7 +1909,11 @@ function nuevoExp(){
   document.querySelectorAll('[id^="est-"]').forEach(function(el){ el.value='Pendiente'; });
   ['legal-tbody','docs-tbody','docint-tbody'].forEach(function(id){ var el=document.getElementById(id); if(el) el.innerHTML=''; });
   sv('num_tramites','1');
-  document.getElementById('tramites-nombres-wrap').innerHTML='<div class="tram-row"><div class="f"><label>Trámite 1 <span class="star">*</span></label><input type="text" id="tnam-0" placeholder="Nombre completo del trámite" oninput="actualizarMeta();actualizarTabsTramite()"></div><div class="f"><label>Área o dirección responsable</label><input type="text" id="area_resp-0" placeholder="Unidad interna que gestiona el trámite"></div></div>';
+  sv('num_tramites_prod','0');
+  document.getElementById('tramites-nombres-wrap').innerHTML='<div class="tram-row"><div class="f"><label>Trámite 1 <span class="star">*</span> <span class="tram-cod" id="tcod-0"></span></label><input type="text" id="tnam-0" placeholder="Nombre completo del trámite" oninput="actualizarMeta();actualizarTabsTramite()"></div><div class="f" style="max-width:380px"><label>Área o dirección responsable</label><input type="text" id="area_resp-0" placeholder="Unidad interna que gestiona el trámite"></div></div>';
+  var cbs = document.getElementById('contacto-buscar');
+  if(cbs){ cbs.innerHTML='<option value="">— Seleccione institución primero —</option>'; cbs.disabled=true; }
+  _contactosAsis = [];
   renderFichasPanels();
   renderFlujosActual();
   renderFlujosPropuesto();
@@ -2174,7 +2263,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v3.3</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v3.4</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
