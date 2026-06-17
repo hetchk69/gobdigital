@@ -262,7 +262,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v4.0</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v4.1</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -1864,11 +1864,15 @@ function poblarFormulario(d){
     'doc_entregado','objetivo','alcance_obs','descripcion','dirigido',
     'horario','telefono','email_tramite','sitio_web'];
   if(d.tramites) d.tramites.forEach(function(ft,t){
-    fichaFields.forEach(function(f){ sv(f+'_'+t, ft[f]||''); });
-    onTgrInstChange(t); sv('tgr_rubro_'+t, ft.tgr_rubro||'');  // rubros dependen de la institución
+    fichaFields.forEach(function(f){
+      if(f === 'nombre_tramite') return; // siempre derivado de tnam en apertura
+      sv(f+'_'+t, ft[f]||'');
+    });
+    onTgrInstChange(t); sv('tgr_rubro_'+t, ft.tgr_rubro||'');
     if(ft.alcance){ var al=document.querySelector('input[name="alcance_'+t+'"][value="'+ft.alcance+'"]'); if(al) al.checked=true; }
     togglePago(t);
   });
+  syncAllNombreTramites();
 
   // Infraestructura SOL
   poblarInfra(d.infra);
@@ -2363,7 +2367,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v4.0</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v4.1</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
