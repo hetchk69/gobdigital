@@ -21,8 +21,11 @@ body{background:#f0f4f8;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 
 /* CARD */
-.card{background:#fff;border-radius:12px;padding:18px 14px 14px;display:flex;flex-direction:column;align-items:center;box-shadow:0 2px 10px rgba(10,45,110,.07);border:1.5px solid #e8eef8;transition:box-shadow .2s,transform .15s;cursor:default}
-.card:hover{box-shadow:0 6px 24px rgba(10,45,110,.14);transform:translateY(-2px)}
+.card{background:#fff;border-radius:12px;padding:18px 14px 14px;display:flex;flex-direction:column;align-items:center;box-shadow:0 2px 10px rgba(10,45,110,.07);border:1.5px solid #e8eef8;transition:box-shadow .2s,transform .15s;cursor:default;text-decoration:none;color:inherit}
+.card.has-link{cursor:pointer}
+.card.has-link:hover{box-shadow:0 6px 24px rgba(10,45,110,.18);transform:translateY(-2px);border-color:#1455a4}
+.card:not(.has-link):hover{box-shadow:0 6px 24px rgba(10,45,110,.10);transform:translateY(-1px)}
+.sol-badge{margin-top:8px;font-size:10px;font-weight:700;color:#1455a4;background:#e8eef8;border-radius:4px;padding:2px 7px;letter-spacing:.05em;opacity:.85}
 .logo-wrap{width:130px;height:90px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
 .logo-wrap img{max-width:130px;max-height:90px;object-fit:contain}
 .text-logo{font-size:28px;font-weight:900;color:#0a2d6e;letter-spacing:-1px}
@@ -64,37 +67,37 @@ body{background:#f0f4f8;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh
 
 <script>
 var DATA = [
-  {name:'ARSA',       full:'Agencia de Regulación Sanitaria',                                       count:71, logo:'inst/logo_00.png'},
-  {name:'SDE',        full:'Secretaría de Desarrollo Económico',                                    count:21, logo:'inst/logo_01.png'},
-  {name:'IHT',        full:'Instituto Hondureño de Turismo',                                        count:8,  logo:'inst/logo_02.png'},
-  {name:'Aduanas',    full:'Administración Aduanera de Honduras',                                   count:7,  logo:'inst/logo_03.png'},
-  {name:'CNBS',       full:'Comisión Nacional de Bancos y Seguros',                                 count:7,  logo:'inst/logo_04.png'},
-  {name:'SAG-SENASA', full:'Servicio Nacional de Sanidad e Inocuidad Agroalimentaria',              count:7,  logo:'inst/logo_05.png'},
-  {name:'IHADFA',     full:'Instituto Hondureño para la Prevención del Alcoholismo y Drogadicción', count:6,  logo:'inst/logo_06.png'},
-  {name:'INPREMA',    full:'Instituto Nacional de Previsión del Magisterio',                        count:6,  logo:'inst/logo_07.png'},
-  {name:'STSS',       full:'Secretaría de Trabajo y Seguridad Social',                              count:6,  logo:'inst/logo_08.png'},
-  {name:'Comayagua',  full:'Municipalidad de Comayagua',                                            count:4,  logo:'inst/logo_09.png'},
-  {name:'CONSUCOOP',  full:'Consejo Nacional Supervisor de Cooperativas',                           count:4,  logo:'inst/logo_10.png'},
-  {name:'SCAPH',      full:'Secretaría de las Culturas, las Artes y los Patrimonios',               count:4,  logo:'inst/logo_11.png'},
-  {name:'SEFIN',      full:'Secretaría de Finanzas',                                                count:4,  logo:'inst/logo_12.png'},
-  {name:'SGJD',       full:'Secretaría de Gobernación, Justicia y Descentralización',               count:4,  logo:'inst/logo_13.png'},
-  {name:'Ihcine',     full:'Instituto Hondureño de Cinematografía',                                 count:3,  logo:'inst/logo_14.png'},
-  {name:'IHTT',       full:'Instituto Hondureño de Transporte Terrestre',                           count:3,  logo:null},
-  {name:'INM',        full:'Instituto Nacional de Migración',                                       count:3,  logo:'inst/logo_16.png'},
-  {name:'INPREUNAH',  full:'Instituto de Previsión Social de los Empleados de la UNAH',             count:3,  logo:'inst/logo_17.png'},
-  {name:'IP',         full:'Instituto de la Propiedad',                                             count:3,  logo:'inst/logo_18.png'},
-  {name:'SAG',        full:'Secretaría de Agricultura y Ganadería',                                 count:3,  logo:'inst/logo_19.png'},
-  {name:'SEN',        full:'Secretaría de Energía',                                                 count:3,  logo:'inst/logo_20.png'},
-  {name:'SENPRENDE',  full:'Servicio Nacional de Emprendimiento y de Pequeños Negocios',            count:3,  logo:'inst/logo_21.png'},
-  {name:'SESAL',      full:'Secretaría de Salud',                                                   count:3,  logo:'inst/logo_22.png'},
-  {name:'Bomberos',   full:'Cuerpo de Bomberos de Honduras',                                        count:2,  logo:'inst/logo_23.png'},
-  {name:'CNI',        full:'Consejo Nacional de Inversiones Honduras',                              count:2,  logo:'inst/logo_24.png'},
-  {name:'INFOP',      full:'Instituto Nacional de Formación Profesional',                           count:2,  logo:'inst/logo_25.png'},
-  {name:'SAR',        full:'Servicio de Administración de Rentas',                                  count:2,  logo:'inst/logo_26.png'},
-  {name:'SRECI',      full:'Secretaría de Relaciones Exteriores y Cooperación Internacional',       count:2,  logo:'inst/logo_27.png'},
-  {name:'BANHPROVI',  full:'Banco Hondureño para la Producción y la Vivienda',                      count:1,  logo:'inst/logo_28.png'},
-  {name:'CONATEL',    full:'Comisión Nacional de Telecomunicaciones',                               count:1,  logo:'inst/logo_29.png'},
-  {name:'SEGUR',      full:'Seguridad',                                                             count:1,  logo:null}
+  {name:'ARSA',       full:'Agencia de Regulación Sanitaria',                                       count:71, logo:'inst/logo_00.png', link:'https://sigob.arsa.hn/ciudadano/'},
+  {name:'SDE',        full:'Secretaría de Desarrollo Económico',                                    count:21, logo:'inst/logo_01.png', link:'https://sigob.org/hn/SDE/ciudadano/#/inicio'},
+  {name:'IHT',        full:'Instituto Hondureño de Turismo',                                        count:8,  logo:'inst/logo_02.png', link:'https://sol.pdihonduras.gob.hn/canaturh/ciudadano/#/inicio'},
+  {name:'Aduanas',    full:'Administración Aduanera de Honduras',                                   count:7,  logo:'inst/logo_03.png', link:null},
+  {name:'CNBS',       full:'Comisión Nacional de Bancos y Seguros',                                 count:7,  logo:'inst/logo_04.png', link:null},
+  {name:'SAG-SENASA', full:'Servicio Nacional de Sanidad e Inocuidad Agroalimentaria',              count:7,  logo:'inst/logo_05.png', link:null},
+  {name:'IHADFA',     full:'Instituto Hondureño para la Prevención del Alcoholismo y Drogadicción', count:6,  logo:'inst/logo_06.png', link:'https://sol.pdihonduras.gob.hn/ihadfa/ciudadano/#/login'},
+  {name:'INPREMA',    full:'Instituto Nacional de Previsión del Magisterio',                        count:6,  logo:'inst/logo_07.png', link:'https://sol.pdihonduras.gob.hn/inprema/web/ciudadano/#/inicio'},
+  {name:'STSS',       full:'Secretaría de Trabajo y Seguridad Social',                              count:6,  logo:'inst/logo_08.png', link:'https://sol.trabajo.gob.hn/ciudadano/#/inicio'},
+  {name:'Comayagua',  full:'Municipalidad de Comayagua',                                            count:4,  logo:'inst/logo_09.png', link:null},
+  {name:'CONSUCOOP',  full:'Consejo Nacional Supervisor de Cooperativas',                           count:4,  logo:'inst/logo_10.png', link:'https://sol.pdihonduras.gob.hn/consucoop/web/ciudadano/#/inicio'},
+  {name:'SCAPH',      full:'Secretaría de las Culturas, las Artes y los Patrimonios',               count:4,  logo:'inst/logo_11.png', link:'https://sol.pdihonduras.gob.hn/secapph/web/ciudadano/#/inicio'},
+  {name:'SEFIN',      full:'Secretaría de Finanzas',                                                count:4,  logo:'inst/logo_12.png', link:null},
+  {name:'SGJD',       full:'Secretaría de Gobernación, Justicia y Descentralización',               count:4,  logo:'inst/logo_13.png', link:null},
+  {name:'Ihcine',     full:'Instituto Hondureño de Cinematografía',                                 count:3,  logo:'inst/logo_14.png', link:'https://sol.pdihonduras.gob.hn/ihcine/web/ciudadano/#/inicio'},
+  {name:'IHTT',       full:'Instituto Hondureño de Transporte Terrestre',                           count:3,  logo:null,               link:'https://sol.pdihonduras.gob.hn/IHTT/web/ciudadano/#/inicio'},
+  {name:'INM',        full:'Instituto Nacional de Migración',                                       count:3,  logo:'inst/logo_16.png', link:null},
+  {name:'INPREUNAH',  full:'Instituto de Previsión Social de los Empleados de la UNAH',             count:3,  logo:'inst/logo_17.png', link:'https://sol.pdihonduras.gob.hn/inpreunah/web/ciudadano/#/inicio'},
+  {name:'IP',         full:'Instituto de la Propiedad',                                             count:3,  logo:'inst/logo_18.png', link:null},
+  {name:'SAG',        full:'Secretaría de Agricultura y Ganadería',                                 count:3,  logo:'inst/logo_19.png', link:'https://sol.pdihonduras.gob.hn/sag/web/ciudadano/#/inicio'},
+  {name:'SEN',        full:'Secretaría de Energía',                                                 count:3,  logo:'inst/logo_20.png', link:'https://sol.pdihonduras.gob.hn/sen/web/ciudadano/#/inicio'},
+  {name:'SENPRENDE',  full:'Servicio Nacional de Emprendimiento y de Pequeños Negocios',            count:3,  logo:'inst/logo_21.png', link:null},
+  {name:'SESAL',      full:'Secretaría de Salud',                                                   count:3,  logo:'inst/logo_22.png', link:'https://regsan.salud.gob.hn/ciudadano/'},
+  {name:'Bomberos',   full:'Cuerpo de Bomberos de Honduras',                                        count:2,  logo:'inst/logo_23.png', link:'https://sol.pdihonduras.gob.hn/hbcbh/web/ciudadano/#/inicio'},
+  {name:'CNI',        full:'Consejo Nacional de Inversiones Honduras',                              count:2,  logo:'inst/logo_24.png', link:'https://sol.pdihonduras.gob.hn/cni/ciudadano/'},
+  {name:'INFOP',      full:'Instituto Nacional de Formación Profesional',                           count:2,  logo:'inst/logo_25.png', link:'https://sol.pdihonduras.gob.hn/infop/ciudadano/#/login'},
+  {name:'SAR',        full:'Servicio de Administración de Rentas',                                  count:2,  logo:'inst/logo_26.png', link:null},
+  {name:'SRECI',      full:'Secretaría de Relaciones Exteriores y Cooperación Internacional',       count:2,  logo:'inst/logo_27.png', link:'https://tramitedigital.sreci.gob.hn/SOL/web/ciudadano/'},
+  {name:'BANHPROVI',  full:'Banco Hondureño para la Producción y la Vivienda',                      count:1,  logo:'inst/logo_28.png', link:null},
+  {name:'CONATEL',    full:'Comisión Nacional de Telecomunicaciones',                               count:1,  logo:'inst/logo_29.png', link:'https://sol.pdihonduras.gob.hn/conatel/web/ciudadano/#/inicio'},
+  {name:'SEGUR',      full:'Seguridad',                                                             count:1,  logo:null,               link:null}
 ];
 
 var grid = document.getElementById('inst-grid');
@@ -102,11 +105,14 @@ grid.innerHTML = DATA.map(function(d){
   var logoHtml = d.logo
     ? '<img src="'+d.logo+'" alt="'+d.name+'">'
     : '<span class="text-logo">'+d.name+'</span>';
-  return '<div class="card">'
-    + '<div class="logo-wrap">'+logoHtml+'</div>'
+  var inner = '<div class="logo-wrap">'+logoHtml+'</div>'
     + '<div class="count-row"><span class="count-num">'+d.count+'</span><span class="count-unit">trámites</span></div>'
     + '<div class="inst-full">'+d.full+'</div>'
-    + '</div>';
+    + (d.link ? '<div class="sol-badge">SOL ↗</div>' : '');
+  if(d.link){
+    return '<a class="card has-link" href="'+d.link+'" target="_blank" rel="noopener noreferrer">'+inner+'</a>';
+  }
+  return '<div class="card">'+inner+'</div>';
 }).join('');
 </script>
 </body>
