@@ -329,6 +329,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   .cal-mini{padding:9px}
   .tab-toolbar{flex-direction:column;align-items:stretch}
 }
+/* ── SLIDE MODALS ── */
+.slide-overlay{display:none;position:fixed;inset:0;background:rgba(5,15,40,.7);z-index:8000;align-items:center;justify-content:center}
+.slide-overlay.open{display:flex}
+.slide-modal{background:#fff;border-radius:14px;overflow:hidden;max-width:92vw;max-height:90vh;box-shadow:0 12px 48px rgba(0,0,0,.35);display:flex;flex-direction:column}
+.slide-modal-head{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#0a2d6e;color:#fff;font-size:14px;font-weight:700}
+.slide-modal img{max-width:100%;max-height:80vh;display:block}
+.slide-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px}
+.slide-close:hover{background:rgba(255,255,255,.2)}
 </style>
 </head>
 <body>
@@ -735,11 +743,15 @@ async function renderInicio(unitKey) {
       var lx=legX+col*118, ly=14+row*26;
       var short=d.inst.length>13?d.inst.slice(0,12)+'…':d.inst;
       var pct=Math.round(d.count/total*100);
-      return '<rect x="'+lx+'" y="'+ly+'" width="10" height="10" rx="2" fill="'+d.col+'"/>'+
+      return '<g style="cursor:pointer" onclick="window._openSlide4()">'+
+        '<rect x="'+lx+'" y="'+(ly-2)+'" width="116" height="24" rx="3" fill="transparent"/>'+
+        '<rect x="'+lx+'" y="'+ly+'" width="10" height="10" rx="2" fill="'+d.col+'"/>'+
         '<text x="'+(lx+14)+'" y="'+(ly+9)+'" '+FF+' font-size="11" font-weight="700" fill="#1c2333">'+esc(short)+'</text>'+
-        '<text x="'+(lx+14)+'" y="'+(ly+20)+'" '+FF+' font-size="9.5" fill="#94a3b8">'+d.count+' trám. · '+pct+'%</text>';
+        '<text x="'+(lx+14)+'" y="'+(ly+20)+'" '+FF+' font-size="9.5" fill="#94a3b8">'+d.count+' trám. · '+pct+'%</text>'+
+        '</g>';
     }).join('');
-    return '<svg viewBox="0 0 458 210" xmlns="http://www.w3.org/2000/svg" style="width:100%">'+paths+center+legend+'</svg>';
+    var verBtn='<div style="text-align:right;margin-top:6px"><button onclick="window._openSlide4()" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;border:1.5px solid var(--azul);background:#f0f4ff;color:var(--azul);cursor:pointer">↗ Ver desglose nacional (199 trám.)</button></div>';
+    return '<svg viewBox="0 0 458 210" xmlns="http://www.w3.org/2000/svg" style="width:100%">'+paths+center+legend+'</svg>'+verBtn;
   }
 
   // PIE CHART
@@ -1013,6 +1025,7 @@ async function renderInicio(unitKey) {
             '<div style="display:flex;gap:4px">'+
               '<button id="_btn-estado" onclick="window._switchDonut(\'estado\')" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;border:1.5px solid var(--azul);background:var(--azul);color:#fff;cursor:pointer">Por estado</button>'+
               '<button id="_btn-inst" onclick="window._switchDonut(\'inst\')" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;border:1.5px solid var(--borde);background:#fff;color:var(--muted);cursor:pointer">Por institución</button>'+
+              '<button onclick="window._openInterop()" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;border:1.5px solid #0891b2;background:#ecfeff;color:#0891b2;cursor:pointer" title="Ver interoperabilidad institucional">🔗 Interop.</button>'+
             '</div>'+
           '</div>'+
           '<div id="_donut-estado">'+donutChart([{v:op,c:'#16a34a',l:'En operación'},{v:proc,c:'#f59e0b',l:'En proceso'},{v:ni,c:'#dc2626',l:'No iniciado'}],total,'trámites')+'</div>'+
@@ -1989,6 +2002,33 @@ function renderInstitucionPortal() {
   app.innerHTML = html;
   if (rol === 'coordinador') renderTablaCoord();
 }
+
+// ── SLIDE MODALS ──────────────────────────────────────────────
+window._openSlide4 = function(){
+  document.getElementById('_slide-modal-title').textContent = 'Trámites por institución — Estado de Honduras';
+  document.getElementById('_slide-modal-img').src = 'slide4.png';
+  document.getElementById('_slide-overlay').classList.add('open');
+};
+window._closeSlide = function(){
+  document.getElementById('_slide-overlay').classList.remove('open');
+};
+window._openInterop = function(){
+  var w = window.open('', 'interop', 'width=1000,height=580,resizable=yes,scrollbars=no');
+  w.document.write('<html><head><title>Interoperabilidad Institucional</title><style>body{margin:0;background:#0a2d6e;display:flex;align-items:center;justify-content:center;min-height:100vh}</style></head><body><img src="' + location.origin + location.pathname.replace(/[^/]*$/, '') + 'slide3.png" style="max-width:100%;max-height:100vh;display:block"></body></html>');
+  w.document.close();
+};
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') window._closeSlide(); });
 </script>
+
+<!-- ══ SLIDE OVERLAY ══ -->
+<div class="slide-overlay" id="_slide-overlay" onclick="if(event.target===this)window._closeSlide()">
+  <div class="slide-modal">
+    <div class="slide-modal-head">
+      <span id="_slide-modal-title">Trámites por institución</span>
+      <button class="slide-close" onclick="window._closeSlide()">✕</button>
+    </div>
+    <img id="_slide-modal-img" src="" alt="Diapositiva">
+  </div>
+</div>
 </body>
 </html>
