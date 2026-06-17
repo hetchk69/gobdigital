@@ -1036,15 +1036,10 @@ async function renderInicio(unitKey) {
       '<div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:1.1rem">'+
         '<div class="card" style="padding:1rem 1.25rem">'+
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">'+
-            '<div style="font-size:15px;font-weight:800;color:var(--azul)" id="_donut-title">Estado de trámites</div>'+
-            '<div style="display:flex;gap:4px">'+
-              '<button id="_btn-estado" onclick="window._switchDonut(\'estado\')" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;border:1.5px solid var(--azul);background:var(--azul);color:#fff;cursor:pointer">Por estado</button>'+
-              '<button id="_btn-inst" onclick="window._switchDonut(\'inst\')" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;border:1.5px solid var(--borde);background:#fff;color:var(--muted);cursor:pointer">Por institución</button>'+
-              '<button onclick="window._openInterop()" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;border:1.5px solid #0891b2;background:#ecfeff;color:#0891b2;cursor:pointer" title="Ver interoperabilidad institucional">🔗 Interop.</button>'+
-            '</div>'+
+            '<div style="font-size:15px;font-weight:800;color:var(--azul)">Trámites por institución</div>'+
+            '<button onclick="window._openInterop()" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;border:1.5px solid #0891b2;background:#ecfeff;color:#0891b2;cursor:pointer" title="Ver interoperabilidad institucional">🔗 Interop.</button>'+
           '</div>'+
-          '<div id="_donut-estado">'+donutChart([{v:op,c:'#16a34a',l:'En operación'},{v:proc,c:'#f59e0b',l:'En proceso'},{v:ni,c:'#dc2626',l:'No iniciado'}],total,'trámites')+'</div>'+
-          '<div id="_donut-inst" style="display:none">'+instDonutChart(instRows,total)+'</div>'+
+          '<div id="_donut-inst">'+instDonutChart(instRows,total)+'</div>'+
         '</div>'+
         '<div class="card" style="padding:1rem 1.25rem">'+
           '<div style="font-size:15px;font-weight:800;color:var(--azul);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:2px solid var(--azul-c)">Ranking de instituciones</div>'+
@@ -1150,19 +1145,6 @@ async function renderInicio(unitKey) {
         '</div>';
       })();
 
-    window._switchDonut = function(tab){
-      var isEst = tab==='estado';
-      document.getElementById('_donut-estado').style.display = isEst?'':'none';
-      document.getElementById('_donut-inst').style.display  = isEst?'none':'';
-      document.getElementById('_donut-title').textContent   = isEst?'Estado de trámites':'Trámites por institución';
-      var bEst=document.getElementById('_btn-estado'), bInst=document.getElementById('_btn-inst');
-      bEst.style.background  = isEst?'var(--azul)':'#fff';
-      bEst.style.color       = isEst?'#fff':'var(--muted)';
-      bEst.style.borderColor = isEst?'var(--azul)':'var(--borde)';
-      bInst.style.background  = isEst?'#fff':'var(--azul)';
-      bInst.style.color       = isEst?'var(--muted)':'#fff';
-      bInst.style.borderColor = isEst?'var(--borde)':'var(--azul)';
-    };
     window._toggleInst = function(id){
       var tb=document.getElementById(id), ic=document.getElementById('ic-'+id);
       if(!tb) return;
