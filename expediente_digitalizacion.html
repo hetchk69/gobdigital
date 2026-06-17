@@ -262,7 +262,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v4.1</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v4.2</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -689,6 +689,12 @@ var expCache = [];
 var currentIdx = null;
 var tramiteCount = 1;
 var activeTram = 0;
+var TRAM_COLORS = [
+  {bg:'#dde9ff',fg:'#1455a4'},{bg:'#ede9fe',fg:'#6d28d9'},{bg:'#dcfce7',fg:'#15803d'},
+  {bg:'#fff7ed',fg:'#c2410c'},{bg:'#fce7f3',fg:'#be185d'},{bg:'#ecfeff',fg:'#0e7490'},
+  {bg:'#fef9c3',fg:'#92400e'},{bg:'#ffe4e6',fg:'#be123c'},{bg:'#f0fdf4',fg:'#166534'},
+  {bg:'#fdf4ff',fg:'#7e22ce'}
+];
 
 // Flow data: flujosActual[tramIdx] = [{tipo,titulo,area,tiempo,doc_emitido,obs,retorno_a}]
 var flujosActual = [[]];
@@ -1965,12 +1971,21 @@ function verHistorial(){
   } else {
     lista.innerHTML=all.map(function(exp,i){
       var ts=exp._ts?new Date(exp._ts).toLocaleDateString('es-HN'):'—';
-      var tramNms=(exp.tramite_nombres||[]).filter(Boolean).join(', ')||exp.tramites_lista||'Sin trámites';
+      var prod = exp.num_tramites_prod||0;
+      var names = (exp.tramite_nombres||[]).filter(Boolean);
+      var tramBadges = names.map(function(nm,idx){
+        var col = TRAM_COLORS[idx % TRAM_COLORS.length];
+        var cod = exp.inst ? (exp.inst+'-'+String(prod+idx+1).padStart(2,'0')) : '';
+        return '<span title="'+escHtml(nm)+'" style="display:inline-flex;align-items:center;font-size:11px;font-weight:700;'
+          +'background:'+col.bg+';color:'+col.fg+';border-radius:4px;padding:2px 8px;margin:2px 3px 2px 0;white-space:nowrap">'
+          +escHtml(cod||nm)+'</span>';
+      }).join('');
+      if(!tramBadges) tramBadges='<span style="color:var(--muted);font-size:12px">Sin trámites</span>';
       return '<div class="hist-card" onclick="cargarExp('+i+')">'
         +'<div class="hist-card-av">'+(exp.inst||'?').slice(0,2).toUpperCase()+'</div>'
         +'<div class="hist-card-info">'
           +'<div class="hist-card-title">'+(exp.inst||'Sin institución')+'</div>'
-          +'<div class="hist-card-meta">'+escHtml(tramNms)+'</div>'
+          +'<div class="hist-card-meta" style="white-space:normal;line-height:1.6">'+tramBadges+'</div>'
           +'<div class="hist-card-meta">'+escHtml(exp.codigo_exp||'')+(exp.codigo_exp?' · ':'')+'Guardado: '+ts+'</div>'
         +'</div>'
         +'<button class="hist-card-del" onclick="event.stopPropagation();eliminarExp('+i+')">✕</button>'
@@ -2367,7 +2382,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v4.1</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v4.2</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
