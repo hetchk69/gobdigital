@@ -60,6 +60,16 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
 .btn-save-inline{background:#fff;border:1.5px solid #16a34a;border-radius:9px;padding:9px 18px;font-size:12.5px;font-weight:700;color:#16a34a;cursor:pointer;transition:all .2s}
 .btn-save-inline:hover{background:#f0fdf4}
 
+/* ── MODAL TRANSCRIPCIÓN ─────── */
+.tr-overlay{display:none;position:fixed;inset:0;background:rgba(10,20,50,.55);z-index:9000;align-items:center;justify-content:center}
+.tr-overlay.open{display:flex}
+.tr-modal{background:#fff;border-radius:14px;padding:28px 28px 22px;width:min(600px,96vw);max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(10,30,80,.22)}
+.tr-modal h3{margin:0 0 6px;font-size:16px;color:#0a2d6e}
+.tr-modal p{margin:0 0 14px;font-size:12.5px;color:#5a6e92;line-height:1.55}
+.tr-modal textarea{width:100%;box-sizing:border-box;height:200px;padding:10px 12px;border:1.5px solid #d0d8e8;border-radius:8px;font-size:12px;font-family:monospace;resize:vertical;background:#f8fafd}
+.tr-modal .tr-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+.tr-schema{background:#f0f4ff;border:1px solid #c5d3f0;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:11.5px;color:#334;font-family:monospace;white-space:pre;overflow-x:auto;max-height:160px}
+
 /* ── DOC HEADER ── */
 .doc-header{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:1.4rem;margin-bottom:1.25rem;text-align:center;box-shadow:0 2px 8px rgba(10,45,110,.06)}
 .doc-header .gov{font-size:13px;font-weight:800;color:#0a2d6e;text-transform:uppercase;letter-spacing:.04em}
@@ -383,6 +393,7 @@ input[type=file].hidden{display:none}
       <button class="btn-danger btn-sm" id="btn-eliminar" onclick="eliminarEvento()" style="display:none">🗑 Eliminar</button>
     </div>
     <div class="action-bar-right">
+      <button class="btns" onclick="abrirModalTranscripcion()" style="background:#f0f4ff;color:#1455a4;border-color:#b8c8ef">📋 Cargar transcripción</button>
       <button class="btn-save-inline" id="btn-guardar-todo" onclick="guardarTodo()">💾 Guardar cambios</button>
       <button class="btnp" id="btn-enviar" onclick="enviarRegistro()">📤 Enviar registro</button>
     </div>
@@ -1971,6 +1982,132 @@ function gv(id){ var el=document.getElementById(id); return el?(el.value||'').tr
 function sv(id,val){ var el=document.getElementById(id); if(el) el.value=val; }
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function genId(){ return 'PE-'+(+new Date).toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,6).toUpperCase(); }
+
+// ── TRANSCRIPCIÓN ─────────────────────────────────────────────
+function abrirModalTranscripcion(){
+  document.getElementById('tr-overlay').classList.add('open');
+  document.getElementById('tr-input').focus();
+}
+function cerrarModalTranscripcion(){
+  document.getElementById('tr-overlay').classList.remove('open');
+  document.getElementById('tr-err').textContent='';
+}
+
+var _MODALIDADES_VALIDAS=['Presencial','Virtual','Híbrida','Otro'];
+var _TIPOS_VALIDOS=['Taller','Seminario','Charla informativa','Curso','Reunión técnica','Capacitación en el lugar de trabajo','Inducción','Conferencia','Otro'];
+
+function aplicarTranscripcion(){
+  var raw=document.getElementById('tr-input').value.trim();
+  var errEl=document.getElementById('tr-err');
+  errEl.textContent='';
+  if(!raw){ errEl.textContent='Pegue el JSON generado por Cowork antes de aplicar.'; return; }
+  var d;
+  try{ d=JSON.parse(raw); }catch(e){ errEl.textContent='El texto no es un JSON válido. Verifique el formato.'; return; }
+
+  // Campos simples
+  if(d.titulo)   sv('g-titulo',  d.titulo);
+  if(d.fecha)    sv('g-fecha',   d.fecha);
+  if(d.hora)     sv('g-hora',    d.hora);
+  if(d.duracion) sv('g-duracion',d.duracion);
+  if(d.lugar)    sv('g-lugar',   d.lugar);
+  if(d.objetivo) sv('mem-agenda',   d.objetivo);
+  if(d.desarrollo) sv('mem-desarrollo', d.desarrollo);
+  if(d.documentos) sv('docs-recursos', d.documentos);
+  if(d.validador_diger) sv('val-diger', d.validador_diger);
+
+  // Modalidad
+  if(d.modalidad){
+    var mod=d.modalidad.trim();
+    if(_MODALIDADES_VALIDAS.indexOf(mod)!==-1){
+      sv('g-modalidad', mod);
+    } else {
+      sv('g-modalidad', 'Otro');
+      sv('g-modalidad-otro', mod);
+    }
+    toggleModalidadOtro();
+  }
+
+  // Institución
+  if(d.institucion){
+    var instVal=d.institucion.trim().toUpperCase();
+    var instSel=document.getElementById('g-inst');
+    var instFound=false;
+    if(instSel){
+      var opts=Array.from(instSel.options);
+      for(var i=0;i<opts.length;i++){
+        if(opts[i].value.toUpperCase()===instVal || opts[i].text.toUpperCase()===instVal){
+          instSel.value=opts[i].value; instFound=true; break;
+        }
+      }
+    }
+    if(!instFound){
+      sv('g-inst','Otro');
+      sv('g-inst-otro', d.institucion.trim());
+    }
+    toggleInstOtro();
+  }
+
+  // Tipo
+  if(d.tipo){
+    var tipo=d.tipo.trim();
+    if(_TIPOS_VALIDOS.indexOf(tipo)!==-1){
+      sv('g-tipo', tipo);
+    } else {
+      sv('g-tipo', 'Otro');
+      sv('g-tipo-otro', tipo);
+    }
+    toggleTipoOtro();
+  }
+
+  // Siempre: NO capacitación de plataforma
+  var capNo=document.getElementById('es-cap-no');
+  if(capNo){ capNo.checked=true; toggleCapacitacion(); }
+
+  // Acuerdos
+  if(Array.isArray(d.acuerdos) && d.acuerdos.length){
+    // Limpiar acuerdos actuales
+    var tbody=document.getElementById('acuerdos-tbody');
+    if(tbody) tbody.innerHTML='';
+    d.acuerdos.forEach(function(a){
+      addAcuerdo(a.compromiso||'', a.responsable||'', a.plazo||'');
+    });
+  }
+
+  cerrarModalTranscripcion();
+  document.getElementById('g-titulo').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
 </script>
+
+<!-- ══ MODAL: CARGAR DESDE TRANSCRIPCIÓN ══════════════════════ -->
+<div class="tr-overlay" id="tr-overlay" onclick="if(event.target===this)cerrarModalTranscripcion()">
+  <div class="tr-modal">
+    <h3>Cargar desde transcripción</h3>
+    <p>Pegue el JSON generado por Cowork a partir de la transcripción de la reunión. Todos los campos del formulario se llenarán automáticamente.</p>
+    <div class="tr-schema"><!-- Estructura esperada (referencia): -->
+{
+  "titulo":          "Levantamiento - IHADFA",
+  "fecha":           "2026-06-17",
+  "hora":            "09:00",
+  "duracion":        "2 horas",
+  "modalidad":       "Presencial",
+  "lugar":           "Sala de reuniones DIGER",
+  "institucion":     "IHADFA",
+  "tipo":            "Reunión técnica",
+  "objetivo":        "Objetivo principal de la reunión...",
+  "desarrollo":      "Resumen del desarrollo...",
+  "acuerdos": [
+    { "compromiso": "...", "responsable": "...", "plazo": "2026-06-24" }
+  ],
+  "documentos":      "Lista de documentos y URLs...",
+  "validador_diger": "Nombre y cargo del responsable DIGER"
+}</div>
+    <textarea id="tr-input" placeholder="Pegue aquí el JSON de Cowork..."></textarea>
+    <div id="tr-err" style="color:#b91c1c;font-size:12px;min-height:18px;margin-top:6px"></div>
+    <div class="tr-footer">
+      <button class="btns" onclick="cerrarModalTranscripcion()">Cancelar</button>
+      <button class="btn-success" style="padding:9px 22px;font-size:13px" onclick="aplicarTranscripcion()">Aplicar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
