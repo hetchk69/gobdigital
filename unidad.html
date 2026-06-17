@@ -329,14 +329,29 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   .cal-mini{padding:9px}
   .tab-toolbar{flex-direction:column;align-items:stretch}
 }
-/* ── SLIDE MODALS ── */
-.slide-overlay{display:none;position:fixed;inset:0;background:rgba(5,15,40,.7);z-index:8000;align-items:center;justify-content:center}
+/* ── SLIDESHOW MODAL ── */
+.slide-overlay{display:none;position:fixed;inset:0;background:rgba(5,12,35,.88);z-index:8000;align-items:center;justify-content:center}
 .slide-overlay.open{display:flex}
-.slide-modal{background:#fff;border-radius:14px;overflow:hidden;max-width:92vw;max-height:90vh;box-shadow:0 12px 48px rgba(0,0,0,.35);display:flex;flex-direction:column}
-.slide-modal-head{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#0a2d6e;color:#fff;font-size:14px;font-weight:700}
-.slide-modal img{max-width:100%;max-height:80vh;display:block}
-.slide-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px}
-.slide-close:hover{background:rgba(255,255,255,.2)}
+.slide-modal{background:#0a1a3e;border-radius:18px;width:min(600px,96vw);padding:0;box-shadow:0 20px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden}
+.slide-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px;border-bottom:1px solid rgba(255,255,255,.1)}
+.slide-head-title{color:#8eaadd;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.slide-close{background:none;border:none;color:#8eaadd;font-size:20px;cursor:pointer;line-height:1;padding:2px 8px;border-radius:6px}
+.slide-close:hover{background:rgba(255,255,255,.1);color:#fff}
+.slide-body{display:flex;flex-direction:column;align-items:center;padding:28px 24px 20px;min-height:300px;position:relative}
+.slide-logo-wrap{width:240px;height:160px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.96);border-radius:12px;padding:16px;margin-bottom:22px;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.slide-logo-wrap img{max-width:100%;max-height:128px;object-fit:contain}
+.slide-text-logo{font-size:52px;font-weight:900;color:#0a2d6e;letter-spacing:-1px}
+.slide-count{font-size:64px;font-weight:900;color:#fff;line-height:1;margin-bottom:4px}
+.slide-count-label{font-size:13px;color:#8eaadd;font-weight:600;margin-bottom:14px}
+.slide-inst-name{font-size:16px;font-weight:800;color:#fff;text-align:center;margin-bottom:4px}
+.slide-inst-full{font-size:11.5px;color:#6b85c0;text-align:center;max-width:340px;line-height:1.45}
+.slide-nav{display:flex;align-items:center;gap:16px;margin-top:20px}
+.slide-btn{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);color:#fff;width:42px;height:42px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.slide-btn:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4)}
+.slide-counter{color:#8eaadd;font-size:12px;font-weight:700;min-width:48px;text-align:center}
+.slide-dots{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;padding:0 20px 18px;max-width:560px;margin:0 auto}
+.slide-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18);cursor:pointer;transition:all .2s;flex-shrink:0}
+.slide-dot.active{background:#4a90e2;transform:scale(1.3)}
 </style>
 </head>
 <body>
@@ -2003,32 +2018,110 @@ function renderInstitucionPortal() {
   if (rol === 'coordinador') renderTablaCoord();
 }
 
-// ── SLIDE MODALS ──────────────────────────────────────────────
-window._openSlide4 = function(){
-  document.getElementById('_slide-modal-title').textContent = 'Trámites por institución — Estado de Honduras';
-  document.getElementById('_slide-modal-img').src = 'slide4.png';
+// ── SLIDESHOW NACIONAL ────────────────────────────────────────
+var _SS_DATA = [
+  {name:'ARSA',      full:'Agencia de Regulación Sanitaria',                                    count:71, logo:'inst/logo_00.png'},
+  {name:'SDE',       full:'Secretaría de Desarrollo Económico',                                 count:21, logo:'inst/logo_01.png'},
+  {name:'IHT',       full:'Instituto Hondureño de Turismo',                                     count:8,  logo:'inst/logo_02.png'},
+  {name:'Aduanas',   full:'Administración Aduanera de Honduras',                                count:7,  logo:'inst/logo_03.png'},
+  {name:'CNBS',      full:'Comisión Nacional de Bancos y Seguros',                              count:7,  logo:'inst/logo_04.png'},
+  {name:'SAG-SENASA',full:'Servicio Nacional de Sanidad e Inocuidad Agroalimentaria',           count:7,  logo:'inst/logo_05.png'},
+  {name:'IHADFA',    full:'Instituto Hondureño para la Prevención del Alcoholismo y Drogadicción', count:6, logo:'inst/logo_06.png'},
+  {name:'INPREMA',   full:'Instituto Nacional de Previsión del Magisterio',                     count:6,  logo:'inst/logo_07.png'},
+  {name:'STSS',      full:'Secretaría de Trabajo y Seguridad Social',                           count:6,  logo:'inst/logo_08.png'},
+  {name:'Comayagua', full:'Municipalidad de Comayagua',                                         count:4,  logo:'inst/logo_09.png'},
+  {name:'CONSUCOOP', full:'Consejo Nacional Supervisor de Cooperativas',                        count:4,  logo:'inst/logo_10.png'},
+  {name:'SCAPH',     full:'Secretaría de las Culturas, las Artes y los Patrimonios',            count:4,  logo:'inst/logo_11.png'},
+  {name:'SEFIN',     full:'Secretaría de Finanzas',                                             count:4,  logo:'inst/logo_12.png'},
+  {name:'SGJD',      full:'Secretaría de Gobernación, Justicia y Descentralización',            count:4,  logo:'inst/logo_13.png'},
+  {name:'Ihcine',    full:'Instituto Hondureño de Cinematografía',                              count:3,  logo:'inst/logo_14.png'},
+  {name:'IHTT',      full:'Instituto Hondureño de Transporte Terrestre',                        count:3,  logo:null},
+  {name:'INM',       full:'Instituto Nacional de Migración',                                    count:3,  logo:'inst/logo_16.png'},
+  {name:'INPREUNAH', full:'Instituto de Previsión Social de los Empleados de la UNAH',          count:3,  logo:'inst/logo_17.png'},
+  {name:'IP',        full:'Instituto de la Propiedad',                                          count:3,  logo:'inst/logo_18.png'},
+  {name:'SAG',       full:'Secretaría de Agricultura y Ganadería',                              count:3,  logo:'inst/logo_19.png'},
+  {name:'SEN',       full:'Secretaría de Energía',                                              count:3,  logo:'inst/logo_20.png'},
+  {name:'SENPRENDE', full:'Servicio Nacional de Emprendimiento y de Pequeños Negocios',         count:3,  logo:'inst/logo_21.png'},
+  {name:'SESAL',     full:'Secretaría de Salud',                                                count:3,  logo:'inst/logo_22.png'},
+  {name:'Bomberos',  full:'Cuerpo de Bomberos de Honduras',                                     count:2,  logo:'inst/logo_23.png'},
+  {name:'CNI',       full:'Consejo Nacional de Inversiones Honduras',                           count:2,  logo:'inst/logo_24.png'},
+  {name:'INFOP',     full:'Instituto Nacional de Formación Profesional',                        count:2,  logo:'inst/logo_25.png'},
+  {name:'SAR',       full:'Servicio de Administración de Rentas',                               count:2,  logo:'inst/logo_26.png'},
+  {name:'SRECI',     full:'Secretaría de Relaciones Exteriores y Cooperación Internacional',    count:2,  logo:'inst/logo_27.png'},
+  {name:'BANHPROVI', full:'Banco Hondureño para la Producción y la Vivienda',                   count:1,  logo:'inst/logo_28.png'},
+  {name:'CONATEL',   full:'Comisión Nacional de Telecomunicaciones',                            count:1,  logo:'inst/logo_29.png'},
+  {name:'SEGUR',     full:'Seguridad',                                                          count:1,  logo:null}
+];
+var _ssIdx = 0;
+
+function _ssRender(){
+  var d = _SS_DATA[_ssIdx];
+  var logoHtml = d.logo
+    ? '<img src="'+d.logo+'" alt="'+d.name+'">'
+    : '<span class="slide-text-logo">'+d.name+'</span>';
+  document.getElementById('_ss-logo').innerHTML = logoHtml;
+  document.getElementById('_ss-count').textContent = d.count;
+  document.getElementById('_ss-name').textContent = d.name;
+  document.getElementById('_ss-full').textContent = d.full;
+  document.getElementById('_ss-counter').textContent = (_ssIdx+1)+' / '+_SS_DATA.length;
+  document.querySelectorAll('.slide-dot').forEach(function(dot,i){
+    dot.classList.toggle('active', i===_ssIdx);
+  });
+}
+window._openSlide4 = function(startIdx){
+  _ssIdx = startIdx||0;
+  _ssRender();
   document.getElementById('_slide-overlay').classList.add('open');
 };
-window._closeSlide = function(){
-  document.getElementById('_slide-overlay').classList.remove('open');
-};
+window._ssPrev = function(){ _ssIdx = (_ssIdx-1+_SS_DATA.length)%_SS_DATA.length; _ssRender(); };
+window._ssNext = function(){ _ssIdx = (_ssIdx+1)%_SS_DATA.length; _ssRender(); };
+window._ssGo   = function(i){ _ssIdx=i; _ssRender(); };
+window._closeSlide = function(){ document.getElementById('_slide-overlay').classList.remove('open'); };
 window._openInterop = function(){
-  var w = window.open('', 'interop', 'width=1000,height=580,resizable=yes,scrollbars=no');
-  w.document.write('<html><head><title>Interoperabilidad Institucional</title><style>body{margin:0;background:#0a2d6e;display:flex;align-items:center;justify-content:center;min-height:100vh}</style></head><body><img src="' + location.origin + location.pathname.replace(/[^/]*$/, '') + 'slide3.png" style="max-width:100%;max-height:100vh;display:block"></body></html>');
+  var base = location.origin + location.pathname.replace(/[^/]*$/,'');
+  var w = window.open('','interop','width=1020,height=590,resizable=yes,scrollbars=no');
+  w.document.write('<html><head><title>Interoperabilidad Institucional</title><style>body{margin:0;background:#0a2d6e;display:flex;align-items:center;justify-content:center;min-height:100vh}</style></head><body><img src="'+base+'slide3.png" style="max-width:100%;max-height:100vh;display:block"></body></html>');
   w.document.close();
 };
-document.addEventListener('keydown', function(e){ if(e.key==='Escape') window._closeSlide(); });
+document.addEventListener('keydown', function(e){
+  var ov = document.getElementById('_slide-overlay');
+  if(!ov || !ov.classList.contains('open')) return;
+  if(e.key==='Escape') window._closeSlide();
+  if(e.key==='ArrowLeft') window._ssPrev();
+  if(e.key==='ArrowRight') window._ssNext();
+});
 </script>
 
-<!-- ══ SLIDE OVERLAY ══ -->
+<!-- ══ SLIDESHOW OVERLAY ══ -->
 <div class="slide-overlay" id="_slide-overlay" onclick="if(event.target===this)window._closeSlide()">
   <div class="slide-modal">
-    <div class="slide-modal-head">
-      <span id="_slide-modal-title">Trámites por institución</span>
+    <div class="slide-head">
+      <span class="slide-head-title">Trámites por institución · Estado de Honduras · 199 trámites · 31 instituciones</span>
       <button class="slide-close" onclick="window._closeSlide()">✕</button>
     </div>
-    <img id="_slide-modal-img" src="" alt="Diapositiva">
+    <div class="slide-body">
+      <div class="slide-logo-wrap" id="_ss-logo"></div>
+      <div class="slide-count" id="_ss-count">0</div>
+      <div class="slide-count-label">trámites</div>
+      <div class="slide-inst-name" id="_ss-name"></div>
+      <div class="slide-inst-full" id="_ss-full"></div>
+      <div class="slide-nav">
+        <button class="slide-btn" onclick="window._ssPrev()">&#8592;</button>
+        <span class="slide-counter" id="_ss-counter">1 / 31</span>
+        <button class="slide-btn" onclick="window._ssNext()">&#8594;</button>
+      </div>
+    </div>
+    <div class="slide-dots" id="_ss-dots"></div>
   </div>
 </div>
+<script>
+(function(){
+  var dots = document.getElementById('_ss-dots');
+  if(!dots) return;
+  var html = '';
+  for(var i=0;i<31;i++) html += '<div class="slide-dot'+(i===0?' active':'')+'" onclick="window._ssGo('+i+')" title="'+(i+1)+'"></div>';
+  dots.innerHTML = html;
+})();
+</script>
 </body>
 </html>
