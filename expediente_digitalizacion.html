@@ -262,7 +262,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v3.9</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v4.0</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -1254,6 +1254,46 @@ function actualizarCodsTramite(){
   actualizarTabsTramite();
 }
 
+function migrarDatosTramite(i){
+  var sel = document.getElementById('migrar-src-'+i);
+  var j = parseInt(sel && sel.value);
+  if(isNaN(j) || j < 0 || j >= i) return;
+  var codes = getTramCodigos();
+
+  var fieldsToMigrar = ['nombre_corto','modalidad','plazo_legal','tercero',
+    'tiempo_real','metodo_pago','pago_banco','pago_cuenta','tgr_inst','tgr_monto',
+    'doc_entregado','objetivo','alcance_obs','descripcion','dirigido',
+    'horario','telefono','email_tramite','sitio_web'];
+  fieldsToMigrar.forEach(function(f){ sv(f+'_'+i, gv(f+'_'+j)); });
+
+  // TGR rubros dependen de la institución — cargar primero, luego asignar rubro
+  onTgrInstChange(i);
+  sv('tgr_rubro_'+i, gv('tgr_rubro_'+j));
+
+  // Alcance radio + pill styling
+  var srcAlc = document.querySelector('input[name="alcance_'+j+'"]:checked');
+  document.querySelectorAll('input[name="alcance_'+i+'"]').forEach(function(r){
+    r.checked = false;
+    r.closest && r.closest('.tp') && r.closest('.tp').classList.remove('on');
+  });
+  if(srcAlc){
+    var dstAlc = document.querySelector('input[name="alcance_'+i+'"][value="'+srcAlc.value+'"]');
+    if(dstAlc){ dstAlc.checked = true; dstAlc.closest && dstAlc.closest('.tp') && dstAlc.closest('.tp').classList.add('on'); }
+  }
+
+  // Requisitos (copia profunda)
+  reqsTram[i] = (reqsTram[j]||[]).map(function(r){ return {requisito:r.requisito||'',obs:r.obs||''}; });
+  renderReqFichaRows(i);
+  actualizarNumReq();
+
+  // Acciones modelo propuesto (copia profunda)
+  accionesTram[i] = (accionesTram[j]||[]).map(function(a){ return {accion:a.accion||'Mantener',justificacion:a.justificacion||''}; });
+  renderModeloReqs(i);
+
+  togglePago(i);
+  mostrarToast('✓ Datos migrados desde ' + (codes[j] || 'Trámite '+(j+1)));
+}
+
 function syncNombreTramite(i){
   var src = document.getElementById('tnam-'+i);
   var dst = document.getElementById('nombre_tramite_'+i);
@@ -1307,8 +1347,25 @@ function renderFichasPanels(){
 
 function fichaHTML(i, nombre, show){
   var codes = getTramCodigos();
+  var names = getTramNombres();
   var codBadge = codes[i] ? ' <span class="tram-cod">'+escHtml(codes[i])+'</span>' : '';
+
+  var migrarHTML = '';
+  if(i > 0){
+    var opts = '';
+    for(var j=0;j<i;j++){
+      var lbl = (codes[j]||('Trámite '+(j+1))) + (names[j]?' — '+escHtml(names[j].length>35?names[j].slice(0,33)+'…':names[j]):'');
+      opts += '<option value="'+j+'">'+lbl+'</option>';
+    }
+    migrarHTML = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;padding:10px 14px;background:var(--azul-c);border-radius:8px;border:1px solid #c8dbff;flex-wrap:wrap">'
+      + '<span style="font-size:13px;font-weight:600;color:var(--azul);white-space:nowrap">Migrar datos de:</span>'
+      + '<select id="migrar-src-'+i+'" style="font-size:13px;flex:1;min-width:200px;max-width:380px">'+opts+'</select>'
+      + '<button class="btn btn-s" onclick="migrarDatosTramite('+i+')" style="font-size:12px;white-space:nowrap">Aplicar</button>'
+      + '</div>';
+  }
+
   return '<div id="ficha-panel-'+i+'" style="'+(show?'':'display:none')+'">'
+    + migrarHTML
     + '<div class="card accent"><div class="ct">Datos generales — ' + escHtml(nombre) + codBadge + '</div>'
       + '<div class="f"><label>Nombre completo del trámite <span class="star">*</span></label><input type="text" id="nombre_tramite_'+i+'" placeholder="Nombre oficial del trámite"></div>'
       + '<div class="g3">'
@@ -2306,7 +2363,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v3.9</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v4.0</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
