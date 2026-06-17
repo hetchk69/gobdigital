@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trámites por institución — Estado de Honduras</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f0f4f8;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+
+/* HEADER */
+.hdr{background:#0a2d6e;padding:22px 40px 18px;display:flex;align-items:center;justify-content:space-between}
+.hdr-left h1{font-size:26px;font-weight:900;color:#fff;letter-spacing:-.3px}
+.hdr-left p{font-size:13px;color:#8eaadd;margin-top:4px;font-weight:500}
+.hdr-badge{background:#1455a4;border:2px solid rgba(255,255,255,.2);border-radius:12px;padding:12px 22px;text-align:center}
+.hdr-badge .num{font-size:36px;font-weight:900;color:#fff;line-height:1}
+.hdr-badge .lbl{font-size:11px;color:#8eaadd;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+
+/* GRID */
+.grid-wrap{flex:1;padding:28px 32px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* CARD */
+.card{background:#fff;border-radius:12px;padding:18px 14px 14px;display:flex;flex-direction:column;align-items:center;box-shadow:0 2px 10px rgba(10,45,110,.07);border:1.5px solid #e8eef8;transition:box-shadow .2s,transform .15s;cursor:default}
+.card:hover{box-shadow:0 6px 24px rgba(10,45,110,.14);transform:translateY(-2px)}
+.logo-wrap{width:130px;height:90px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.logo-wrap img{max-width:130px;max-height:90px;object-fit:contain}
+.text-logo{font-size:28px;font-weight:900;color:#0a2d6e;letter-spacing:-1px}
+.count-row{display:flex;align-items:baseline;gap:5px;margin-bottom:3px}
+.count-num{font-size:36px;font-weight:900;color:#0a2d6e;line-height:1}
+.count-unit{font-size:12px;font-weight:700;color:#6b85c0;text-transform:uppercase;letter-spacing:.04em}
+.inst-name{font-size:11.5px;font-weight:700;color:#334e7a;text-align:center;margin-bottom:2px}
+.inst-full{font-size:10px;color:#94a3b8;text-align:center;line-height:1.35;max-width:150px}
+
+/* FOOTER */
+.ftr{background:#0a2d6e;padding:12px 40px;display:flex;align-items:center;justify-content:space-between}
+.ftr span{font-size:11px;color:rgba(255,255,255,.45);font-weight:500}
+
+/* RESPONSIVE */
+@media(max-width:900px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.grid{grid-template-columns:repeat(2,1fr)}.hdr{flex-direction:column;gap:14px;align-items:flex-start}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <h1>Trámites por institución</h1>
+    <p>31 instituciones &nbsp;·&nbsp; Estado de Honduras</p>
+  </div>
+  <div class="hdr-badge">
+    <div class="num">199</div>
+    <div class="lbl">trámites</div>
+  </div>
+</div>
+
+<div class="grid-wrap">
+  <div class="grid" id="inst-grid"></div>
+</div>
+
+<div class="ftr">
+  <span>Estado de Honduras &nbsp;·&nbsp; Distribución de trámites por institución</span>
+  <span>DIGER · Dirección General de Regulación</span>
+</div>
+
+<script>
+var DATA = [
+  {name:'ARSA',       full:'Agencia de Regulación Sanitaria',                                       count:71, logo:'inst/logo_00.png'},
+  {name:'SDE',        full:'Secretaría de Desarrollo Económico',                                    count:21, logo:'inst/logo_01.png'},
+  {name:'IHT',        full:'Instituto Hondureño de Turismo',                                        count:8,  logo:'inst/logo_02.png'},
+  {name:'Aduanas',    full:'Administración Aduanera de Honduras',                                   count:7,  logo:'inst/logo_03.png'},
+  {name:'CNBS',       full:'Comisión Nacional de Bancos y Seguros',                                 count:7,  logo:'inst/logo_04.png'},
+  {name:'SAG-SENASA', full:'Servicio Nacional de Sanidad e Inocuidad Agroalimentaria',              count:7,  logo:'inst/logo_05.png'},
+  {name:'IHADFA',     full:'Instituto Hondureño para la Prevención del Alcoholismo y Drogadicción', count:6,  logo:'inst/logo_06.png'},
+  {name:'INPREMA',    full:'Instituto Nacional de Previsión del Magisterio',                        count:6,  logo:'inst/logo_07.png'},
+  {name:'STSS',       full:'Secretaría de Trabajo y Seguridad Social',                              count:6,  logo:'inst/logo_08.png'},
+  {name:'Comayagua',  full:'Municipalidad de Comayagua',                                            count:4,  logo:'inst/logo_09.png'},
+  {name:'CONSUCOOP',  full:'Consejo Nacional Supervisor de Cooperativas',                           count:4,  logo:'inst/logo_10.png'},
+  {name:'SCAPH',      full:'Secretaría de las Culturas, las Artes y los Patrimonios',               count:4,  logo:'inst/logo_11.png'},
+  {name:'SEFIN',      full:'Secretaría de Finanzas',                                                count:4,  logo:'inst/logo_12.png'},
+  {name:'SGJD',       full:'Secretaría de Gobernación, Justicia y Descentralización',               count:4,  logo:'inst/logo_13.png'},
+  {name:'Ihcine',     full:'Instituto Hondureño de Cinematografía',                                 count:3,  logo:'inst/logo_14.png'},
+  {name:'IHTT',       full:'Instituto Hondureño de Transporte Terrestre',                           count:3,  logo:null},
+  {name:'INM',        full:'Instituto Nacional de Migración',                                       count:3,  logo:'inst/logo_16.png'},
+  {name:'INPREUNAH',  full:'Instituto de Previsión Social de los Empleados de la UNAH',             count:3,  logo:'inst/logo_17.png'},
+  {name:'IP',         full:'Instituto de la Propiedad',                                             count:3,  logo:'inst/logo_18.png'},
+  {name:'SAG',        full:'Secretaría de Agricultura y Ganadería',                                 count:3,  logo:'inst/logo_19.png'},
+  {name:'SEN',        full:'Secretaría de Energía',                                                 count:3,  logo:'inst/logo_20.png'},
+  {name:'SENPRENDE',  full:'Servicio Nacional de Emprendimiento y de Pequeños Negocios',            count:3,  logo:'inst/logo_21.png'},
+  {name:'SESAL',      full:'Secretaría de Salud',                                                   count:3,  logo:'inst/logo_22.png'},
+  {name:'Bomberos',   full:'Cuerpo de Bomberos de Honduras',                                        count:2,  logo:'inst/logo_23.png'},
+  {name:'CNI',        full:'Consejo Nacional de Inversiones Honduras',                              count:2,  logo:'inst/logo_24.png'},
+  {name:'INFOP',      full:'Instituto Nacional de Formación Profesional',                           count:2,  logo:'inst/logo_25.png'},
+  {name:'SAR',        full:'Servicio de Administración de Rentas',                                  count:2,  logo:'inst/logo_26.png'},
+  {name:'SRECI',      full:'Secretaría de Relaciones Exteriores y Cooperación Internacional',       count:2,  logo:'inst/logo_27.png'},
+  {name:'BANHPROVI',  full:'Banco Hondureño para la Producción y la Vivienda',                      count:1,  logo:'inst/logo_28.png'},
+  {name:'CONATEL',    full:'Comisión Nacional de Telecomunicaciones',                               count:1,  logo:'inst/logo_29.png'},
+  {name:'SEGUR',      full:'Seguridad',                                                             count:1,  logo:null}
+];
+
+var grid = document.getElementById('inst-grid');
+grid.innerHTML = DATA.map(function(d){
+  var logoHtml = d.logo
+    ? '<img src="'+d.logo+'" alt="'+d.name+'">'
+    : '<span class="text-logo">'+d.name+'</span>';
+  return '<div class="card">'
+    + '<div class="logo-wrap">'+logoHtml+'</div>'
+    + '<div class="count-row"><span class="count-num">'+d.count+'</span><span class="count-unit">trám.</span></div>'
+    + '<div class="inst-name">'+d.name+'</div>'
+    + '<div class="inst-full">'+d.full+'</div>'
+    + '</div>';
+}).join('');
+</script>
+</body>
+</html>

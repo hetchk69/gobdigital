@@ -765,7 +765,7 @@ async function renderInicio(unitKey) {
         '<text x="'+(lx+14)+'" y="'+(ly+20)+'" '+FF+' font-size="9.5" fill="#94a3b8">'+d.count+' trám. · '+pct+'%</text>'+
         '</g>';
     }).join('');
-    var verBtn='<div style="text-align:right;margin-top:6px"><button onclick="window._openSlide4()" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;border:1.5px solid var(--azul);background:#f0f4ff;color:var(--azul);cursor:pointer">↗ Ver desglose nacional (199 trám.)</button></div>';
+    var verBtn='<div style="text-align:right;margin-top:6px"><button onclick="window.open(\'tramites_nac.html\',\'tramites_nac\',\'width=1200,height=820,resizable=yes,scrollbars=yes\')" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;border:1.5px solid var(--azul);background:#f0f4ff;color:var(--azul);cursor:pointer">↗ Ver desglose nacional (199 trám.)</button></div>';
     return '<svg viewBox="0 0 458 210" xmlns="http://www.w3.org/2000/svg" style="width:100%">'+paths+center+legend+'</svg>'+verBtn;
   }
 
