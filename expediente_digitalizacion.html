@@ -262,7 +262,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 
     <!-- ══ SECCIÓN 0: APERTURA ══ -->
     <div class="sec active" id="sec0">
-      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v3.5</span></div>
+      <div class="sec-title">📁 Apertura del expediente <span style="font-size:9px;font-weight:400;color:#c0c8d8;letter-spacing:.05em;margin-left:6px">v3.6</span></div>
 
       <div class="card accent">
         <div class="ct">Identificación del expediente</div>
@@ -1124,28 +1124,56 @@ function generarCodigo(){
   cod.value = 'EXP-' + abbr + '-' + year + '-' + seq;
   actualizarMeta();
   actualizarCodsTramite();
+  filtrarContactosPorInstitucion();
 }
 
+var _todosContactosAsis = [];
 var _contactosAsis = [];
+
+var _INST_NORM = {
+  'ihadfa':'IHADFA','consucoop':'CONSUCOOP','conscucoop':'CONSUCOOP',
+  'instituto de la propiedad':'IP','instituto propiedad':'IP','ip':'IP',
+  'canaturh/iht':'CANATURH / IHT','canaturh':'CANATURH / IHT','canaturh / iht':'CANATURH / IHT',
+  'banhprovi':'BANHPROVI','cnbs':'CNBS','conatel':'CONATEL','convivienda':'CONVIVIENDA',
+  'copeco':'COPECO','ihcine':'IHCINE','ihtt':'IHTT','inprema':'INPREMA','inpreunah':'INPREUNAH',
+  'sag':'SAG','secapph':'SECAPPH','sen':'SEN','sgjd':'SGJD','sit':'SIT','sreci':'SRECI','serna':'SERNA'
+};
+function _normInst(val){
+  if(!val) return '';
+  var v = val.trim();
+  if(/^IP\b/i.test(v) && v.length <= 20) return 'IP';
+  return _INST_NORM[v.toLowerCase().replace(/\s+/g,' ')] || v.toUpperCase().replace(/\s+/g,' ');
+}
+
 async function cargarContactosAsistencias(){
   var sel = document.getElementById('contacto-buscar');
   if(!sel) return;
   var res = await _sb.from('asistencias')
     .select('nombre,cargo,correo,telefono,institucion')
-    .order('nombre')
-    .limit(500);
-  _contactosAsis = (res.data || []).filter(function(c){ return (c.nombre||'').trim(); });
+    .order('nombre').limit(1000);
+  _todosContactosAsis = (res.data || []).filter(function(c){ return (c.nombre||'').trim(); });
+  filtrarContactosPorInstitucion();
+}
+
+function filtrarContactosPorInstitucion(){
+  var sel = document.getElementById('contacto-buscar');
+  if(!sel) return;
+  var inst = gv('inst');
+  _contactosAsis = inst
+    ? _todosContactosAsis.filter(function(c){ return _normInst(c.institucion) === inst; })
+    : _todosContactosAsis;
   sel.innerHTML = '<option value="">— Seleccionar enlace desde asistencias —</option>';
   if(_contactosAsis.length){
     _contactosAsis.forEach(function(c,idx){
       var opt = document.createElement('option');
       opt.value = idx;
-      opt.textContent = (c.nombre||'') + (c.cargo ? ' — '+c.cargo : '') + (c.institucion ? ' ('+c.institucion+')' : '');
+      opt.textContent = (c.nombre||'') + (c.cargo ? ' — '+c.cargo : '');
       sel.appendChild(opt);
     });
   } else {
     var opt2 = document.createElement('option');
-    opt2.disabled = true; opt2.textContent = 'Sin registros en asistencias';
+    opt2.disabled = true;
+    opt2.textContent = inst ? 'Sin registros para esta institución' : 'Sin contactos cargados';
     sel.appendChild(opt2);
   }
 }
@@ -1731,6 +1759,7 @@ function poblarFormulario(d){
   // Apertura
   ['inst','fecha_apertura','analista','codigo_exp','dir_sede','contacto_nombre','contacto_cargo',
    'contacto_correo','contacto_tel'].forEach(function(id){ sv(id, d[id]||''); });
+  filtrarContactosPorInstitucion();
 
   // Requisitos/acciones por trámite (antes de render para que aparezcan)
   reqsTram = d.reqs_tram ? d.reqs_tram.map(function(r){ return r||[]; }) : [[]];
@@ -2253,7 +2282,7 @@ function wrapText(text,maxChars){
 </script>
 
 <!-- Etiqueta de versión -->
-<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v3.5</div>
+<div style="position:fixed;bottom:8px;right:12px;font-size:9px;color:#c0c8d8;font-family:Segoe UI,sans-serif;letter-spacing:0.05em;z-index:100;pointer-events:none;user-select:none">v3.6</div>
 
 <!-- Modal de detalles de nodo -->
 <div id="node-modal" onclick="if(event.target===this)closeNodeModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,0.48);align-items:center;justify-content:center">
