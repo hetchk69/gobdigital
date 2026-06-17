@@ -60,15 +60,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
 .btn-save-inline{background:#fff;border:1.5px solid #16a34a;border-radius:9px;padding:9px 18px;font-size:12.5px;font-weight:700;color:#16a34a;cursor:pointer;transition:all .2s}
 .btn-save-inline:hover{background:#f0fdf4}
 
-/* ── MODAL TRANSCRIPCIÓN ─────── */
-.tr-overlay{display:none;position:fixed;inset:0;background:rgba(10,20,50,.55);z-index:9000;align-items:center;justify-content:center}
-.tr-overlay.open{display:flex}
-.tr-modal{background:#fff;border-radius:14px;padding:28px 28px 22px;width:min(600px,96vw);max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(10,30,80,.22)}
-.tr-modal h3{margin:0 0 6px;font-size:16px;color:#0a2d6e}
-.tr-modal p{margin:0 0 14px;font-size:12.5px;color:#5a6e92;line-height:1.55}
-.tr-modal textarea{width:100%;box-sizing:border-box;height:200px;padding:10px 12px;border:1.5px solid #d0d8e8;border-radius:8px;font-size:12px;font-family:monospace;resize:vertical;background:#f8fafd}
-.tr-modal .tr-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
-.tr-schema{background:#f0f4ff;border:1px solid #c5d3f0;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:11.5px;color:#334;font-family:monospace;white-space:pre;overflow-x:auto;max-height:160px}
 
 /* ── DOC HEADER ── */
 .doc-header{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:1.4rem;margin-bottom:1.25rem;text-align:center;box-shadow:0 2px 8px rgba(10,45,110,.06)}
@@ -393,7 +384,6 @@ input[type=file].hidden{display:none}
       <button class="btn-danger btn-sm" id="btn-eliminar" onclick="eliminarEvento()" style="display:none">🗑 Eliminar</button>
     </div>
     <div class="action-bar-right">
-      <button class="btns" onclick="abrirModalTranscripcion()" style="background:#f0f4ff;color:#1455a4;border-color:#b8c8ef">📋 Cargar transcripción</button>
       <button class="btn-save-inline" id="btn-guardar-todo" onclick="guardarTodo()">💾 Guardar cambios</button>
       <button class="btnp" id="btn-enviar" onclick="enviarRegistro()">📤 Enviar registro</button>
     </div>
@@ -530,6 +520,18 @@ input[type=file].hidden{display:none}
         <tbody id="det-tbody"></tbody>
       </table>
       <div class="empty-row" id="det-empty">Sin registros capturados aún. Comparta el QR con los participantes.</div>
+    </div>
+  </div>
+
+  <!-- ═══ SECCIÓN: TRANSCRIPCIÓN COWORK ═══ -->
+  <div class="card" id="transcripcion-card" style="display:none">
+    <div class="stitle">Memorias desde transcripción (Cowork)</div>
+    <p style="font-size:12.5px;color:#5a6e92;margin:0 0 12px;line-height:1.55">Pegue aquí el JSON generado por Cowork a partir de la transcripción de la reunión y presione <strong>Aplicar</strong> para llenar los campos automáticamente.</p>
+    <textarea id="tr-input" placeholder='{"titulo":"...","fecha":"YYYY-MM-DD","hora":"HH:MM","duracion":"...","modalidad":"Presencial","lugar":"...","institucion":"...","tipo":"Reunión técnica","objetivo":"...","desarrollo":"...","acuerdos":[{"compromiso":"...","responsable":"...","plazo":"YYYY-MM-DD"}],"documentos":"...","validador_diger":"..."}' style="width:100%;box-sizing:border-box;height:180px;padding:10px 12px;border:1.5px solid #d0d8e8;border-radius:8px;font-size:11.5px;font-family:monospace;resize:vertical;background:#f8fafd"></textarea>
+    <div id="tr-err" style="color:#b91c1c;font-size:12px;min-height:18px;margin-top:6px"></div>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button class="btn-success" style="padding:9px 22px;font-size:13px" onclick="aplicarTranscripcion()">Aplicar al formulario</button>
+      <button class="btns" onclick="document.getElementById('tr-input').value='';document.getElementById('tr-err').textContent=''">Limpiar</button>
     </div>
   </div>
 
@@ -1013,6 +1015,7 @@ function mostrarCrear(){
   document.getElementById('btn-eliminar').style.display='none';
   document.getElementById('ev-status-badge').style.display='none';
   document.getElementById('asis-card').style.display='none';
+  document.getElementById('transcripcion-card').style.display='none';
   ocultarMensajes();
   cambiarVista('view-evento');
   window.scrollTo(0,0);
@@ -1050,6 +1053,7 @@ async function abrirEvento(id){
 
   // Asistencias
   document.getElementById('asis-card').style.display='block';
+  document.getElementById('transcripcion-card').style.display='block';
   await cargarAsistencias(id);
   suscribirRealtime(id);
   ocultarMensajes();
@@ -1138,6 +1142,7 @@ async function guardarGeneral(){
   actualizarBadgeEstado(true);
   mostrarQR(id);
   document.getElementById('asis-card').style.display='block';
+  document.getElementById('transcripcion-card').style.display='block';
   await cargarAsistencias(id);
   suscribirRealtime(id);
   document.getElementById('qr-panel').scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -1984,14 +1989,6 @@ function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function genId(){ return 'PE-'+(+new Date).toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,6).toUpperCase(); }
 
 // ── TRANSCRIPCIÓN ─────────────────────────────────────────────
-function abrirModalTranscripcion(){
-  document.getElementById('tr-overlay').classList.add('open');
-  document.getElementById('tr-input').focus();
-}
-function cerrarModalTranscripcion(){
-  document.getElementById('tr-overlay').classList.remove('open');
-  document.getElementById('tr-err').textContent='';
-}
 
 var _MODALIDADES_VALIDAS=['Presencial','Virtual','Híbrida','Otro'];
 var _TIPOS_VALIDOS=['Taller','Seminario','Charla informativa','Curso','Reunión técnica','Capacitación en el lugar de trabajo','Inducción','Conferencia','Otro'];
@@ -2073,41 +2070,10 @@ function aplicarTranscripcion(){
     });
   }
 
-  cerrarModalTranscripcion();
+  document.getElementById('tr-input').value='';
   document.getElementById('g-titulo').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 </script>
 
-<!-- ══ MODAL: CARGAR DESDE TRANSCRIPCIÓN ══════════════════════ -->
-<div class="tr-overlay" id="tr-overlay" onclick="if(event.target===this)cerrarModalTranscripcion()">
-  <div class="tr-modal">
-    <h3>Cargar desde transcripción</h3>
-    <p>Pegue el JSON generado por Cowork a partir de la transcripción de la reunión. Todos los campos del formulario se llenarán automáticamente.</p>
-    <div class="tr-schema"><!-- Estructura esperada (referencia): -->
-{
-  "titulo":          "Levantamiento - IHADFA",
-  "fecha":           "2026-06-17",
-  "hora":            "09:00",
-  "duracion":        "2 horas",
-  "modalidad":       "Presencial",
-  "lugar":           "Sala de reuniones DIGER",
-  "institucion":     "IHADFA",
-  "tipo":            "Reunión técnica",
-  "objetivo":        "Objetivo principal de la reunión...",
-  "desarrollo":      "Resumen del desarrollo...",
-  "acuerdos": [
-    { "compromiso": "...", "responsable": "...", "plazo": "2026-06-24" }
-  ],
-  "documentos":      "Lista de documentos y URLs...",
-  "validador_diger": "Nombre y cargo del responsable DIGER"
-}</div>
-    <textarea id="tr-input" placeholder="Pegue aquí el JSON de Cowork..."></textarea>
-    <div id="tr-err" style="color:#b91c1c;font-size:12px;min-height:18px;margin-top:6px"></div>
-    <div class="tr-footer">
-      <button class="btns" onclick="cerrarModalTranscripcion()">Cancelar</button>
-      <button class="btn-success" style="padding:9px 22px;font-size:13px" onclick="aplicarTranscripcion()">Aplicar</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
