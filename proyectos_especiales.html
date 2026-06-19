@@ -2001,19 +2001,25 @@ function aplicarTranscripcion(){
   var d;
   try{ d=JSON.parse(raw); }catch(e){ errEl.textContent='El texto no es un JSON válido. Verifique el formato.'; return; }
 
-  // Campos simples
-  if(d.titulo)   sv('g-titulo',  d.titulo);
-  if(d.fecha)    sv('g-fecha',   d.fecha);
-  if(d.hora)     sv('g-hora',    d.hora);
-  if(d.duracion) sv('g-duracion',d.duracion);
-  if(d.lugar)    sv('g-lugar',   d.lugar);
-  if(d.objetivo) sv('mem-agenda',   d.objetivo);
-  if(d.desarrollo) sv('mem-desarrollo', d.desarrollo);
-  if(d.documentos) sv('docs-recursos', d.documentos);
-  if(d.validador_diger) sv('val-diger', d.validador_diger);
+  // Helper: solo llena si el campo está vacío
+  function gv(id){ var el=document.getElementById(id); return el ? el.value.trim() : ''; }
+  function svIfEmpty(id, val){ if(!gv(id) && val) sv(id, val); }
 
-  // Modalidad
-  if(d.modalidad){
+  // Datos Generales — solo si están vacíos
+  svIfEmpty('g-titulo',  d.titulo);
+  svIfEmpty('g-fecha',   d.fecha);
+  svIfEmpty('g-hora',    d.hora);
+  svIfEmpty('g-duracion',d.duracion);
+  svIfEmpty('g-lugar',   d.lugar);
+
+  // Contenido — siempre se actualiza
+  if(d.objetivo)       sv('mem-agenda',      d.objetivo);
+  if(d.desarrollo)     sv('mem-desarrollo',  d.desarrollo);
+  if(d.documentos)     sv('docs-recursos',   d.documentos);
+  if(d.validador_diger)sv('val-diger',       d.validador_diger);
+
+  // Modalidad — solo si está vacía
+  if(d.modalidad && !gv('g-modalidad')){
     var mod=d.modalidad.trim();
     if(_MODALIDADES_VALIDAS.indexOf(mod)!==-1){
       sv('g-modalidad', mod);
@@ -2024,8 +2030,8 @@ function aplicarTranscripcion(){
     toggleModalidadOtro();
   }
 
-  // Institución
-  if(d.institucion){
+  // Institución — solo si está vacía
+  if(d.institucion && !gv('g-inst')){
     var instVal=d.institucion.trim().toUpperCase();
     var instSel=document.getElementById('g-inst');
     var instFound=false;
@@ -2044,8 +2050,8 @@ function aplicarTranscripcion(){
     toggleInstOtro();
   }
 
-  // Tipo
-  if(d.tipo){
+  // Tipo — solo si está vacío
+  if(d.tipo && !gv('g-tipo')){
     var tipo=d.tipo.trim();
     if(_TIPOS_VALIDOS.indexOf(tipo)!==-1){
       sv('g-tipo', tipo);
