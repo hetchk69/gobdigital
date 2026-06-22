@@ -94,8 +94,7 @@
     : '';
 
   var right = _ses
-    ? '<span class="dh-info" title="' + escAttr(mail) + '">' + userIcon +
-        '<span class="dh-mail">' + escAttr(mail) + '</span></span>' +
+    ? '<span class="dh-info" title="' + escAttr(mail) + '">' + userIcon + '</span>' +
       homeBtn +
       '<button class="dh-logout" onclick="cerrarSesion()">Cerrar sesión</button>'
     : '';
