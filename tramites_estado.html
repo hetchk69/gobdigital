@@ -871,6 +871,8 @@ function reiniciar() {
   document.getElementById('equipo').innerHTML = '';
   document.getElementById('lim-wrap').style.display = 'none';
   document.getElementById('acomp-wrap').style.display = 'none';
+  cargarAsistentesInst('');
+  window._asistentesData = [];
   eqN = 0; addRow(); verHistorial();
 }
 
