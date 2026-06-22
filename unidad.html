@@ -520,6 +520,8 @@ function boot() {
     renderUnitPage(unitParam, tabParam);
   } else if (areaParam) {
     renderAreaPage(areaParam);
+  } else if (instParam && (!ses || ses.role === 'admin')) {
+    renderInstAreas(instParam);
   } else {
     renderSelector();
   }
@@ -531,11 +533,69 @@ function boot() {
 function renderSelector() {
   var rol = ses ? ses.role : null;
   if (rol !== 'admin') { renderInstitucionPortal(); return; }
-  renderDigerAreas();
+  renderInstSelector();
 }
 
 // ────────────────────────────────────────────────────────────────
-// ÁREAS DE DIGER (vista principal admin)
+// NIVEL 1 — INSTITUCIONES (vista principal admin)
+// ────────────────────────────────────────────────────────────────
+var INSTITUCIONES = [
+  {
+    key: 'diger',
+    label: 'DIGER',
+    full: 'Dirección General de Regulación',
+    icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg>',
+    color: 'blue'
+  }
+];
+
+function getInstitucion(key) {
+  for (var i=0;i<INSTITUCIONES.length;i++){ if(INSTITUCIONES[i].key===key) return INSTITUCIONES[i]; }
+  return null;
+}
+
+function renderInstSelector() {
+  document.title = 'Portal de Información Institucional — DIGER';
+  var html = '<div class="welcome">' +
+    '<div class="badge">Administrador</div>' +
+    '<h2>Instituciones</h2>' +
+    '<p>Seleccione una instituci&oacute;n para ver sus &aacute;reas y unidades.</p>' +
+    '</div>';
+
+  html += '<div class="unit-grid">';
+  INSTITUCIONES.forEach(function(inst) {
+    html += '<a class="unit-card digitalizacion" href="unidad.html?inst=' + inst.key + '">' +
+      '<div class="unit-icon ' + inst.color + '">' + inst.icon + '</div>' +
+      '<div>' +
+        '<div class="unit-name">' + inst.label + '</div>' +
+        '<div class="unit-desc">' + inst.full + '</div>' +
+      '</div>' +
+      '<div class="unit-arrow">&rarr;</div>' +
+    '</a>';
+  });
+  html += '</div>';
+
+  // Panel de usuarios — acceso a las instituciones creadas
+  html += '<div class="card" id="admin-panel">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
+      '<div class="sec-title" style="margin:0;border:none;padding:0">Gesti&oacute;n de accesos</div>' +
+      '<button class="btn-add" onclick="abrirModalNuevoUsuario()">+ Agregar usuario</button>' +
+    '</div>' +
+    '<div id="access-table-wrap">' +
+      '<table class="access-table">' +
+        '<thead><tr><th>Correo</th><th>Rol</th><th>Instituci&oacute;n</th><th>M&oacute;dulos</th><th></th></tr></thead>' +
+        '<tbody id="access-tbody"></tbody>' +
+      '</table>' +
+      '<div class="empty" id="access-empty">No hay usuarios registrados. Haga clic en + Agregar usuario.</div>' +
+    '</div>' +
+  '</div>';
+
+  app.innerHTML = html;
+  renderTablaAccesos();
+}
+
+// ────────────────────────────────────────────────────────────────
+// NIVEL 2 — ÁREAS de una institución (?inst=diger)
 // ────────────────────────────────────────────────────────────────
 var AREAS = [
   {
@@ -554,17 +614,23 @@ var AREAS = [
   }
 ];
 
-function renderDigerAreas() {
-  document.title = 'DIGER — Areas';
+function renderInstAreas(instKey) {
+  var inst = getInstitucion(instKey);
+  if (!inst) { renderInstSelector(); return; }
+  document.title = inst.label + ' — Áreas';
+
   var html = '<div class="welcome">' +
-    '<div class="badge">DIGER &nbsp;&middot;&nbsp; Administrador</div>' +
-    '<h2>Direcci&oacute;n General de Regulaci&oacute;n</h2>' +
+    '<a href="unidad.html" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);text-decoration:none;margin-bottom:.6rem">' +
+      '&larr; Instituciones' +
+    '</a>' +
+    '<div class="badge">' + inst.label + '</div>' +
+    '<h2>' + inst.full + '</h2>' +
     '<p>Seleccione el &aacute;rea de trabajo.</p>' +
     '</div>';
 
   html += '<div class="unit-grid">';
   AREAS.forEach(function(a) {
-    html += '<a class="unit-card digitalizacion" href="unidad.html?area=' + a.key + '">' +
+    html += '<a class="unit-card digitalizacion" href="unidad.html?inst=' + instKey + '&area=' + a.key + '">' +
       '<div class="unit-icon ' + a.color + '">' + a.icon + '</div>' +
       '<div>' +
         '<div class="unit-name">' + a.label + '</div>' +
@@ -575,27 +641,11 @@ function renderDigerAreas() {
   });
   html += '</div>';
 
-  // Panel de usuarios
-  html += '<div class="card" id="admin-panel">' +
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
-      '<div class="sec-title" style="margin:0;border:none;padding:0">Gesti&oacute;n de usuarios</div>' +
-      '<button class="btn-add" onclick="abrirModalNuevoUsuario()">+ Agregar usuario</button>' +
-    '</div>' +
-    '<div id="access-table-wrap">' +
-      '<table class="access-table">' +
-        '<thead><tr><th>Correo</th><th>Rol</th><th>Instituci&oacute;n</th><th>M&oacute;dulos</th><th></th></tr></thead>' +
-        '<tbody id="access-tbody"></tbody>' +
-      '</table>' +
-      '<div class="empty" id="access-empty">No hay usuarios registrados. Haga clic en + Agregar usuario.</div>' +
-    '</div>' +
-  '</div>';
-
   app.innerHTML = html;
-  renderTablaAccesos();
 }
 
 // ────────────────────────────────────────────────────────────────
-// ÁREA PAGE — unidades según área seleccionada
+// NIVEL 3 — UNIDADES según área seleccionada (?inst=diger&area=…)
 // ────────────────────────────────────────────────────────────────
 var AREA_UNITS = {
   'gobierno-digital':    ['digitalizacion', 'proyectos', 'talento'],
@@ -610,14 +660,16 @@ var AREA_LABELS = {
 function renderAreaPage(areaKey) {
   var areaLabel = AREA_LABELS[areaKey] || areaKey;
   var unitKeys  = AREA_UNITS[areaKey] || [];
+  var inst      = getInstitucion(instParam) || INSTITUCIONES[0];
+  var backHref  = instParam ? ('unidad.html?inst=' + instParam) : 'unidad.html';
 
-  document.title = 'DIGER — ' + areaLabel;
+  document.title = inst.label + ' — ' + areaLabel;
 
   var html = '<div class="welcome">' +
-    '<a href="unidad.html" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);text-decoration:none;margin-bottom:.6rem">' +
-      '&larr; DIGER' +
+    '<a href="' + backHref + '" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);text-decoration:none;margin-bottom:.6rem">' +
+      '&larr; ' + inst.label +
     '</a>' +
-    '<div class="badge">DIGER &nbsp;&middot;&nbsp; ' + areaLabel + '</div>' +
+    '<div class="badge">' + inst.label + ' &nbsp;&middot;&nbsp; ' + areaLabel + '</div>' +
     '<h2>' + areaLabel + '</h2>' +
     '<p>Seleccione la unidad a la que desea acceder.</p>' +
     '</div>';
