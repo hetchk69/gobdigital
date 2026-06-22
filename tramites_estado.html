@@ -508,7 +508,8 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
         <div class="ok-inst" id="ok-inst"></div>
         <h2>¡Levantamiento guardado!</h2>
         <p id="okmsg">El levantamiento fue registrado correctamente.</p>
-        <button class="btnp" onclick="generarPDF()" style="margin-bottom:12px">Descargar PDF</button><br>
+        <button class="btnp" onclick="generarPDF()" style="margin-bottom:10px">Descargar PDF</button><br>
+        <button class="btnp" id="btn-enviar-correo" onclick="enviarLevantamientoPorCorreo()" style="margin-bottom:10px;background:linear-gradient(135deg,#16a34a,#14532d)">📤 Enviar registro por correo</button><br>
         <button class="btns" onclick="reiniciar()" style="margin-top:8px;font-size:13px">Nuevo levantamiento</button>
         <br><button class="btns" onclick="verHistorial()" style="margin-top:8px;font-size:13px">← Ver todos los levantamientos</button>
       </div>
@@ -521,6 +522,7 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="insts.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
@@ -670,17 +672,19 @@ function goStep(n) {
   window.scrollTo(0,0);
 }
 
-function guardar() {
+async function guardar() {
   var btn = document.getElementById('btnenviar');
   btn.textContent = 'Guardando...';
   btn.disabled = true;
   try {
-    guardarEnHistorial();
+    var entrada = guardarEnHistorial();
+    await guardarEnSupabase(entrada);
     var inst = getVal('inst');
     document.getElementById('ok-inst').textContent = inst;
     document.getElementById('okmsg').textContent = 'El levantamiento fue registrado correctamente.';
     goStep(4);
   } catch(e) {
+    console.error(e);
     btn.textContent = 'Guardar levantamiento →';
     btn.disabled = false;
     alert('Error al guardar. Intente de nuevo.');
@@ -923,11 +927,72 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// ── SUPABASE — ASISTENTES ────────────────────────────
+// ── SUPABASE ─────────────────────────────────────────
 var _sb = supabase.createClient(
   'https://gnpvqiyantdtksfvqtqk.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw'
 );
+
+// ── EMAILJS ──────────────────────────────────────────
+(function(){ try{ emailjs.init('xl4HDu62cetiPyDCJ'); }catch(e){} })();
+
+function buildResumenTexto(h) {
+  var lineas = [
+    'LEVANTAMIENTO DE ESTADO DE TRÁMITES — DIGER',
+    '============================================',
+    'Institución:  ' + (h.inst||'—'),
+    'Encargado:    ' + (h.enc||'—'),
+    'Correo:       ' + (h.cor||'—'),
+    'Celular:      ' + (h.cel||'—'),
+    'Fecha:        ' + (h.fecha ? new Date(h.fecha).toLocaleDateString('es-HN') : '—'),
+    '',
+    'ESTADO ACTUAL',
+    '-------------',
+    'Digitalización:          ' + (h.estado||'—'),
+    'SOL migrada a inst.:     ' + (h.migrada||'—'),
+    'Personal técnico:        ' + (h.personal||'—'),
+    'Requiere acompañamiento: ' + (h.acomp||'—'),
+  ];
+  if(h.obsEstado) lineas.push('Observaciones: ' + h.obsEstado);
+  lineas.push('', 'TRÁMITES', '--------');
+  (h.tramites||[]).forEach(function(t, i){
+    lineas.push((i+1) + '. ' + t.nombre);
+    var chk = [];
+    if(t.acta) chk.push('Acta');
+    if(t.mejoras) chk.push('Mejoras');
+    if(t.instructivo) chk.push('Instructivo');
+    if(t.socializacion) chk.push('Socialización');
+    if(chk.length) lineas.push('   ✓ ' + chk.join(' · '));
+    if(t.obs) lineas.push('   Obs: ' + t.obs);
+  });
+  if(h.equipo && h.equipo.length){
+    lineas.push('', 'EQUIPO DIGER', '------------');
+    h.equipo.forEach(function(e){
+      lineas.push((e.funcion||'—') + ': ' + (e.nombre||'—') + ' — ' + (e.contacto||'—'));
+    });
+  }
+  if(h.obsGen) lineas.push('', 'Observaciones generales: ' + h.obsGen);
+  return lineas.join('\n');
+}
+
+function enviarLevantamientoPorCorreo() {
+  var inst = document.getElementById('ok-inst').textContent || getVal('inst');
+  var hist = loadHist();
+  var h = hist.find(function(x){ return x.inst === inst; });
+  if(!h){ alert('No se encontró el levantamiento guardado.'); return; }
+  if(typeof emailjs === 'undefined'){ alert('Servicio de correo no disponible.'); return; }
+  var btn = document.getElementById('btn-enviar-correo');
+  if(btn){ btn.textContent = 'Enviando...'; btn.disabled = true; }
+  emailjs.send('service_ddpjb4o', 'template_56ilb2e', {
+    institucion: h.inst,
+    resumen: buildResumenTexto(h)
+  }).then(function(){
+    if(btn){ btn.textContent = '✓ Registro enviado'; }
+  }).catch(function(){
+    if(btn){ btn.textContent = '📤 Enviar registro por correo'; btn.disabled = false; }
+    alert('Error al enviar el correo. Intente de nuevo.');
+  });
+}
 
 async function cargarAsistentesInst(inst) {
   var card = document.getElementById('card-asistentes');
@@ -1045,11 +1110,25 @@ function guardarEnHistorial(){
   if(idx>=0) hist[idx] = entrada;
   else hist.unshift(entrada);
   saveHist(hist);
+  return entrada;
 }
 
-function renderHistorial(){
+async function guardarEnSupabase(entrada) {
+  try {
+    var res = await _sb.from('diger_tram').select('value').eq('key','levantamientos_estado').maybeSingle();
+    var arr = (res.data && res.data.value) ? res.data.value : [];
+    var idx = arr.findIndex(function(h){ return h.inst === entrada.inst; });
+    if(idx >= 0) arr[idx] = entrada;
+    else arr.unshift(entrada);
+    await _sb.from('diger_tram').upsert({ key: 'levantamientos_estado', value: arr });
+  } catch(e) {
+    console.warn('Supabase save fallback:', e);
+  }
+}
+
+function renderHistorial(hist){
   var lista = document.getElementById('hist-lista');
-  var hist = loadHist();
+  if(!hist) hist = loadHist();
   if(!hist.length){
     lista.innerHTML = '<div class="hist-empty"><div class="ico">📋</div><p>No hay levantamientos registrados.<br>Crea el primero con el botón de arriba.</p></div>';
     return;
@@ -1087,6 +1166,22 @@ function verHistorial(){
   document.getElementById('form-view').style.display = 'none';
   document.getElementById('hist-view').style.display = 'block';
   renderHistorial();
+  // Sincronizar con Supabase en segundo plano
+  (async function(){
+    try {
+      var res = await _sb.from('diger_tram').select('value').eq('key','levantamientos_estado').maybeSingle();
+      var sbArr = (res.data && res.data.value) ? res.data.value : [];
+      if(!sbArr.length) return;
+      var lsArr = loadHist();
+      // Supabase tiene precedencia; agregar entradas locales que no están en Supabase
+      var merged = sbArr.slice();
+      lsArr.forEach(function(h){
+        if(!merged.find(function(s){ return s.id === h.id; })) merged.push(h);
+      });
+      saveHist(merged);
+      renderHistorial(merged);
+    } catch(e){}
+  })();
 }
 
 function eliminarLevantamiento(ev, id){
