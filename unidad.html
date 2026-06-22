@@ -512,6 +512,24 @@ var MANAGED_INST = null;
 // Solo admin y coordinador pueden borrar contenido. Colaborador/lector no.
 function puedeBorrar() { return !!ses && (ses.role === 'admin' || ses.role === 'coordinador'); }
 
+// Asignación área/unidad para colaboradores/lectores de DIGER (KV en diger_tram)
+var DIGER_ACCESS = {};
+
+async function loadDigerAccess() {
+  var res = await sb.from('diger_tram').select('value').eq('key','diger_access').maybeSingle();
+  DIGER_ACCESS = (res.data && res.data.value) || {};
+}
+
+async function saveDigerAccess(email, area, unidad) {
+  DIGER_ACCESS[email] = { area: area || '', unidad: unidad || '' };
+  await sb.from('diger_tram').upsert({ key: 'diger_access', value: DIGER_ACCESS });
+}
+
+async function deleteDigerAccess(email) {
+  delete DIGER_ACCESS[email];
+  await sb.from('diger_tram').upsert({ key: 'diger_access', value: DIGER_ACCESS });
+}
+
 // ── ROUTING ─────────────────────────────────────────────────────
 var params = new URLSearchParams(window.location.search);
 var unitParam = params.get('u');    // 'proyectos' | 'digitalizacion' | 'talento' | null
@@ -530,13 +548,23 @@ var CAL_SB_KEY = function(u){ return 'cal_' + u; };
 function boot() {
   if (unitParam && UNITS[unitParam]) {
     renderUnitPage(unitParam, tabParam);
-  } else if (areaParam) {
-    renderAreaPage(areaParam);
-  } else if (instParam && (!ses || ses.role === 'admin' || esDiger())) {
-    renderInstAreas(instParam);
-  } else {
-    renderSelector();
+    return;
   }
+  if (areaParam) {
+    renderAreaPage(areaParam);
+    return;
+  }
+  if (instParam && (!ses || ses.role === 'admin' || esDiger())) {
+    renderInstAreas(instParam);
+    return;
+  }
+  // Colaborador/lector de DIGER → cargar asignación antes de navegar
+  if (esDiger() && ses.role !== 'admin' && ses.role !== 'coordinador') {
+    app.innerHTML = '<div style="padding:3rem;text-align:center;color:var(--muted)">Cargando...</div>';
+    loadDigerAccess().then(function(){ renderSelector(); });
+    return;
+  }
+  renderSelector();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -545,9 +573,22 @@ function boot() {
 function renderSelector() {
   var rol = ses ? ses.role : null;
   if (rol === 'admin') { renderInstSelector(); return; }
-  // DIGER (coordinador/colaborador/lector) → áreas y unidades como el admin
-  if (esDiger()) { renderInstAreas('diger'); return; }
-  // Otras instituciones → portal institucional
+  if (esDiger()) {
+    if (rol === 'coordinador') { renderInstAreas('diger'); return; }
+    // Colaborador/lector → redirigir a su área/unidad asignada
+    var acc = DIGER_ACCESS[ses.email] || {};
+    if (acc.unidad && UNITS[acc.unidad]) {
+      renderUnitPage(acc.unidad, tabParam || 'inicio');
+      return;
+    }
+    if (acc.area) {
+      renderAreaPage(acc.area);
+      return;
+    }
+    // Sin asignación específica → ver todas las áreas
+    renderInstAreas('diger');
+    return;
+  }
   renderInstitucionPortal();
 }
 
@@ -667,6 +708,7 @@ function renderInstAreas(instKey) {
 
   // Panel de gestión de sub-usuarios (colaboradores) de la institución
   if (verPanel) {
+    var esDigerInst = inst.label.toUpperCase() === 'DIGER';
     html +=
       '<div class="card" id="coord-panel">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
@@ -675,7 +717,9 @@ function renderInstAreas(instKey) {
         '</div>' +
         '<div id="coord-table-wrap">' +
           '<table class="access-table">' +
-            '<thead><tr><th>Correo</th><th>Rol</th><th></th></tr></thead>' +
+            '<thead><tr><th>Correo</th><th>Rol</th>' +
+              (esDigerInst ? '<th>Área</th><th>Unidad</th>' : '') +
+            '<th></th></tr></thead>' +
             '<tbody id="coord-tbody"></tbody>' +
           '</table>' +
           '<div class="empty" id="coord-empty">No hay usuarios registrados para esta institución.</div>' +
@@ -2013,12 +2057,15 @@ async function eliminarFuncionario(email) {
 // ════════════════════════════════════════════════════════════════
 
 async function renderTablaCoord() {
-  var inst  = MANAGED_INST || ses.institucion || '';
-  var tbody = document.getElementById('coord-tbody');
-  var empty = document.getElementById('coord-empty');
+  var inst    = MANAGED_INST || ses.institucion || '';
+  var esDigerInst = inst.toUpperCase() === 'DIGER';
+  var tbody   = document.getElementById('coord-tbody');
+  var empty   = document.getElementById('coord-empty');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:1rem">Cargando...</td></tr>';
+  var colSpan = esDigerInst ? 5 : 3;
+  tbody.innerHTML = '<tr><td colspan="'+colSpan+'" style="text-align:center;color:var(--muted);padding:1rem">Cargando...</td></tr>';
   var cfg = await loadConfig();
+  if (esDigerInst) await loadDigerAccess();
   var subusers = Object.keys(cfg).filter(function(e){
     return cfg[e].institucion === inst && cfg[e].role !== 'coordinador';
   });
@@ -2026,18 +2073,41 @@ async function renderTablaCoord() {
   if (subusers.length === 0) { empty.style.display='block'; return; }
   empty.style.display = 'none';
   subusers.forEach(function(email) {
-    var u = cfg[email]; var rol = u.role || 'colaborador';
+    var u   = cfg[email];
+    var rol = u.role || 'colaborador';
+    var acc = esDigerInst ? (DIGER_ACCESS[email] || {}) : null;
+    var areaLabel   = acc && acc.area   ? (AREA_LABELS[acc.area]   || acc.area)   : '—';
+    var unidadLabel = acc && acc.unidad ? (UNITS[acc.unidad] ? UNITS[acc.unidad].label : acc.unidad) : '—';
     var tr = document.createElement('tr');
     tr.innerHTML =
       '<td class="email-cell">'+esc(email)+'</td>'+
       '<td><span class="role-badge role-'+rol+'">'+esc(ROL_LABELS[rol]||rol)+'</span></td>'+
-      '<td><button class="btn-rm" onclick="eliminarSubusuario(\''+email+'\')">Eliminar</button></td>';
+      (esDigerInst
+        ? '<td style="font-size:12px;color:var(--muted)">'+esc(areaLabel)+'</td>'+
+          '<td style="font-size:12px;color:var(--muted)">'+esc(unidadLabel)+'</td>'
+        : '')+
+      '<td><button class="btn-rm" onclick="eliminarSubusuario(\''+esc(email)+'\')">Eliminar</button></td>';
     tbody.appendChild(tr);
   });
 }
 
 function abrirModalSubusuario() {
-  abrirModal('Agregar usuario — '+esc(MANAGED_INST||ses.institucion||''),
+  var instNombre = MANAGED_INST || ses.institucion || '';
+  var esDigerInst = instNombre.toUpperCase() === 'DIGER';
+  var areaOpts = AREAS.map(function(a){
+    return '<option value="'+esc(a.key)+'">'+esc(a.label)+'</option>';
+  }).join('');
+  var digerFields = esDigerInst
+    ? '<div class="modal-field"><label>Área asignada</label>'+
+      '<select class="access-inp" id="su-area" style="width:100%" onchange="suAreaChange()">'+
+        '<option value="">— Sin restricción (acceso a todas) —</option>'+areaOpts+
+      '</select></div>'+
+      '<div class="modal-field" id="su-unidad-wrap" style="display:none"><label>Unidad asignada</label>'+
+      '<select class="access-inp" id="su-unidad" style="width:100%">'+
+        '<option value="">— Sin restricción (acceso a todas) —</option>'+
+      '</select></div>'
+    : '';
+  abrirModal('Agregar usuario — '+esc(instNombre),
     '<div class="modal-field"><label>Correo electrónico</label>'+
     '<input class="access-inp" type="email" id="su-email" placeholder="correo@institucion.gob.hn" style="width:100%"></div>'+
     '<div class="modal-field"><label>Rol</label>'+
@@ -2045,6 +2115,7 @@ function abrirModalSubusuario() {
       '<option value="colaborador">Colaborador — puede crear y editar contenido</option>'+
       '<option value="lector">Lector — solo lectura</option>'+
     '</select></div>'+
+    digerFields+
     '<div id="su-err" style="font-size:12px;color:var(--rojo);margin-top:6px;display:none"></div>'+
     '<div class="modal-foot">'+
       '<button class="btn-ghost" onclick="cerrarModal()">Cancelar</button>'+
@@ -2053,11 +2124,25 @@ function abrirModalSubusuario() {
   );
 }
 
+function suAreaChange() {
+  var areaEl  = document.getElementById('su-area');
+  var wrap    = document.getElementById('su-unidad-wrap');
+  var unitSel = document.getElementById('su-unidad');
+  if (!areaEl || !wrap || !unitSel) return;
+  var unitKeys = AREA_UNITS[areaEl.value] || [];
+  wrap.style.display = (areaEl.value && unitKeys.length) ? '' : 'none';
+  unitSel.innerHTML = '<option value="">— Sin restricción (acceso a todas) —</option>' +
+    unitKeys.map(function(k){
+      return '<option value="'+esc(k)+'">'+esc(UNITS[k] ? UNITS[k].label : k)+'</option>';
+    }).join('');
+}
+
 async function guardarSubusuario() {
   var email = (document.getElementById('su-email').value||'').trim().toLowerCase();
   var rol   = document.getElementById('su-rol').value;
   var err   = document.getElementById('su-err');
   var inst  = MANAGED_INST || ses.institucion || '';
+  var esDigerInst = inst.toUpperCase() === 'DIGER';
   err.style.display = 'none';
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent='Ingrese un correo válido.'; err.style.display='block'; return; }
   if (email === 'admin@diger.gob.hn') { err.textContent='Este correo está reservado para el administrador.'; err.style.display='block'; return; }
@@ -2065,6 +2150,14 @@ async function guardarSubusuario() {
   if (existe) { err.textContent='Este correo ya está registrado.'; err.style.display='block'; return; }
   var { error } = await upsertUser(email, rol, inst);
   if (error) { err.textContent='Error al guardar. Intente de nuevo.'; err.style.display='block'; return; }
+  // Guardar asignación de área/unidad para usuarios DIGER
+  if (esDigerInst) {
+    var areaEl  = document.getElementById('su-area');
+    var unitEl  = document.getElementById('su-unidad');
+    var area    = areaEl  ? areaEl.value  : '';
+    var unidad  = unitEl  ? unitEl.value  : '';
+    if (area || unidad) await saveDigerAccess(email, area, unidad);
+  }
   cerrarModal();
   renderTablaCoord();
 }
@@ -2072,6 +2165,9 @@ async function guardarSubusuario() {
 async function eliminarSubusuario(email) {
   if (!confirm('¿Eliminar el acceso de ' + email + '?')) return;
   await deleteUser(email);
+  if ((MANAGED_INST || ses.institucion || '').toUpperCase() === 'DIGER') {
+    await deleteDigerAccess(email);
+  }
   renderTablaCoord();
 }
 
