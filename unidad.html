@@ -514,12 +514,14 @@ var calCache  = {};   // unitKey -> events[] (cargado desde Supabase)
 var calLoaded = {};   // unitKey -> bool (para no recargar si ya está en memoria)
 var CAL_SB_KEY = function(u){ return 'cal_' + u; };
 
-if (unitParam && UNITS[unitParam]) {
-  renderUnitPage(unitParam, tabParam);
-} else if (areaParam) {
-  renderAreaPage(areaParam);
-} else {
-  renderSelector();
+function boot() {
+  if (unitParam && UNITS[unitParam]) {
+    renderUnitPage(unitParam, tabParam);
+  } else if (areaParam) {
+    renderAreaPage(areaParam);
+  } else {
+    renderSelector();
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -2153,6 +2155,9 @@ document.addEventListener('keydown', function(e){
   if(e.key==='ArrowLeft') window._ssPrev();
   if(e.key==='ArrowRight') window._ssNext();
 });
+
+// ── ARRANQUE (al final: todas las var ya están asignadas) ─────────
+boot();
 </script>
 
 <!-- ══ SLIDESHOW OVERLAY ══ -->
