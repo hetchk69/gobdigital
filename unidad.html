@@ -401,6 +401,13 @@ var UNITS = {
     desc: 'Reuniones, asistencia, capacitaciones y memorias institucionales.',
     modulos: []
   },
+  talento: {
+    label: 'Talento Digital',
+    icon: 'users',
+    color: 'green',
+    desc: 'Gestión de capacitación y desarrollo del talento humano en digitalización.',
+    modulos: []
+  },
   digitalizacion: {
     label: 'Digitalización de Trámites',
     icon: 'monitor',
@@ -494,9 +501,10 @@ if (!ses) { window.location.replace('index.html'); }
 
 // ── ROUTING ─────────────────────────────────────────────────────
 var params = new URLSearchParams(window.location.search);
-var unitParam = params.get('u');    // 'proyectos' | 'digitalizacion' | null
+var unitParam = params.get('u');    // 'proyectos' | 'digitalizacion' | 'talento' | null
 var tabParam  = params.get('tab') || 'inicio';
 var instParam = params.get('inst'); // 'diger' | null
+var areaParam = params.get('area'); // 'gobierno-digital' | 'gestion-resultados' | null
 
 var app = document.getElementById('app');
 
@@ -508,6 +516,8 @@ var CAL_SB_KEY = function(u){ return 'cal_' + u; };
 
 if (unitParam && UNITS[unitParam]) {
   renderUnitPage(unitParam, tabParam);
+} else if (areaParam) {
+  renderAreaPage(areaParam);
 } else {
   renderSelector();
 }
@@ -517,33 +527,45 @@ if (unitParam && UNITS[unitParam]) {
 // ════════════════════════════════════════════════════════════════
 function renderSelector() {
   var rol = ses ? ses.role : null;
-
-  // Non-admin → institution portal
   if (rol !== 'admin') { renderInstitucionPortal(); return; }
-
-  // Admin → unidades de DIGER directamente
-  renderDigerUnits();
+  renderDigerAreas();
 }
 
 // ────────────────────────────────────────────────────────────────
-// DIGER UNITS (vista principal admin)
+// ÁREAS DE DIGER (vista principal admin)
 // ────────────────────────────────────────────────────────────────
-function renderDigerUnits() {
-  document.title = 'DIGER — Selección de Unidad';
+var AREAS = [
+  {
+    key: 'gestion-resultados',
+    label: 'Gestión por Resultados',
+    desc: 'Monitoreo, evaluación y seguimiento de resultados institucionales.',
+    icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>',
+    color: 'blue'
+  },
+  {
+    key: 'gobierno-digital',
+    label: 'Gobierno Digital',
+    desc: 'Digitalización de trámites, proyectos especiales y talento digital.',
+    icon: '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+    color: 'blue'
+  }
+];
+
+function renderDigerAreas() {
+  document.title = 'DIGER — Areas';
   var html = '<div class="welcome">' +
-    '<div class="badge">DIGER &nbsp;·&nbsp; Administrador</div>' +
-    '<h2>Seleccione una unidad</h2>' +
-    '<p>Dirección General de Regulación &nbsp;·&nbsp; Acceda a los módulos habilitados.</p>' +
+    '<div class="badge">DIGER &nbsp;&middot;&nbsp; Administrador</div>' +
+    '<h2>Direcci&oacute;n General de Regulaci&oacute;n</h2>' +
+    '<p>Seleccione el &aacute;rea de trabajo.</p>' +
     '</div>';
 
   html += '<div class="unit-grid">';
-  ['proyectos','digitalizacion'].forEach(function(key) {
-    var u = UNITS[key];
-    html += '<a class="unit-card ' + key + '" href="unidad.html?u=' + key + '">' +
-      '<div class="unit-icon ' + u.color + '">' + (SVGS[u.icon]||u.icon) + '</div>' +
+  AREAS.forEach(function(a) {
+    html += '<a class="unit-card digitalizacion" href="unidad.html?area=' + a.key + '">' +
+      '<div class="unit-icon ' + a.color + '">' + a.icon + '</div>' +
       '<div>' +
-        '<div class="unit-name">' + u.label + '</div>' +
-        '<div class="unit-desc">' + u.desc + '</div>' +
+        '<div class="unit-name">' + a.label + '</div>' +
+        '<div class="unit-desc">' + a.desc + '</div>' +
       '</div>' +
       '<div class="unit-arrow">&rarr;</div>' +
     '</a>';
@@ -567,6 +589,56 @@ function renderDigerUnits() {
 
   app.innerHTML = html;
   renderTablaAccesos();
+}
+
+// ────────────────────────────────────────────────────────────────
+// ÁREA PAGE — unidades según área seleccionada
+// ────────────────────────────────────────────────────────────────
+var AREA_UNITS = {
+  'gobierno-digital':    ['digitalizacion', 'proyectos', 'talento'],
+  'gestion-resultados':  []
+};
+
+var AREA_LABELS = {
+  'gobierno-digital':   'Gobierno Digital',
+  'gestion-resultados': 'Gestión por Resultados'
+};
+
+function renderAreaPage(areaKey) {
+  var areaLabel = AREA_LABELS[areaKey] || areaKey;
+  var unitKeys  = AREA_UNITS[areaKey] || [];
+
+  document.title = 'DIGER — ' + areaLabel;
+
+  var html = '<div class="welcome">' +
+    '<a href="unidad.html" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);text-decoration:none;margin-bottom:.6rem">' +
+      '&larr; DIGER' +
+    '</a>' +
+    '<div class="badge">DIGER &nbsp;&middot;&nbsp; ' + areaLabel + '</div>' +
+    '<h2>' + areaLabel + '</h2>' +
+    '<p>Seleccione la unidad a la que desea acceder.</p>' +
+    '</div>';
+
+  if (unitKeys.length === 0) {
+    html += '<div class="card"><div class="empty" style="padding:2rem">Esta &aacute;rea no tiene unidades configuradas a&uacute;n.</div></div>';
+  } else {
+    html += '<div class="unit-grid">';
+    unitKeys.forEach(function(key) {
+      var u = UNITS[key];
+      if (!u) return;
+      html += '<a class="unit-card ' + key + '" href="unidad.html?u=' + key + '">' +
+        '<div class="unit-icon ' + u.color + '">' + (SVGS[u.icon] || u.icon) + '</div>' +
+        '<div>' +
+          '<div class="unit-name">' + u.label + '</div>' +
+          '<div class="unit-desc">' + u.desc + '</div>' +
+        '</div>' +
+        '<div class="unit-arrow">&rarr;</div>' +
+      '</a>';
+    });
+    html += '</div>';
+  }
+
+  app.innerHTML = html;
 }
 
 // ════════════════════════════════════════════════════════════════
