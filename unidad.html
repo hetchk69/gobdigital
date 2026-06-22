@@ -505,6 +505,13 @@ if (!ses) { window.location.replace('index.html'); }
 // y unidades igual que el administrador.
 function esDiger() { return !!ses && (ses.institucion || '').trim().toUpperCase() === 'DIGER'; }
 
+// Institución cuya gestión de sub-usuarios se muestra actualmente (coordinador o
+// admin viendo una institución). El coordinador usa su propia institución.
+var MANAGED_INST = null;
+
+// Solo admin y coordinador pueden borrar contenido. Colaborador/lector no.
+function puedeBorrar() { return !!ses && (ses.role === 'admin' || ses.role === 'coordinador'); }
+
 // ── ROUTING ─────────────────────────────────────────────────────
 var params = new URLSearchParams(window.location.search);
 var unitParam = params.get('u');    // 'proyectos' | 'digitalizacion' | 'talento' | null
@@ -627,6 +634,10 @@ function renderInstAreas(instKey) {
   if (!inst) { renderInstSelector(); return; }
   var esAdmin = ses && ses.role === 'admin';
   var esCoord = ses && ses.role === 'coordinador';
+  // Gestión de sub-usuarios apunta a la institución que se está viendo.
+  MANAGED_INST = inst.label;
+  // El admin y el coordinador ven el panel de gestión de colaboradores.
+  var verPanel = esAdmin || esCoord;
   document.title = inst.label + ' — Áreas';
 
   // El enlace "← Instituciones" solo aplica al admin (que sí ve el listado).
@@ -654,8 +665,8 @@ function renderInstAreas(instKey) {
   });
   html += '</div>';
 
-  // Panel de gestión de sub-usuarios para el coordinador de la institución
-  if (esCoord) {
+  // Panel de gestión de sub-usuarios (colaboradores) de la institución
+  if (verPanel) {
     html +=
       '<div class="card" id="coord-panel">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
@@ -673,7 +684,7 @@ function renderInstAreas(instKey) {
   }
 
   app.innerHTML = html;
-  if (esCoord) renderTablaCoord();
+  if (verPanel) renderTablaCoord();
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -1581,7 +1592,7 @@ function renderCalendario(unitKey) {
               (ev.desc ? esc(ev.desc) : 'Sin descripción') +
             '</div>' +
           '</div>' +
-          '<button class="cal-item-del" onclick="calDelEvent(\'' + ev.id + '\')" title="Eliminar">✕</button>' +
+          (puedeBorrar() ? '<button class="cal-item-del" onclick="calDelEvent(\'' + ev.id + '\')" title="Eliminar">✕</button>' : '') +
         '</div>';
       }).join('') +
     '</div>';
@@ -1638,6 +1649,7 @@ async function calSaveEvent() {
 }
 
 async function calDelEvent(id) {
+  if (!puedeBorrar()) { alert('Solo el coordinador puede borrar contenido.'); return; }
   if (!confirm('¿Eliminar este evento?')) return;
   var evs = calEvents(CURRENT_UNIT).filter(function(e){ return e.id !== id; });
   calCache[CURRENT_UNIT] = evs;
@@ -1739,7 +1751,7 @@ function renderDocumentos(unitKey) {
           '</div></div>' +
         '<div class="dr-acts">' +
           (d.url ? '<a class="dr-open" href="' + esc(d.url) + '" target="_blank" rel="noopener">Abrir →</a>' : '') +
-          '<button class="dr-del" onclick="docDel(\'' + d.id + '\')">✕</button>' +
+          (puedeBorrar() ? '<button class="dr-del" onclick="docDel(\'' + d.id + '\')">✕</button>' : '') +
         '</div>' +
       '</div>';
     }
@@ -1802,6 +1814,7 @@ function docSave() {
 }
 
 function docDel(id) {
+  if (!puedeBorrar()) { alert('Solo el coordinador puede borrar contenido.'); return; }
   if (!confirm('¿Eliminar este documento?')) return;
   var items = docuItems(CURRENT_UNIT).filter(function(d){ return d.id !== id; });
   lsSet(docuKey(CURRENT_UNIT), items);
@@ -1839,7 +1852,7 @@ function renderRepositorio(unitKey) {
               '<div class="dr-meta">' + (it.desc ? esc(it.desc) : esc(it.url||'')) + '</div></div>' +
             '<div class="dr-acts">' +
               (it.url ? '<a class="dr-open" href="' + esc(it.url) + '" target="_blank" rel="noopener">Abrir →</a>' : '') +
-              '<button class="dr-del" onclick="repoDel(\'' + it.id + '\')">✕</button>' +
+              (puedeBorrar() ? '<button class="dr-del" onclick="repoDel(\'' + it.id + '\')">✕</button>' : '') +
             '</div>' +
           '</div>';
         }).join('');
@@ -1885,6 +1898,7 @@ function repoSave() {
 }
 
 function repoDel(id) {
+  if (!puedeBorrar()) { alert('Solo el coordinador puede borrar contenido.'); return; }
   if (!confirm('¿Eliminar este recurso?')) return;
   var items = repoItems(CURRENT_UNIT).filter(function(it){ return it.id !== id; });
   lsSet(repoKey(CURRENT_UNIT), items);
@@ -1999,7 +2013,7 @@ async function eliminarFuncionario(email) {
 // ════════════════════════════════════════════════════════════════
 
 async function renderTablaCoord() {
-  var inst  = ses.institucion || '';
+  var inst  = MANAGED_INST || ses.institucion || '';
   var tbody = document.getElementById('coord-tbody');
   var empty = document.getElementById('coord-empty');
   if (!tbody) return;
@@ -2023,7 +2037,7 @@ async function renderTablaCoord() {
 }
 
 function abrirModalSubusuario() {
-  abrirModal('Agregar usuario — '+esc(ses.institucion||''),
+  abrirModal('Agregar usuario — '+esc(MANAGED_INST||ses.institucion||''),
     '<div class="modal-field"><label>Correo electrónico</label>'+
     '<input class="access-inp" type="email" id="su-email" placeholder="correo@institucion.gob.hn" style="width:100%"></div>'+
     '<div class="modal-field"><label>Rol</label>'+
@@ -2043,7 +2057,7 @@ async function guardarSubusuario() {
   var email = (document.getElementById('su-email').value||'').trim().toLowerCase();
   var rol   = document.getElementById('su-rol').value;
   var err   = document.getElementById('su-err');
-  var inst  = ses.institucion || '';
+  var inst  = MANAGED_INST || ses.institucion || '';
   err.style.display = 'none';
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent='Ingrese un correo válido.'; err.style.display='block'; return; }
   if (email === 'admin@diger.gob.hn') { err.textContent='Este correo está reservado para el administrador.'; err.style.display='block'; return; }

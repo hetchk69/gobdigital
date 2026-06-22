@@ -513,7 +513,7 @@ input[type=file].hidden{display:none}
     <div class="stats-row" id="det-stats"></div>
     <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
       <button class="btns btn-sm" onclick="descargarExcelAsis()">⬇ Descargar Excel</button>
-      <button class="btn-danger btn-sm" onclick="borrarRegistros()">Borrar registros</button>
+      <button class="btn-danger btn-sm" id="btn-borrar-reg" onclick="borrarRegistros()">Borrar registros</button>
     </div>
     <div class="tbl-wrap">
       <table class="atbl">
@@ -1047,7 +1047,7 @@ async function abrirEvento(id){
   document.getElementById('ev-titulo-bar').textContent=r.titulo;
   document.getElementById('btn-guardar-gen-wrap').style.display='none';
   document.getElementById('btn-toggle-estado').style.display='inline-flex';
-  document.getElementById('btn-eliminar').style.display='inline-flex';
+  document.getElementById('btn-eliminar').style.display = puedeBorrar() ? 'inline-flex' : 'none';
   document.getElementById('ev-status-badge').style.display='inline-flex';
   actualizarBadgeEstado(r.activa);
 
@@ -1140,7 +1140,7 @@ async function guardarGeneral(){
   document.getElementById('ev-titulo-bar').textContent=titulo;
   document.getElementById('btn-guardar-gen-wrap').style.display='none';
   document.getElementById('btn-toggle-estado').style.display='inline-flex';
-  document.getElementById('btn-eliminar').style.display='inline-flex';
+  document.getElementById('btn-eliminar').style.display = puedeBorrar() ? 'inline-flex' : 'none';
   document.getElementById('ev-status-badge').style.display='inline-flex';
   actualizarBadgeEstado(true);
   mostrarQR(id);
@@ -1208,6 +1208,7 @@ async function cargarAsistencias(id){
 function renderTabla(){
   var tbody=document.getElementById('det-tbody');
   var empty=document.getElementById('det-empty');
+  var bbr=document.getElementById('btn-borrar-reg'); if(bbr) bbr.style.display = puedeBorrar()?'inline-flex':'none';
   document.getElementById('det-reg-title').innerHTML=
     'Registros ('+asisCache.length+') <span class="live-badge"><span class="live-dot"></span>En vivo</span>';
   document.getElementById('det-stats').innerHTML='<span class="stat-chip">Total: '+asisCache.length+'</span>';
@@ -1217,7 +1218,7 @@ function renderTabla(){
     return '<tr>'+
       '<td>'+(i+1)+'</td><td>'+esc(r.nombre)+'</td><td>'+esc(r.correo)+'</td>'+
       '<td>'+esc(r.cargo||'—')+'</td><td>'+esc(r.institucion)+'</td><td>'+esc(r.telefono)+'</td><td>'+dt+'</td>'+
-      '<td><button class="btn-danger" style="padding:3px 8px;font-size:11px" onclick="eliminarRec('+r.id+')">×</button></td>'+
+      '<td>'+(puedeBorrar()?'<button class="btn-danger" style="padding:3px 8px;font-size:11px" onclick="eliminarRec('+r.id+')">×</button>':'')+'</td>'+
     '</tr>';
   }).join('');
 }
@@ -1232,9 +1233,13 @@ function suscribirRealtime(id){
     .subscribe();
 }
 
-async function eliminarRec(recId){ await sb.from('asistencias').delete().eq('id',recId); }
+async function eliminarRec(recId){
+  if(!puedeBorrar()){ alert('Solo el coordinador puede borrar contenido.'); return; }
+  await sb.from('asistencias').delete().eq('id',recId);
+}
 
 async function borrarRegistros(){
+  if(!puedeBorrar()){ alert('Solo el coordinador puede borrar contenido.'); return; }
   if(!confirm('¿Borrar todos los registros de este evento?')) return;
   await sb.from('asistencias').delete().eq('reunion_id',currentId);
   asisCache=[]; renderTabla();
@@ -1250,6 +1255,7 @@ async function toggleEstado(){
 }
 
 async function eliminarEvento(){
+  if(!puedeBorrar()){ alert('Solo el coordinador puede borrar contenido.'); return; }
   if(!confirm('¿Eliminar este evento y todos sus registros de asistencia?')) return;
   await sb.from('asistencias').delete().eq('reunion_id',currentId);
   await sb.from('reuniones').delete().eq('id',currentId);
@@ -1931,6 +1937,10 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 // ── UTILS ─────────────────────────────────────────────────────
+// Solo admin y coordinador pueden borrar contenido. Colaborador/lector no.
+function puedeBorrar(){
+  try{ var r=(JSON.parse(sessionStorage.getItem('diger_sol_session'))||{}).role; return r==='admin'||r==='coordinador'; }catch(e){ return false; }
+}
 function gv(id){ var el=document.getElementById(id); return el?(el.value||'').trim():''; }
 function sv(id,val){ var el=document.getElementById(id); if(el) el.value=val; }
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
