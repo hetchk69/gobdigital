@@ -387,6 +387,7 @@ var SVGS = {
 };
 
 var INST_LIST = [
+  'DIGER',
   'BANHPROVI','CANATURH / IHT','CNBS','CONATEL','CONSUCOOP',
   'CONVIVIENDA','COPECO','IHADFA','IHCINE','IHTT','INPREMA',
   'INPREUNAH','IP','SAG','SECAPPH','SEN','SERNA','SGJD','SIT','SRECI'
@@ -1845,7 +1846,7 @@ async function guardarNuevoUsuario() {
   err.style.display = 'none';
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent='Ingrese un correo válido.'; err.style.display='block'; return; }
   if (!inst) { err.textContent='Seleccione una institución.'; err.style.display='block'; return; }
-  if (getDomain(email) === 'diger.gob.hn') { err.textContent='Los correos @diger.gob.hn son administradores.'; err.style.display='block'; return; }
+  if (email === 'admin@diger.gob.hn') { err.textContent='Este correo está reservado para el administrador.'; err.style.display='block'; return; }
   // Verificar si ya existe
   var { data: existe } = await sb.from('usuarios_sol').select('email').eq('email', email).single();
   if (existe) { err.textContent='Este correo ya está registrado.'; err.style.display='block'; return; }
@@ -1941,7 +1942,7 @@ async function guardarSubusuario() {
   var inst  = ses.institucion || '';
   err.style.display = 'none';
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent='Ingrese un correo válido.'; err.style.display='block'; return; }
-  if (getDomain(email) === 'diger.gob.hn') { err.textContent='Los correos @diger.gob.hn son administradores.'; err.style.display='block'; return; }
+  if (email === 'admin@diger.gob.hn') { err.textContent='Este correo está reservado para el administrador.'; err.style.display='block'; return; }
   var { data: existe } = await sb.from('usuarios_sol').select('email').eq('email', email).single();
   if (existe) { err.textContent='Este correo ya está registrado.'; err.style.display='block'; return; }
   var { error } = await upsertUser(email, rol, inst);

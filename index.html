@@ -95,6 +95,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────
 var ADMIN_DOMAIN  = 'diger.gob.hn';
+var ADMIN_EMAIL   = 'admin@diger.gob.hn'; // único correo con rol admin
 var SESSION_KEY   = 'diger_sol_session';
 var SUPABASE_URL  = 'https://gnpvqiyantdtksfvqtqk.supabase.co';
 var SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw';
@@ -115,8 +116,8 @@ async function iniciarSesion() {
 
   var domain = getDomain(email);
 
-  // ── Admin (dominio diger.gob.hn) ──
-  if (domain === ADMIN_DOMAIN) {
+  // ── Admin (solo admin@diger.gob.hn) ──
+  if (email === ADMIN_EMAIL) {
     sessionStorage.setItem(SESSION_KEY, JSON.stringify({ email: email, role: 'admin' }));
     window.location.href = 'unidad.html';
     return;
