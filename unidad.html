@@ -494,8 +494,9 @@ if (!ses) { window.location.replace('index.html'); }
 
 // ── ROUTING ─────────────────────────────────────────────────────
 var params = new URLSearchParams(window.location.search);
-var unitParam = params.get('u'); // 'proyectos' | 'digitalizacion' | null
+var unitParam = params.get('u');    // 'proyectos' | 'digitalizacion' | null
 var tabParam  = params.get('tab') || 'inicio';
+var instParam = params.get('inst'); // 'diger' | null
 
 var app = document.getElementById('app');
 
@@ -520,11 +521,65 @@ function renderSelector() {
   // Non-admin → institution portal
   if (rol !== 'admin') { renderInstitucionPortal(); return; }
 
-  document.title = 'Selección de Unidad — DIGER';
+  // Admin sin institución seleccionada → selector de instituciones
+  if (!instParam) { renderInstSelector(); return; }
+
+  // Admin con ?inst=diger → unidades de DIGER
+  renderDigerUnits();
+}
+
+// ────────────────────────────────────────────────────────────────
+// INSTITUCIÓN SELECTOR (admin home)
+// ────────────────────────────────────────────────────────────────
+var INST_ITEMS = [
+  {
+    key: 'diger',
+    label: 'DIGER',
+    full: 'Dirección General de Regulación',
+    icon: '<svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M9 8h1m-1 4h1m-1 4h1m4-8h1m-1 4h1m-1 4h1M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16"/></svg>',
+    color: 'blue',
+    units: ['proyectos','digitalizacion']
+  }
+];
+
+function renderInstSelector() {
+  document.title = 'Inicio — DIGER';
   var html = '<div class="welcome">' +
     '<div class="badge">Administrador</div>' +
-    '<h2>Seleccione una unidad</h2>' +
-    '<p>Acceda a los módulos habilitados según su unidad de trabajo.</p>' +
+    '<h2>Instituciones</h2>' +
+    '<p>Seleccione la institución para gestionar sus unidades y módulos.</p>' +
+    '</div>';
+
+  html += '<div class="unit-grid">';
+  INST_ITEMS.forEach(function(inst) {
+    html += '<a class="unit-card digitalizacion" href="unidad.html?inst=' + inst.key + '">' +
+      '<div class="unit-icon ' + inst.color + '">' + inst.icon + '</div>' +
+      '<div>' +
+        '<div class="unit-name">' + inst.label + '</div>' +
+        '<div class="unit-desc">' + inst.full + '</div>' +
+      '</div>' +
+      '<div class="unit-arrow">→</div>' +
+    '</a>';
+  });
+  html += '</div>';
+
+  app.innerHTML = html;
+}
+
+// ────────────────────────────────────────────────────────────────
+// DIGER UNITS (admin con ?inst=diger)
+// ────────────────────────────────────────────────────────────────
+function renderDigerUnits() {
+  document.title = 'DIGER — Unidades';
+  var html = '<div class="welcome">' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem">' +
+      '<a href="unidad.html" style="font-size:12px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:4px">' +
+        '← Instituciones' +
+      '</a>' +
+    '</div>' +
+    '<div class="badge">DIGER</div>' +
+    '<h2>Dirección General de Regulación</h2>' +
+    '<p>Seleccione la unidad a la que desea acceder.</p>' +
     '</div>';
 
   html += '<div class="unit-grid">';
@@ -541,7 +596,7 @@ function renderSelector() {
   });
   html += '</div>';
 
-  // Admin panel — siempre visible para role === 'admin'
+  // Panel de usuarios
   html += '<div class="card" id="admin-panel">' +
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">' +
       '<div class="sec-title" style="margin:0;border:none;padding:0">Gestión de usuarios</div>' +
