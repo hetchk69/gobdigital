@@ -324,13 +324,6 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
         <label>Institución *</label>
         <select id="inst">
           <option value="">— Seleccione su institución —</option>
-          <option>CONVIVIENDA</option><option>COPECO</option><option>SIT</option>
-          <option>IHADFA</option><option>BANHPROVI</option><option>INPREUNAH</option>
-          <option>CNBS</option><option>INPREMA</option><option>IHTT</option>
-          <option>SEN</option><option>CONSUCOOP</option><option>CONATEL</option>
-          <option>IHCINE</option><option>SAG</option><option>SECAPPH</option>
-          <option>SRECI</option><option>SERNA</option><option>SGJD</option>
-          <option>CANATURH / IHT</option>
         </select>
       </div>
       <div class="field"><label>Encargado de área *</label><input type="text" id="enc" placeholder="Nombre completo"></div>
@@ -527,6 +520,7 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:#1a1a1a;background:#e
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="insts.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
@@ -876,11 +870,31 @@ function reiniciar() {
   eqN = 0; addRow(); verHistorial();
 }
 
+var _TE_INST_OPTS = {placeholder:'— Seleccione su institución —', otro:true, otroValue:'__OTRA__', otroLabel:'Otro (agregar nueva)…'};
+function teInstFill(selected){
+  var sel=document.getElementById('inst'); if(!sel||!window.DIGER_INSTS) return;
+  var o={}; for(var k in _TE_INST_OPTS) o[k]=_TE_INST_OPTS[k];
+  if(selected!=null) o.selected=selected;
+  DIGER_INSTS.fill(sel,o);
+}
+function teInstOtro(){
+  var sel=document.getElementById('inst');
+  if(!sel || sel.value!=='__OTRA__') return;
+  var nombre=(prompt('Nombre de la nueva institución:')||'').trim().toUpperCase();
+  if(!nombre || !window.DIGER_INSTS){ sel.value=''; return; }
+  DIGER_INSTS.add(nombre).then(function(){ teInstFill(nombre); cargarAsistentesInst(nombre); });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+  // Poblar instituciones desde la fuente única (insts.js / Supabase KV)
+  teInstFill();
+  if(window.DIGER_INSTS) DIGER_INSTS.load().then(function(){ teInstFill(document.getElementById('inst').value); });
+
   document.querySelectorAll('.rpill input[type=radio]').forEach(function(input) {
     input.addEventListener('change', function() { pill(this); });
   });
   document.getElementById('inst').addEventListener('change', function() {
+    if(this.value==='__OTRA__'){ teInstOtro(); return; }
     cargarAsistentesInst(this.value);
   });
 

@@ -357,6 +357,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 <body>
 <!-- header.js will prepend the header -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="insts.js"></script>
 <script src="header.js"></script>
 
 <div class="container" id="app"></div>
@@ -1864,7 +1865,8 @@ function repoDel(id) {
 // ════════════════════════════════════════════════════════════════
 
 function abrirModalNuevoUsuario() {
-  var instOpts = INST_LIST.map(function(i){ return '<option value="'+i+'">'+esc(i)+'</option>'; }).join('');
+  var instOpts = (window.DIGER_INSTS ? DIGER_INSTS.list() : INST_LIST)
+    .map(function(i){ return '<option value="'+esc(i)+'">'+esc(i)+'</option>'; }).join('');
   abrirModal('Agregar usuario',
     '<div class="modal-field"><label>Correo electrónico</label>'+
     '<input class="access-inp" type="email" id="nu-email" placeholder="correo@institucion.gob.hn" style="width:100%"></div>'+
@@ -1875,8 +1877,9 @@ function abrirModalNuevoUsuario() {
       '<option value="lector">Lector — solo lectura</option>'+
     '</select></div>'+
     '<div class="modal-field"><label>Institución</label>'+
-    '<select class="access-inp" id="nu-inst" style="width:100%">'+
+    '<select class="access-inp" id="nu-inst" style="width:100%" onchange="nuInstOtro()">'+
       '<option value="">— Seleccione —</option>'+instOpts+
+      '<option value="__OTRA__">Otro (agregar nueva)…</option>'+
     '</select></div>'+
     '<div style="font-size:12px;color:var(--muted);background:#f8fafd;border:1px solid var(--borde);border-radius:8px;padding:9px 12px;margin-bottom:8px">'+
       '📌 Los módulos se asignan automáticamente según la institución: '+
@@ -1888,6 +1891,24 @@ function abrirModalNuevoUsuario() {
       '<button class="btnp" onclick="guardarNuevoUsuario()">Guardar</button>'+
     '</div>'
   );
+  // Asegura la lista más reciente desde la base
+  if(window.DIGER_INSTS){
+    DIGER_INSTS.load().then(function(){
+      var sel=document.getElementById('nu-inst');
+      if(sel) DIGER_INSTS.fill(sel,{selected:sel.value,placeholder:'— Seleccione —',otro:true,otroValue:'__OTRA__',otroLabel:'Otro (agregar nueva)…'});
+    });
+  }
+}
+
+// "Otro" en el select de institución → pedir nombre, guardar en la base y seleccionarla
+function nuInstOtro(){
+  var sel=document.getElementById('nu-inst');
+  if(!sel || sel.value!=='__OTRA__') return;
+  var nombre=(prompt('Nombre de la nueva institución:')||'').trim().toUpperCase();
+  if(!nombre || !window.DIGER_INSTS){ sel.value=''; return; }
+  DIGER_INSTS.add(nombre).then(function(){
+    DIGER_INSTS.fill(sel,{selected:nombre,placeholder:'— Seleccione —',otro:true,otroValue:'__OTRA__',otroLabel:'Otro (agregar nueva)…'});
+  });
 }
 
 async function guardarNuevoUsuario() {

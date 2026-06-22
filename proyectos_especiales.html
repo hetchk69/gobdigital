@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Levantamiento de Reunión — DIGER</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="insts.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
@@ -848,9 +849,11 @@ function confirmarInstModal(){
   var err = document.getElementById('modal-inst-err');
   var nombre = (inp.value||'').trim();
   if(!nombre){ err.textContent = 'Ingrese el nombre de la institución.'; err.style.display = 'block'; inp.focus(); return; }
-  guardarInstPersonalizada(nombre); // guarda en localStorage y refresca el select
-  var sel = document.getElementById('pub-inst');
-  if(sel) sel.value = nombre; // selecciona la opción recién agregada
+  var norm = nombre.toUpperCase();
+  guardarInstPersonalizada(norm).then(function(){ // guarda en la base y refresca el select
+    var sel = document.getElementById('pub-inst');
+    if(sel) sel.value = norm; // selecciona la opción recién agregada
+  });
   document.getElementById('modal-inst-overlay').style.display = 'none';
 }
 
@@ -1901,85 +1904,30 @@ function volverLista(){
   cambiarVista('view-list');
 }
 
-// ── INSTITUCIONES PERSONALIZADAS ──────────────────────────────
-var LS_INSTS = 'diger_insts_custom';
-var INSTS_BASE = ['BANHPROVI','CANATURH / IHT','CNBS','CONATEL','CONSUCOOP','CONVIVIENDA',
-  'COPECO','IHADFA','IHCINE','IHTT','INPREMA','INPREUNAH','IP','SAG','SECAPPH',
-  'SEN','SERNA','SGJD','SIT','SRECI'];
-
-function instsSaved(){
-  try{ return JSON.parse(localStorage.getItem(LS_INSTS)||'[]'); }catch(e){ return []; }
+// ── INSTITUCIONES (fuente única: insts.js / Supabase KV) ──────
+// Refresca ambos selects desde DIGER_INSTS conservando el valor actual.
+function refillInstSelects(){
+  if(!window.DIGER_INSTS) return;
+  DIGER_INSTS.fill(document.getElementById('g-inst'),   {placeholder:'— Seleccione —',               otro:true, otroValue:'Otro', otroLabel:'Otro'});
+  DIGER_INSTS.fill(document.getElementById('pub-inst'), {placeholder:'— Seleccione su institución —', otro:true, otroValue:'OTRA', otroLabel:'Otro'});
 }
 
+// Guarda una institución nueva en la base (KV compartido) y refresca los selects.
+// Devuelve una promesa para poder seleccionar la opción recién creada.
 function guardarInstPersonalizada(nombre){
-  if(!nombre) return;
-  var norm = nombre.trim().toUpperCase();
-  if(!norm || INSTS_BASE.map(function(s){return s.toUpperCase();}).includes(norm)) return;
-  var saved = instsSaved();
-  if(saved.map(function(s){return s.toUpperCase();}).includes(norm)) return;
-  saved.push(norm);
-  localStorage.setItem(LS_INSTS, JSON.stringify(saved));
-  cargarInstsPersonalizadas();
+  nombre = (nombre||'').trim().toUpperCase();
+  if(!nombre || !window.DIGER_INSTS) return Promise.resolve();
+  return DIGER_INSTS.add(nombre).then(function(){ refillInstSelects(); });
 }
 
-async function cargarInstsDesdeSupabase(){
-  try{
-    var {data} = await sb.from('asistencias').select('institucion');
-    if(!data) return;
-    var local = instsSaved();
-    var changed = false;
-    data.forEach(function(r){
-      var inst = (r.institucion||'').trim().toUpperCase();
-      if(!inst || inst === '—' || inst === '(SIN INSTITUCIÓN)') return;
-      if(INSTS_BASE.map(function(s){return s.toUpperCase();}).includes(inst)) return;
-      if(local.map(function(s){return s.toUpperCase();}).includes(inst)) return;
-      local.push(inst); changed = true;
-    });
-    if(changed){
-      localStorage.setItem(LS_INSTS, JSON.stringify(local));
-      cargarInstsPersonalizadas();
-    }
-  }catch(e){}
-}
-
-function cargarInstsPersonalizadas(){
-  // Normalizar a mayúsculas y deduplicar contra base
-  var raw = instsSaved().map(function(s){ return s.trim().toUpperCase(); });
-  var baseUp = INSTS_BASE.map(function(s){ return s.toUpperCase(); });
-  var custom = [];
-  raw.forEach(function(s){
-    if(s && !baseUp.includes(s) && !custom.includes(s)) custom.push(s);
-  });
-  // Guardar normalizados
-  localStorage.setItem(LS_INSTS, JSON.stringify(custom));
-
-  // Lista completa ordenada
-  var todas = INSTS_BASE.concat(custom).sort(function(a,b){ return a.localeCompare(b,'es'); });
-
-  function buildOpts(sel, placeholder, otraValue){
-    if(!sel) return;
-    var cur = sel.value;
-    sel.innerHTML = '<option value="">' + placeholder + '</option>';
-    todas.forEach(function(inst){
-      var o = document.createElement('option');
-      o.value = inst; o.textContent = inst;
-      sel.appendChild(o);
-    });
-    var oOtra = document.createElement('option');
-    oOtra.value = otraValue; oOtra.textContent = 'Otro';
-    sel.appendChild(oOtra);
-    sel.value = cur;
-  }
-
-  buildOpts(document.getElementById('g-inst'),    '— Seleccione —',              'Otro');
-  buildOpts(document.getElementById('pub-inst'),  '— Seleccione su institución —','OTRA');
-}
+// Compat: ya no usamos localStorage; recargamos desde Supabase.
+function cargarInstsPersonalizadas(){ refillInstSelects(); }
+function cargarInstsDesdeSupabase(){ if(window.DIGER_INSTS) return DIGER_INSTS.load().then(refillInstSelects); }
 
 function toggleInstOtro(){ document.getElementById('field-inst-otro').style.display = gv('g-inst')==='Otro' ? 'block' : 'none'; }
 
 document.addEventListener('DOMContentLoaded', function(){
-  cargarInstsPersonalizadas();
-  cargarInstsDesdeSupabase();
+  if(window.DIGER_INSTS) DIGER_INSTS.load().then(refillInstSelects);
 });
 
 // ── UTILS ─────────────────────────────────────────────────────

@@ -3,17 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ficha de Trámite Digitalizado 2026 — DIGER</title>
+<title>Ficha de Trámite Digitalizado — DIGER</title>
 <style>
 :root{
   --azul:#0a2d6e;--azul-m:#1455a4;--azul-c:#e8f0ff;
   --gris:#eef1f7;--gris-f:#f4f6fb;--borde:#dde4f0;--texto:#1c2333;--muted:#64748b;
-  --verde:#16a34a;--verde-c:#dcfce7;--ambar:#d97706;--ambar-c:#fef3c7;--rojo:#dc2626;--rojo-c:#fee2e2;--blanco:#fff;
+  --verde:#16a34a;--verde-c:#dcfce7;--ambar:#d97706;--ambar-c:#fef3c7;
+  --rojo:#dc2626;--rojo-c:#fee2e2;--blanco:#fff;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--texto);background:var(--gris);min-height:100vh}
 
-/* ── TOPBAR (acciones) ── */
+/* ── TOPBAR ── */
 .topbar{background:linear-gradient(90deg,var(--azul),var(--azul-m));padding:0 1.5rem;height:50px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(10,45,110,.18);position:sticky;top:0;z-index:30}
 .tb-left{display:flex;align-items:center;gap:10px;min-width:0}
 .tb-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:7px;padding:3px 10px;font-size:11px;font-weight:700;color:#fff;letter-spacing:.06em;white-space:nowrap}
@@ -27,6 +28,16 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .btn-pdf{background:#fff;color:var(--azul)}
 .btn-pdf:hover{background:#e8f0ff}
 
+/* ── TAB BAR ── */
+.tab-bar{background:#fff;border-bottom:2px solid var(--borde);position:sticky;top:50px;z-index:25;box-shadow:0 2px 6px rgba(10,45,110,.05)}
+.tab-nav{max-width:920px;margin:0 auto;display:flex;padding:0 1rem;overflow-x:auto;scrollbar-width:none}
+.tab-nav::-webkit-scrollbar{display:none}
+.tab-btn{padding:12px 18px;border:none;background:none;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap}
+.tab-btn:hover{color:var(--azul-m)}
+.tab-btn.active{color:var(--azul-m);border-bottom-color:var(--azul-m)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
 /* ── CONTAINER ── */
 .container{max-width:920px;margin:0 auto;padding:1.75rem 1rem 4rem}
 
@@ -34,7 +45,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .welcome{margin-bottom:1.5rem}
 .welcome h2{font-size:22px;font-weight:800;color:var(--azul);margin-bottom:.25rem}
 .welcome p{font-size:13px;color:var(--muted)}
-.badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--azul-c),#d5e8ff);color:var(--azul);font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid #c0d0f0;margin-bottom:.75rem}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid;margin-bottom:.75rem}
+.badge-azul{background:linear-gradient(135deg,var(--azul-c),#d5e8ff);color:var(--azul);border-color:#c0d0f0}
+.badge-verde{background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#15803d;border-color:#86efac}
+.badge-morado{background:linear-gradient(135deg,#ede9fe,#ddd6fe);color:#6d28d9;border-color:#c4b5fd}
+.badge-ambar{background:linear-gradient(135deg,#fef3c7,#fde68a);color:#92400e;border-color:#fbbf24}
 
 /* ── CARD ── */
 .card{background:var(--blanco);border:1px solid var(--borde);border-radius:14px;padding:1.4rem;margin-bottom:1.25rem;box-shadow:0 2px 8px rgba(10,45,110,.06)}
@@ -66,11 +81,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .chk-tile.on{border-color:var(--azul-m);background:var(--azul-c);font-weight:600;color:var(--azul)}
 .chk-tile input{width:17px;height:17px;accent-color:var(--azul-m);cursor:pointer;flex-shrink:0}
 
-/* ── DYNAMIC LIST (requisitos / pasos / leyes) ── */
+/* ── DYNAMIC LIST ── */
 .dl-fila{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px}
 .dl-num{width:26px;height:26px;border-radius:50%;background:var(--azul-c);color:var(--azul-m);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:4px}
-.dl-fila input,.dl-fila textarea{flex:1;padding:8px 11px;border:1.5px solid var(--borde);border-radius:8px;font-size:13px;font-family:inherit;background:#fafbfd}
-.dl-fila input:focus,.dl-fila textarea:focus{outline:none;border-color:var(--azul-m)}
+.dl-fila input{flex:1;padding:8px 11px;border:1.5px solid var(--borde);border-radius:8px;font-size:13px;font-family:inherit;background:#fafbfd}
+.dl-fila input:focus{outline:none;border-color:var(--azul-m)}
 .btn-rm{width:30px;height:30px;border-radius:8px;background:#fff;border:1.5px solid var(--borde);color:var(--muted);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;margin-top:2px}
 .btn-rm:hover{background:#fff5f5;border-color:var(--rojo);color:var(--rojo)}
 .btn-add-fila{margin-top:.4rem;padding:8px 16px;background:var(--azul-c);color:var(--azul-m);border:1.5px solid var(--azul-m);border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s}
@@ -93,6 +108,32 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .infra-ev{padding:8px 11px;border:1.5px solid var(--borde);border-radius:8px;font-size:12.5px;font-family:inherit;background:#fafbfd;outline:none;transition:border .2s;width:100%}
 .infra-ev:focus{border-color:var(--azul-m);background:#fff}
 
+/* ── ENLACES ── */
+.etapa-block{margin-bottom:1.1rem}
+.etapa-head{font-size:11.5px;font-weight:800;color:var(--azul-m);text-transform:uppercase;letter-spacing:.07em;padding:.65rem 1rem;background:var(--azul-c);border:1px solid #c8d8f8;border-bottom:none;border-radius:10px 10px 0 0}
+.etapa-body{border:1px solid var(--borde);border-radius:0 0 10px 10px;overflow:hidden;background:#fff}
+.enlace-row{display:grid;grid-template-columns:200px 1fr 34px;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--gris-f)}
+.enlace-row:last-child{border-bottom:none}
+.enlace-label{font-size:12.5px;color:var(--texto);line-height:1.3}
+.enlace-url{padding:7px 10px;border:1.5px solid var(--borde);border-radius:8px;font-size:13px;font-family:inherit;background:#fafbfd;width:100%}
+.enlace-url:focus{outline:none;border-color:var(--azul-m);background:#fff}
+.btn-open{width:30px;height:30px;border-radius:8px;background:var(--azul-c);border:1.5px solid var(--azul-m);color:var(--azul-m);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;text-decoration:none;line-height:1}
+.btn-open:hover{background:var(--azul-m);color:#fff}
+
+/* ── CHECKLIST NUEVA INSTITUCIÓN ── */
+.fase-block{margin-bottom:1.1rem}
+.fase-head{font-size:12px;font-weight:800;color:#fff;padding:.75rem 1rem;background:linear-gradient(90deg,var(--azul),var(--azul-m));border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:space-between}
+.fase-progress{height:5px;background:rgba(255,255,255,.2)}
+.fase-progress-bar{height:100%;background:#4ade80;transition:width .35s}
+.fase-body{border:1px solid var(--borde);border-top:none;border-radius:0 0 10px 10px;overflow:hidden;background:#fff}
+.chk-paso{display:flex;align-items:flex-start;gap:12px;padding:11px 16px;border-bottom:1px solid var(--gris-f);transition:background .15s}
+.chk-paso:last-child{border-bottom:none}
+.chk-paso:hover{background:var(--gris-f)}
+.chk-paso input[type=checkbox]{width:17px;height:17px;accent-color:var(--verde);cursor:pointer;flex-shrink:0;margin-top:2px}
+.chk-paso-label{flex:1;font-size:13px;color:var(--texto);line-height:1.45;cursor:pointer}
+.chk-paso.done .chk-paso-label{color:#94a3b8;text-decoration:line-through}
+.chk-paso-fecha{font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0;margin-top:3px}
+
 /* ── HISTORIAL ── */
 .hist-wrap{display:none}
 .hist-wrap.active{display:block}
@@ -110,7 +151,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .hist-empty{text-align:center;padding:3rem 1rem;color:#9aadcc}
 .hist-empty .ico{font-size:40px;margin-bottom:.75rem}
 
-/* ── NAV ── */
+/* ── BUTTONS ── */
 .form-nav{display:flex;justify-content:flex-end;gap:10px;margin-top:1.5rem;flex-wrap:wrap}
 .btn{padding:11px 24px;border-radius:10px;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;border:none}
 .btn-p{background:linear-gradient(135deg,var(--azul-m),var(--azul));color:#fff;box-shadow:0 4px 14px rgba(10,45,110,.22)}
@@ -118,33 +159,31 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .btn-s{background:#fff;border:1.5px solid var(--borde);color:var(--muted)}
 .btn-s:hover{border-color:var(--azul-m);color:var(--azul-m);background:var(--azul-c)}
 
-/* ── PRINT HEADER (solo PDF) ── */
+/* ── PRINT ── */
 .print-head{display:none}
-
-/* ── MOBILE ── */
 @media(max-width:700px){
   .g2,.g3{grid-template-columns:1fr}
   .chk-grid{grid-template-columns:1fr}
   .infra-row{grid-template-columns:1fr;gap:8px}
+  .enlace-row{grid-template-columns:1fr 1fr 34px}
   .topbar h1{display:none}
 }
-
-/* ── PRINT / PDF ── */
 @media print{
-  .topbar,.form-nav,.btn-add-fila,.btn-rm,.dh,.dh-subnav{display:none!important}
+  .topbar,.tab-bar,.form-nav,.btn-add-fila,.btn-rm,.dh,.dh-subnav{display:none!important}
   body{background:#fff;font-size:11.5px}
   .container{max-width:100%;padding:0}
-  .card{break-inside:avoid;border:1px solid #ccc;box-shadow:none;margin-bottom:10px}
+  .card,.etapa-block,.fase-block{break-inside:avoid;box-shadow:none;margin-bottom:10px}
   .print-head{display:block;margin-bottom:1rem;border-bottom:2px solid var(--azul);padding-bottom:8px}
   .print-head h1{font-size:16px;color:var(--azul);font-weight:800}
   .print-head p{font-size:11px;color:#555;margin-top:3px}
   .infra-row{break-inside:avoid}
+  .tab-panel{display:block!important}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="insts.js"></script>
 </head>
 <body>
-<!-- header.js prepende el header compartido DIGER -->
 <script src="header.js"></script>
 
 <!-- TOPBAR -->
@@ -157,6 +196,16 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
     <button class="btn-top btn-hist" onclick="verHistorial()">☰ Historial</button>
     <button class="btn-top btn-save" onclick="guardarFicha()">💾 Guardar</button>
     <button class="btn-top btn-pdf" onclick="window.print()">🖨 PDF</button>
+  </div>
+</div>
+
+<!-- TAB BAR (solo visible dentro del formulario) -->
+<div class="tab-bar" id="tab-bar" style="display:none">
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="cambiarTab(0)">📋 Ficha del trámite</button>
+    <button class="tab-btn" onclick="cambiarTab(1)">🖥 Infraestructura</button>
+    <button class="tab-btn" onclick="cambiarTab(2)">🔗 Enlaces por etapa</button>
+    <button class="tab-btn" onclick="cambiarTab(3)">🏛 Nueva institución</button>
   </div>
 </div>
 
@@ -175,228 +224,209 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   </div>
 
   <!-- ══════════ FORMULARIO ══════════ -->
-  <div class="form-wrap" id="form-wrap">
+  <div class="form-wrap hidden" id="form-wrap">
 
-    <!-- Print header -->
     <div class="print-head">
       <h1>FICHA DE TRÁMITE DIGITALIZADO 2026 — DIGER</h1>
       <p id="ph-sub">—</p>
     </div>
 
-    <div class="welcome">
-      <div class="badge">Plataforma SOL — DIGER</div>
-      <h2>Ficha de Trámite Digitalizado 2026</h2>
-      <p>Registro de información del trámite y evaluación de infraestructura mínima SOL de la institución.</p>
-    </div>
+    <!-- ══ TAB 1: FICHA DEL TRÁMITE ══ -->
+    <div class="tab-panel active" id="tab-0">
+      <div class="welcome">
+        <div class="badge badge-azul">Plataforma SOL — DIGER</div>
+        <h2>Ficha del trámite</h2>
+        <p>Información general, tiempos, requisitos, pasos y datos de contacto del trámite.</p>
+      </div>
 
-    <!-- ── 1. INFORMACIÓN GENERAL ── -->
-    <div class="card accent">
-      <div class="sec-title">🏛 Información general</div>
-      <div class="f">
-        <label>Institución <span class="star">*</span></label>
-        <select id="inst" oninput="actualizarTitulo()">
-          <option value="">— Seleccione —</option>
-        </select>
-      </div>
-      <div class="g2">
-        <div class="f"><label>Nombre del trámite <span class="star">*</span></label><input type="text" id="nombre" placeholder="Nombre completo del trámite" oninput="actualizarTitulo()"></div>
-        <div class="f"><label>Nombre corto</label><input type="text" id="nombre_corto" placeholder="Abreviatura o nombre común"></div>
-      </div>
-      <div class="g2">
-        <div class="f"><label>Área responsable</label><input type="text" id="area" placeholder="Dirección, gerencia o unidad"></div>
-        <div class="f"><label>Modalidad del servicio</label>
-          <select id="modalidad">
-            <option value="">— Seleccione —</option>
-            <option>Presencial</option>
-            <option>En línea</option>
-            <option>Mixto (presencial y en línea)</option>
-          </select>
+      <div class="card accent">
+        <div class="sec-title">🏛 Información general</div>
+        <div class="f">
+          <label>Institución <span class="star">*</span></label>
+          <select id="inst" oninput="actualizarTitulo()"><option value="">— Seleccione —</option></select>
+        </div>
+        <div class="g2">
+          <div class="f"><label>Nombre del trámite <span class="star">*</span></label><input type="text" id="nombre" placeholder="Nombre completo del trámite" oninput="actualizarTitulo()"></div>
+          <div class="f"><label>Nombre corto</label><input type="text" id="nombre_corto" placeholder="Abreviatura o nombre común"></div>
+        </div>
+        <div class="g2">
+          <div class="f"><label>Área responsable</label><input type="text" id="area" placeholder="Dirección, gerencia o unidad"></div>
+          <div class="f"><label>Modalidad del servicio</label>
+            <select id="modalidad"><option value="">— Seleccione —</option><option>Presencial</option><option>En línea</option><option>Mixto (presencial y en línea)</option></select>
+          </div>
+        </div>
+        <div class="g3">
+          <div class="f"><label>Tiempo de validez</label><input type="text" id="validez" placeholder="Ej: 1 año, indefinido"></div>
+          <div class="f"><label>Plazo máximo legal de respuesta</label><input type="text" id="plazo_legal" placeholder="Ej: 15 días hábiles"></div>
+          <div class="f"><label>Tercero autorizado</label>
+            <select id="tercero"><option value="">— Seleccione —</option><option>Sí</option><option>No</option></select>
+          </div>
         </div>
       </div>
-      <div class="g3">
-        <div class="f"><label>Tiempo de validez</label><input type="text" id="validez" placeholder="Ej: 1 año, indefinido"></div>
-        <div class="f"><label>Plazo máximo legal de respuesta</label><input type="text" id="plazo_legal" placeholder="Ej: 15 días hábiles"></div>
-        <div class="f"><label>Tercero autorizado</label>
-          <select id="tercero">
-            <option value="">— Seleccione —</option>
-            <option>Sí</option>
-            <option>No</option>
-          </select>
+
+      <div class="card">
+        <div class="sec-title">⏱ Tiempos y costos</div>
+        <div class="g2">
+          <div class="f"><label>Tiempo en días</label><input type="number" id="tiempo_dias" placeholder="Ej: 5" min="0"></div>
+          <div class="f"><label>Tiempo estimado (texto)</label><input type="text" id="tiempo_texto" placeholder="Ej: 5 días hábiles"></div>
+        </div>
+        <div class="g2">
+          <div class="f"><label>Método de pago</label>
+            <select id="metodo_pago"><option value="">— Seleccione —</option><option>Gratuito</option><option>Pago en ventanilla</option><option>Depósito bancario</option><option>Transferencia electrónica</option><option>Pago en línea</option><option>Varios</option></select>
+          </div>
+          <div class="f"><label>Costo de servicio</label><input type="text" id="costo" placeholder="Ej: L. 150.00 / Gratuito"></div>
         </div>
       </div>
-    </div>
 
-    <!-- ── 2. TIEMPOS Y COSTOS ── -->
-    <div class="card">
-      <div class="sec-title">⏱ Tiempos y costos</div>
-      <div class="g2">
-        <div class="f"><label>Tiempo en días</label><input type="number" id="tiempo_dias" placeholder="Ej: 5" min="0"></div>
-        <div class="f"><label>Tiempo estimado (texto)</label><input type="text" id="tiempo_texto" placeholder="Ej: 5 días hábiles"></div>
-      </div>
-      <div class="g2">
-        <div class="f"><label>Método de pago</label>
-          <select id="metodo_pago">
-            <option value="">— Seleccione —</option>
-            <option>Gratuito</option>
-            <option>Pago en ventanilla</option>
-            <option>Depósito bancario</option>
-            <option>Transferencia electrónica</option>
-            <option>Pago en línea</option>
-            <option>Varios</option>
-          </select>
+      <div class="card">
+        <div class="sec-title">📄 Detalles</div>
+        <div class="f"><label>Descripción</label><textarea id="descripcion" placeholder="Descripción del trámite..."></textarea></div>
+        <div class="g2">
+          <div class="f"><label>Documento entregado</label><input type="text" id="doc_entregado" placeholder="Ej: Constancia, certificado, licencia"></div>
+          <div class="f"><label>Dirigido a</label><input type="text" id="dirigido" placeholder="Ej: Ciudadanos, empresas"></div>
         </div>
-        <div class="f"><label>Costo de servicio</label><input type="text" id="costo" placeholder="Ej: L. 150.00 / Gratuito"></div>
+        <div class="f"><label>Información de contacto</label><input type="text" id="info_contacto" placeholder="Punto de contacto del trámite"></div>
+        <div class="g2">
+          <div class="f"><label>Horario de atención</label><input type="text" id="horario" placeholder="Ej: Lun-Vie 8:00 a 16:00"></div>
+          <div class="f"><label>Teléfono de contacto</label><input type="text" id="telefono" placeholder="+504 0000-0000"></div>
+        </div>
+        <div class="g2">
+          <div class="f"><label>Email de contacto</label><input type="email" id="email" placeholder="correo@institucion.gob.hn"></div>
+          <div class="f"><label>Sitio web institucional</label><input type="text" id="sitio_web" placeholder="https://..."></div>
+        </div>
+        <div class="f"><label>Dirección</label><input type="text" id="direccion" placeholder="Dirección física de atención"></div>
       </div>
-    </div>
 
-    <!-- ── 3. DETALLES ── -->
-    <div class="card">
-      <div class="sec-title">📄 Detalles</div>
-      <div class="f"><label>Descripción</label><textarea id="descripcion" placeholder="Descripción del trámite..."></textarea></div>
-      <div class="g2">
-        <div class="f"><label>Documento entregado</label><input type="text" id="doc_entregado" placeholder="Ej: Constancia, certificado, licencia"></div>
-        <div class="f"><label>Dirigido a</label><input type="text" id="dirigido" placeholder="Ej: Ciudadanos, empresas"></div>
+      <div class="card">
+        <div class="sec-title">📋 Requisitos</div>
+        <div id="req-list"></div>
+        <button class="btn-add-fila" onclick="agregarItem('req')">+ Agregar requisito</button>
       </div>
-      <div class="f"><label>Información de contacto</label><input type="text" id="info_contacto" placeholder="Punto de contacto del trámite"></div>
-      <div class="g2">
-        <div class="f"><label>Horario de atención</label><input type="text" id="horario" placeholder="Ej: Lun-Vie 8:00 a 16:00"></div>
-        <div class="f"><label>Teléfono de contacto</label><input type="text" id="telefono" placeholder="+504 0000-0000"></div>
+
+      <div class="card">
+        <div class="sec-title">🔢 Pasos del trámite</div>
+        <div id="paso-list"></div>
+        <button class="btn-add-fila" onclick="agregarItem('paso')">+ Agregar paso</button>
       </div>
-      <div class="g2">
-        <div class="f"><label>Email de contacto</label><input type="email" id="email" placeholder="correo@institucion.gob.hn"></div>
-        <div class="f"><label>Sitio web institucional</label><input type="text" id="sitio_web" placeholder="https://..."></div>
+
+      <div class="card">
+        <div class="sec-title">⚖️ Leyes asociadas</div>
+        <div id="ley-list"></div>
+        <button class="btn-add-fila" onclick="agregarItem('ley')">+ Agregar ley o normativa</button>
       </div>
-      <div class="f"><label>Dirección</label><input type="text" id="direccion" placeholder="Dirección física de atención"></div>
-    </div>
 
-    <!-- ── 4. REQUISITOS ── -->
-    <div class="card">
-      <div class="sec-title">📋 Requisitos</div>
-      <div id="req-list"></div>
-      <button class="btn-add-fila" onclick="agregarItem('req')">+ Agregar requisito</button>
-    </div>
-
-    <!-- ── 5. PASOS DEL TRÁMITE ── -->
-    <div class="card">
-      <div class="sec-title">🔢 Pasos del trámite</div>
-      <div id="paso-list"></div>
-      <button class="btn-add-fila" onclick="agregarItem('paso')">+ Agregar paso</button>
-    </div>
-
-    <!-- ── 6. LEYES ASOCIADAS ── -->
-    <div class="card">
-      <div class="sec-title">⚖️ Leyes asociadas</div>
-      <div id="ley-list"></div>
-      <button class="btn-add-fila" onclick="agregarItem('ley')">+ Agregar ley o normativa</button>
-    </div>
-
-    <!-- ── 7. ENLACE TÉCNICO ── -->
-    <div class="card">
-      <div class="sec-title">🧑‍💻 Enlace técnico (para uso de la plataforma)</div>
-      <div class="g2">
-        <div class="f"><label>Nombre completo</label><input type="text" id="et_nombre" placeholder="Nombre del enlace técnico"></div>
-        <div class="f"><label>Puesto</label><input type="text" id="et_puesto" placeholder="Cargo o puesto"></div>
-      </div>
-      <div class="g2">
-        <div class="f"><label>Correo electrónico</label><input type="email" id="et_correo" placeholder="correo@institucion.gob.hn"></div>
-        <div class="f"><label>Número de teléfono</label><input type="text" id="et_telefono" placeholder="+504 0000-0000"></div>
-      </div>
-    </div>
-
-    <!-- ════════ EVALUACIÓN DE INFRAESTRUCTURA SOL ════════ -->
-    <div class="welcome" style="margin-top:2.5rem">
-      <div class="badge" style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#15803d;border-color:#86efac">Evaluación de infraestructura</div>
-      <h2>Requerimientos mínimos de infraestructura SOL</h2>
-      <p>Estado de la institución frente a los requerimientos mínimos para alojar la plataforma SOL.</p>
-    </div>
-
-    <!-- ── 8. PERFILES TÉCNICOS ── -->
-    <div class="card">
-      <div class="sec-title">👥 Perfiles técnicos y transferencia de capacidades</div>
-      <div class="f">
-        <label>¿Cuenta con personal técnico capacitado?</label>
-        <div class="tg" data-radio="personal">
-          <label class="tp"><input type="radio" name="personal" value="Sí"> Sí</label>
-          <label class="tp"><input type="radio" name="personal" value="No"> No</label>
-          <label class="tp"><input type="radio" name="personal" value="Parcialmente"> Parcialmente</label>
+      <div class="card">
+        <div class="sec-title">🧑‍💻 Enlace técnico</div>
+        <div class="g2">
+          <div class="f"><label>Nombre completo</label><input type="text" id="et_nombre" placeholder="Nombre del enlace técnico"></div>
+          <div class="f"><label>Puesto</label><input type="text" id="et_puesto" placeholder="Cargo o puesto"></div>
+        </div>
+        <div class="g2">
+          <div class="f"><label>Correo electrónico</label><input type="email" id="et_correo" placeholder="correo@institucion.gob.hn"></div>
+          <div class="f"><label>Número de teléfono</label><input type="text" id="et_telefono" placeholder="+504 0000-0000"></div>
         </div>
       </div>
-      <div class="f">
-        <label>Perfiles disponibles o requeridos</label>
-        <div class="chk-grid" id="perfiles-grid"></div>
+    </div><!-- /tab-0 -->
+
+    <!-- ══ TAB 2: INFRAESTRUCTURA ══ -->
+    <div class="tab-panel" id="tab-1">
+      <div class="welcome">
+        <div class="badge badge-verde">Evaluación de infraestructura</div>
+        <h2>Levantamiento de infraestructura tecnológica</h2>
+        <p>Estado inicial de la institución frente a los requerimientos mínimos para alojar la plataforma SOL.</p>
       </div>
-      <div class="g2">
-        <div class="f"><label>Cantidad total de personal TI</label><input type="number" id="personal_ti" placeholder="Ej: 8" min="0"></div>
-        <div class="f"><label>Responsable técnico de SOL</label><input type="text" id="resp_sol" placeholder="Nombre, cargo y contacto"></div>
-      </div>
-      <div class="f">
-        <label>¿Requiere acompañamiento o talleres?</label>
-        <div class="tg" data-radio="acomp">
-          <label class="tp"><input type="radio" name="acomp" value="Sí"> Sí</label>
-          <label class="tp"><input type="radio" name="acomp" value="No"> No</label>
+
+      <div class="card">
+        <div class="sec-title">👥 Perfiles técnicos y transferencia de capacidades</div>
+        <div class="f">
+          <label>¿Cuenta con personal técnico capacitado?</label>
+          <div class="tg" data-radio="personal">
+            <label class="tp"><input type="radio" name="personal" value="Sí"> Sí</label>
+            <label class="tp"><input type="radio" name="personal" value="No"> No</label>
+            <label class="tp"><input type="radio" name="personal" value="Parcialmente"> Parcialmente</label>
+          </div>
+        </div>
+        <div class="f">
+          <label>Perfiles disponibles o requeridos</label>
+          <div class="chk-grid" id="perfiles-grid"></div>
+        </div>
+        <div class="g2">
+          <div class="f"><label>Cantidad total de personal TI</label><input type="number" id="personal_ti" placeholder="Ej: 8" min="0"></div>
+          <div class="f"><label>Responsable técnico de SOL</label><input type="text" id="resp_sol" placeholder="Nombre, cargo y contacto"></div>
+        </div>
+        <div class="f">
+          <label>¿Requiere acompañamiento o talleres?</label>
+          <div class="tg" data-radio="acomp">
+            <label class="tp"><input type="radio" name="acomp" value="Sí"> Sí</label>
+            <label class="tp"><input type="radio" name="acomp" value="No"> No</label>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- ── 9. DATA CENTER ── -->
-    <div class="card">
-      <div class="sec-title">🗄 Data center y condiciones operativas</div>
-      <div class="g3">
-        <div class="f"><label>Modalidad</label>
-          <select id="dc_modalidad">
-            <option value="">— Seleccione —</option>
-            <option>Data center propio</option>
-            <option>Nube pública</option>
-            <option>Nube privada</option>
-            <option>Híbrido</option>
-            <option>Tercerizado / Hosting</option>
-          </select>
+      <div class="card">
+        <div class="sec-title">🗄 Data center y condiciones operativas</div>
+        <div class="g3">
+          <div class="f"><label>Modalidad</label>
+            <select id="dc_modalidad"><option value="">— Seleccione —</option><option>Data center propio</option><option>Nube pública</option><option>Nube privada</option><option>Híbrido</option><option>Tercerizado / Hosting</option></select>
+          </div>
+          <div class="f"><label>Virtualización</label>
+            <select id="dc_virtualizacion"><option value="">— Seleccione —</option><option>VMware</option><option>Hyper-V</option><option>Proxmox</option><option>KVM</option><option>Sin virtualización</option><option>Otro</option></select>
+          </div>
+          <div class="f"><label>Disponibilidad estimada</label><input type="text" id="dc_disponibilidad" placeholder="Ej: 99.5%"></div>
         </div>
-        <div class="f"><label>Virtualización</label>
-          <select id="dc_virtualizacion">
-            <option value="">— Seleccione —</option>
-            <option>VMware</option>
-            <option>Hyper-V</option>
-            <option>Proxmox</option>
-            <option>KVM</option>
-            <option>Sin virtualización</option>
-            <option>Otro</option>
-          </select>
+        <div class="f">
+          <label>Condiciones operativas</label>
+          <div class="chk-grid" id="datacenter-grid"></div>
         </div>
-        <div class="f"><label>Disponibilidad estimada</label><input type="text" id="dc_disponibilidad" placeholder="Ej: 99.5%"></div>
+        <div class="f"><label>Observaciones del data center</label><textarea id="dc_obs" placeholder="Detalles sobre las condiciones del data center..."></textarea></div>
       </div>
-      <div class="f">
-        <label>Condiciones operativas</label>
-        <div class="chk-grid" id="datacenter-grid"></div>
+
+      <div class="card">
+        <div class="sec-title">🖥 Requerimientos mínimos por servidor</div>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:1.1rem">Para cada requerimiento indique el estado de cumplimiento y registre la capacidad actual, brecha o evidencia.</p>
+        <div id="infra-checklist"></div>
       </div>
-      <div class="f"><label>Observaciones del data center</label><textarea id="dc_obs" placeholder="Detalles sobre las condiciones del data center..."></textarea></div>
-    </div>
 
-    <!-- ── 10. CHECKLIST INFRAESTRUCTURA ── -->
-    <div class="card">
-      <div class="sec-title">🖥 Requerimientos mínimos por servidor</div>
-      <p style="font-size:12.5px;color:var(--muted);margin-bottom:1.1rem">Para cada requerimiento indique el estado de cumplimiento y registre la capacidad actual, brecha o evidencia.</p>
-      <div id="infra-checklist"></div>
-    </div>
+      <div class="card">
+        <div class="sec-title">🗓 Plan de adecuación</div>
+        <div class="f"><label>Plan de adecuación, presupuesto o fecha estimada</label>
+          <textarea id="plan_adecuacion" placeholder="Acciones necesarias para alcanzar los requerimientos mínimos..." style="min-height:100px"></textarea>
+        </div>
+      </div>
+    </div><!-- /tab-1 -->
 
-    <!-- ── 11. PLAN DE ADECUACIÓN ── -->
-    <div class="card">
-      <div class="sec-title">🗓 Plan de adecuación</div>
-      <div class="f"><label>Plan de adecuación, presupuesto o fecha estimada</label><textarea id="plan_adecuacion" placeholder="Acciones necesarias para alcanzar los requerimientos mínimos..." style="min-height:100px"></textarea></div>
-    </div>
+    <!-- ══ TAB 3: ENLACES POR ETAPA ══ -->
+    <div class="tab-panel" id="tab-2">
+      <div class="welcome">
+        <div class="badge badge-morado">Sistema SOL</div>
+        <h2>Enlaces por etapa</h2>
+        <p>URLs y accesos del sistema SOL de la institución, organizados por etapa del proceso de instalación y operación.</p>
+      </div>
+      <div id="enlaces-container"></div>
+    </div><!-- /tab-2 -->
+
+    <!-- ══ TAB 4: NUEVA INSTITUCIÓN ══ -->
+    <div class="tab-panel" id="tab-3">
+      <div class="welcome">
+        <div class="badge badge-ambar">Proceso de implementación</div>
+        <h2>Nueva institución — partiendo de cero</h2>
+        <p>Checklist completo para la instalación y configuración de SOL en una nueva institución, basado en el proceso estándar de implementación.</p>
+      </div>
+      <div id="checklist-container"></div>
+    </div><!-- /tab-3 -->
 
     <div class="form-nav">
       <button class="btn btn-s" onclick="verHistorial()">← Ver historial</button>
       <button class="btn btn-p" onclick="guardarFicha()">💾 Guardar ficha</button>
     </div>
 
-  </div>
-</div>
+  </div><!-- /form-wrap -->
+</div><!-- /container -->
 
 <script>
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════
 // DATOS
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════
 var INST_LIST = [
   'BANHPROVI','CANATURH / IHT','CNBS','CONATEL','CONSUCOOP',
   'CONVIVIENDA','COPECO','IHADFA','IHCINE','IHTT','INPREMA',
@@ -404,21 +434,14 @@ var INST_LIST = [
 ];
 
 var PERFILES = [
-  'Administrador/a de redes',
-  'Administrador/a de base de datos',
-  'Administrador/a de servidores',
-  'Especialista en ciberseguridad',
-  'Desarrollador/a o configurador/a SOL',
-  'Soporte técnico y mesa de ayuda'
+  'Administrador/a de redes','Administrador/a de base de datos',
+  'Administrador/a de servidores','Especialista en ciberseguridad',
+  'Desarrollador/a o configurador/a SOL','Soporte técnico y mesa de ayuda'
 ];
 
 var DATACENTER_COND = [
-  'Energía redundante / UPS',
-  'Climatización controlada',
-  'Copias de seguridad',
-  'Monitoreo 24/7',
-  'Firewall y segmentación',
-  'Plan de recuperación ante desastres'
+  'Energía redundante / UPS','Climatización controlada','Copias de seguridad',
+  'Monitoreo 24/7','Firewall y segmentación','Plan de recuperación ante desastres'
 ];
 
 var INFRA_REQS = [
@@ -458,161 +481,360 @@ var INFRA_REQS = [
 ];
 
 var STATUS_OPTS = ['Pendiente','Cumple','No cumple','Parcial','No aplica'];
+
+// Tab 3 — enlaces por etapa de instalación SOL
+var ETAPAS_ENLACES = [
+  { etapa:'Pre-instalación', items:[
+    'Acceso VPN (red ADHER — servidor intermediario)',
+    'Token del SOL centralizador',
+    'Instalador de base de datos (última versión del proveedor)',
+    'Script de creación de base de datos',
+    'Archivo parámetros de instalación (.txt)',
+    'Correo institucional para notificaciones (Gmail / Office 365)'
+  ]},
+  { etapa:'Base de datos', items:[
+    'SQL Server Management Studio',
+    'SOL centralizador — verificación Swagger',
+    'Base de datos principal (SIGOP_HN{inst})',
+    'Base de datos HamFire_{inst}'
+  ]},
+  { etapa:'Aplicación web — IIS', items:[
+    'Carpeta plantilla en servidor de aplicaciones (CONSUCOOP)',
+    'WS-API — cadena de conexión (appsettings.json)',
+    'Config ciudadano — parámetros de sistema',
+    'Config funcionario — parámetros de sistema',
+    'Ejecutable registrar_logs.exe'
+  ]},
+  { etapa:'URLs del sistema SOL', items:[
+    'SOL Ciudadano',
+    'SOL Funcionario',
+    'API / Swagger (sol.{inst}.go.hn/sol-apps/swagger)',
+    'SOL centralizador — producción'
+  ]},
+  { etapa:'Accesos institucionales', items:[
+    'Usuario VPN del equipo técnico de la institución',
+    'Usuario de base de datos (acceso restringido a BD institucional)',
+    'Credenciales administrador SOL'
+  ]},
+  { etapa:'Verificación y seguimiento', items:[
+    'Prueba Swagger API',
+    'Prueba portal Ciudadano',
+    'Prueba envío de notificaciones SMTP',
+    'Visor de eventos / logs del servidor'
+  ]}
+];
+
+// Tab 4 — checklist nueva institución
+var CHECKLIST_NUEVA_INST = [
+  { fase:'Fase 1 — Preparación', items:[
+    'Solicitar acceso VPN al servidor de base de datos',
+    'Obtener token del SOL centralizador del proveedor',
+    'Definir alias o nombre corto de la institución (ej: IP, CNBS, CONSUCOOP)',
+    'Definir contraseña del administrador SOL (mín. 12 chars: mayúscula, número y carácter especial)',
+    'Definir o solicitar correo electrónico institucional para notificaciones',
+    'Recibir archivo parámetros de instalación (.txt) del proveedor'
+  ]},
+  { fase:'Fase 2 — Base de datos', items:[
+    'Ejecutar script de creación de BD con nombre de la institución (SIGOP_HN{inst})',
+    'Ejecutar instalador de BD — última versión consolidada del proveedor',
+    'Configurar File Groups: Primary, FG Documentos, FG Textos, Full Text Search',
+    'Crear cuenta SQL administrativa (db_owner de la BD SOL)',
+    'Crear cuenta SQL de usuarios operativos (ciudadanos y funcionarios)',
+    'Configurar modo de autenticación: SOL remoto usando centralizador',
+    'Crear base de datos HamFire_{inst} (scheduler de tareas periódicas y correos)',
+    'Documentar: nombre BD, servidor, puerto 1433, usuarios y contraseñas'
+  ]},
+  { fase:'Fase 3 — Aplicación web (IIS)', items:[
+    'Copiar carpeta plantilla (CONSUCOOP) en el servidor de aplicaciones',
+    'Renombrar carpeta al alias de la nueva institución',
+    'Actualizar cadena de conexión en WS-API (nombre BD nueva y credenciales)',
+    'Actualizar URL raíz y URL de servicio en parámetros — Ciudadano',
+    'Actualizar URL raíz en parámetros — Funcionario',
+    'Verificar recursos.json y rutas.json en ciudadano y funcionario',
+    'Configurar SMTP: Gmail (puerto 465/587, SSL) u Office 365 (puerto 587)',
+    'Confirmar uso de contraseña de aplicación (no la contraseña directa del correo)',
+    'Reemplazar logos: logo pequeño y logo grande en ciudadano y funcionario',
+    'Crear 3 grupos de aplicaciones IIS: principal, firma documentos, caché',
+    'Ejecutar registrar_logs.exe para crear espacio de eventos de la institución'
+  ]},
+  { fase:'Fase 4 — Certificados y seguridad', items:[
+    'Abrir MMC (Inicio → mmc.exe) y añadir snap-in de certificados — Computer Account',
+    'Instalar certificado SSL Wildcard en IIS',
+    'Configurar HTTPS Binding en IIS para la nueva instancia',
+    'Verificar acceso HTTPS desde servidor y desde red externa',
+    'Desbloquear puertos SMTP en firewall si es necesario (465, 587)',
+    'Programar activación del CAPTCHA cuando esté disponible el sidekey de Cloudflare'
+  ]},
+  { fase:'Fase 5 — Accesos institucionales', items:[
+    'Crear usuario VPN para el equipo técnico de la institución',
+    'Crear usuario de base de datos con acceso restringido a la BD institucional',
+    'Confirmar que la conexión al servidor funciona desde el servidor intermediario',
+    'Entregar credenciales: VPN + base de datos + administrador SOL'
+  ]},
+  { fase:'Fase 6 — Verificación y lanzamiento', items:[
+    'Verificar Swagger API accesible (sol.{inst}.go.hn/sol-apps/swagger)',
+    'Probar inicio de sesión en portal Ciudadano',
+    'Probar inicio de sesión en portal Funcionario/Administrador',
+    'Crear primer trámite de prueba y verificar flujo completo',
+    'Probar envío de notificaciones por correo electrónico',
+    'Reiniciar grupos de aplicaciones y verificar funcionamiento del caché',
+    'Aplicar parches pendientes de actualización del proveedor',
+    'Registrar instalación: nombre BD, servidor, versión SOL, fecha, responsable'
+  ]}
+];
+
 var LS_KEY = 'diger_fichas_tramite_v1';
 
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════
 // UTILS
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function gv(id){ var el=document.getElementById(id); return el?(el.value||''):''; }
 function sv(id,val){ var el=document.getElementById(id); if(el) el.value=val||''; }
 function statusClass(v){ return 'st-'+String(v||'Pendiente').toLowerCase().replace(/\s+/g,'-'); }
-function lsGet(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||[]; }catch{ return []; } }
+function lsGet(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||[]; }catch(e){ return []; } }
 function lsSet(arr){ localStorage.setItem(LS_KEY, JSON.stringify(arr)); }
 function uid(){ return 'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
 
 var editandoId = null;
 
-// ════════════════════════════════════════════════════
-// RENDER ESTÁTICO INICIAL
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════
+function cambiarTab(n){
+  document.querySelectorAll('.tab-panel').forEach(function(p,i){ p.classList.toggle('active',i===n); });
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){ b.classList.toggle('active',i===n); });
+}
+
+// ════════════════════════════════════════
+// RENDER ESTÁTICO
+// ════════════════════════════════════════
+var _FT_INST_OPTS = {placeholder:'— Seleccione —', otro:true, otroValue:'__OTRA__', otroLabel:'Otro (agregar nueva)…'};
+function ftInstFill(selected){
+  var sel=document.getElementById('inst'); if(!sel) return;
+  if(window.DIGER_INSTS){
+    var o={}; for(var k in _FT_INST_OPTS) o[k]=_FT_INST_OPTS[k];
+    if(selected!=null) o.selected=selected;
+    DIGER_INSTS.fill(sel,o);
+  } else {
+    sel.innerHTML='<option value="">— Seleccione —</option>';
+    INST_LIST.forEach(function(inst){ var op=document.createElement('option'); op.value=inst; op.textContent=inst; sel.appendChild(op); });
+    if(selected!=null) sel.value=selected;
+  }
+}
 function poblarInstituciones(){
+  ftInstFill();
   var sel=document.getElementById('inst');
-  INST_LIST.forEach(function(i){
-    var o=document.createElement('option'); o.value=i; o.textContent=i; sel.appendChild(o);
+  if(sel) sel.addEventListener('change', function(){
+    if(this.value!=='__OTRA__') return;
+    var nombre=(prompt('Nombre de la nueva institución:')||'').trim().toUpperCase();
+    if(!nombre || !window.DIGER_INSTS){ this.value=''; return; }
+    DIGER_INSTS.add(nombre).then(function(){ ftInstFill(nombre); actualizarTitulo(); });
   });
+  if(window.DIGER_INSTS) DIGER_INSTS.load().then(function(){ ftInstFill(document.getElementById('inst').value); });
 }
 
 function renderPerfiles(){
-  document.getElementById('perfiles-grid').innerHTML = PERFILES.map(function(p,i){
+  document.getElementById('perfiles-grid').innerHTML=PERFILES.map(function(p,i){
     return '<label class="chk-tile"><input type="checkbox" data-perfil="'+i+'" value="'+esc(p)+'"> '+esc(p)+'</label>';
   }).join('');
 }
 
 function renderDatacenter(){
-  document.getElementById('datacenter-grid').innerHTML = DATACENTER_COND.map(function(c,i){
+  document.getElementById('datacenter-grid').innerHTML=DATACENTER_COND.map(function(c,i){
     return '<label class="chk-tile"><input type="checkbox" data-dc="'+i+'" value="'+esc(c)+'"> '+esc(c)+'</label>';
   }).join('');
 }
 
 function renderInfraChecklist(){
   var html='';
-  INFRA_REQS.forEach(function(g, gi){
-    html += '<div class="infra-group"><div class="infra-group-head">'+esc(g.grupo)+'</div>';
-    g.items.forEach(function(item, ii){
-      var key='infra-'+gi+'-'+ii;
-      var optsHtml = STATUS_OPTS.map(function(o){ return '<option value="'+esc(o)+'">'+esc(o)+'</option>'; }).join('');
-      html +=
-        '<div class="infra-row">'+
-          '<div class="infra-req">'+esc(item)+'</div>'+
-          '<select class="infra-status st-pendiente" id="'+key+'-st" onchange="onStatusChange(this)">'+optsHtml+'</select>'+
-          '<input class="infra-ev" id="'+key+'-ev" placeholder="Capacidad actual / brecha / evidencia">'+
+  INFRA_REQS.forEach(function(g,gi){
+    html+='<div class="infra-group"><div class="infra-group-head">'+esc(g.grupo)+'</div>';
+    g.items.forEach(function(item,ii){
+      var k='infra-'+gi+'-'+ii;
+      var opts=STATUS_OPTS.map(function(o){ return '<option>'+esc(o)+'</option>'; }).join('');
+      html+='<div class="infra-row">'+
+        '<div class="infra-req">'+esc(item)+'</div>'+
+        '<select class="infra-status st-pendiente" id="'+k+'-st" onchange="onStatusChange(this)">'+opts+'</select>'+
+        '<input class="infra-ev" id="'+k+'-ev" placeholder="Capacidad actual / brecha / evidencia">'+
         '</div>';
     });
-    html += '</div>';
+    html+='</div>';
   });
-  document.getElementById('infra-checklist').innerHTML = html;
+  document.getElementById('infra-checklist').innerHTML=html;
 }
 
-function onStatusChange(sel){
-  sel.className = 'infra-status ' + statusClass(sel.value);
+function onStatusChange(sel){ sel.className='infra-status '+statusClass(sel.value); }
+
+function renderEnlaces(guardado){
+  var data=(guardado&&guardado.enlaces)?guardado.enlaces:{};
+  var html='';
+  ETAPAS_ENLACES.forEach(function(et,ei){
+    html+='<div class="etapa-block"><div class="etapa-head">'+esc(et.etapa)+'</div><div class="etapa-body">';
+    et.items.forEach(function(item,ii){
+      var k='e-'+ei+'-'+ii;
+      var url=(data[k]&&data[k].url)?data[k].url:'';
+      html+='<div class="enlace-row">'+
+        '<div class="enlace-label">'+esc(item)+'</div>'+
+        '<input class="enlace-url" id="'+k+'" placeholder="https://..." value="'+esc(url)+'">'+
+        '<a class="btn-open" id="abrir-'+k+'" href="'+(url||'#')+'" target="_blank" title="Abrir">↗</a>'+
+        '</div>';
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('enlaces-container').innerHTML=html;
+  document.querySelectorAll('.enlace-url').forEach(function(inp){
+    inp.addEventListener('input',function(){
+      var a=document.getElementById('abrir-'+inp.id); if(a) a.href=inp.value.trim()||'#';
+    });
+  });
 }
 
-// ── Checkbox tiles toggle visual ──
-document.addEventListener('change', function(ev){
-  if(ev.target.matches('.chk-tile input[type=checkbox]')){
-    ev.target.closest('.chk-tile').classList.toggle('on', ev.target.checked);
-  }
+function renderChecklist(guardado){
+  var data=(guardado&&guardado.checklist)?guardado.checklist:{};
+  var html='';
+  CHECKLIST_NUEVA_INST.forEach(function(fase,fi){
+    var done=fase.items.filter(function(_,ii){ return data['c-'+fi+'-'+ii]&&data['c-'+fi+'-'+ii].hecho; }).length;
+    var total=fase.items.length;
+    var pct=total?Math.round(done/total*100):0;
+    html+='<div class="fase-block">'+
+      '<div class="fase-head"><span>'+esc(fase.fase)+'</span><span style="font-size:11px;opacity:.8" id="cnt-'+fi+'">'+done+' / '+total+'</span></div>'+
+      '<div class="fase-progress"><div class="fase-progress-bar" id="prog-'+fi+'" style="width:'+pct+'%"></div></div>'+
+      '<div class="fase-body">';
+    fase.items.forEach(function(item,ii){
+      var k='c-'+fi+'-'+ii;
+      var hecho=!!(data[k]&&data[k].hecho);
+      var fecha=(data[k]&&data[k].fecha)?data[k].fecha:'';
+      html+='<div class="chk-paso'+(hecho?' done':'')+ '" id="paso-'+k+'">'+
+        '<input type="checkbox" id="'+k+'" '+(hecho?'checked':'')+' onchange="togglePaso(this,'+fi+','+ii+')">'+
+        '<label class="chk-paso-label" for="'+k+'">'+esc(item)+'</label>'+
+        '<span class="chk-paso-fecha" id="fecha-'+k+'">'+esc(fecha)+'</span>'+
+        '</div>';
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('checklist-container').innerHTML=html;
+}
+
+function togglePaso(cb,fi,ii){
+  var k='c-'+fi+'-'+ii;
+  document.getElementById('paso-'+k).classList.toggle('done',cb.checked);
+  document.getElementById('fecha-'+k).textContent=cb.checked
+    ?new Date().toLocaleDateString('es-HN',{day:'2-digit',month:'short',year:'numeric'}):'';
+  var fase=CHECKLIST_NUEVA_INST[fi];
+  var done=fase.items.filter(function(_,i){ var c=document.getElementById('c-'+fi+'-'+i); return c&&c.checked; }).length;
+  var pct=fase.items.length?Math.round(done/fase.items.length*100):0;
+  var bar=document.getElementById('prog-'+fi); if(bar) bar.style.width=pct+'%';
+  var cnt=document.getElementById('cnt-'+fi); if(cnt) cnt.textContent=done+' / '+fase.items.length;
+}
+
+document.addEventListener('change',function(ev){
+  if(ev.target.matches('.chk-tile input[type=checkbox]'))
+    ev.target.closest('.chk-tile').classList.toggle('on',ev.target.checked);
   if(ev.target.type==='radio'){
     var g=ev.target.closest('[data-radio]');
-    if(g){ g.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on')}); ev.target.closest('.tp').classList.add('on'); }
+    if(g){ g.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');}); ev.target.closest('.tp').classList.add('on'); }
   }
 });
 
-// ════════════════════════════════════════════════════
-// LISTAS DINÁMICAS (requisitos / pasos / leyes)
-// ════════════════════════════════════════════════════
-var counters = { req:0, paso:0, ley:0 };
-var placeholders = { req:'Descripción del requisito...', paso:'Descripción del paso...', ley:'Ley, reglamento o normativa...' };
+// ════════════════════════════════════════
+// LISTAS DINÁMICAS
+// ════════════════════════════════════════
+var counters={req:0,paso:0,ley:0};
+var placeholders={req:'Descripción del requisito...',paso:'Descripción del paso...',ley:'Ley, reglamento o normativa...'};
 
-function agregarItem(tipo, valor){
+function agregarItem(tipo,valor){
   counters[tipo]++;
   var n=counters[tipo];
   var div=document.createElement('div');
-  div.className='dl-fila';
-  div.id=tipo+'-fila-'+n;
-  div.innerHTML=
-    '<div class="dl-num">'+n+'</div>'+
+  div.className='dl-fila'; div.id=tipo+'-fila-'+n;
+  div.innerHTML='<div class="dl-num">'+n+'</div>'+
     '<input type="text" class="'+tipo+'-inp" placeholder="'+placeholders[tipo]+'" value="'+esc(valor||'')+'">'+
     '<button class="btn-rm" onclick="eliminarItem(\''+tipo+'\','+n+')" title="Eliminar">×</button>';
   document.getElementById(tipo+'-list').appendChild(div);
   renumerar(tipo);
 }
-function eliminarItem(tipo,n){
-  var el=document.getElementById(tipo+'-fila-'+n);
-  if(el) el.remove();
-  renumerar(tipo);
-}
+function eliminarItem(tipo,n){ var el=document.getElementById(tipo+'-fila-'+n); if(el) el.remove(); renumerar(tipo); }
 function renumerar(tipo){
-  var filas=document.querySelectorAll('#'+tipo+'-list .dl-fila');
-  filas.forEach(function(f,i){ f.querySelector('.dl-num').textContent=i+1; });
+  document.querySelectorAll('#'+tipo+'-list .dl-fila').forEach(function(f,i){ f.querySelector('.dl-num').textContent=i+1; });
 }
 function getLista(tipo){
   return Array.from(document.querySelectorAll('#'+tipo+'-list .'+tipo+'-inp'))
     .map(function(i){ return i.value.trim(); }).filter(Boolean);
 }
 
-// ════════════════════════════════════════════════════
-// TÍTULO DINÁMICO
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════
+// TÍTULO
+// ════════════════════════════════════════
 function actualizarTitulo(){
   var t=gv('nombre')||'Ficha de Trámite Digitalizado';
   var inst=gv('inst');
-  document.getElementById('tb-title').textContent = t;
-  document.getElementById('ph-sub').textContent = (inst?inst+' — ':'') + (gv('nombre')||'—');
+  document.getElementById('tb-title').textContent=t;
+  document.getElementById('ph-sub').textContent=(inst?inst+' — ':'')+t;
 }
 
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════
+// RECOLECTAR TABS 3 Y 4
+// ════════════════════════════════════════
+function recolectarEnlaces(){
+  var enlaces={};
+  ETAPAS_ENLACES.forEach(function(et,ei){
+    et.items.forEach(function(_,ii){
+      var k='e-'+ei+'-'+ii;
+      var el=document.getElementById(k);
+      if(el&&el.value.trim()) enlaces[k]={ url:el.value.trim() };
+    });
+  });
+  return enlaces;
+}
+
+function recolectarChecklist(){
+  var chk={};
+  CHECKLIST_NUEVA_INST.forEach(function(fase,fi){
+    fase.items.forEach(function(_,ii){
+      var k='c-'+fi+'-'+ii;
+      var cb=document.getElementById(k);
+      var f=document.getElementById('fecha-'+k);
+      if(cb) chk[k]={ hecho:cb.checked, fecha:(cb.checked&&f)?f.textContent:'' };
+    });
+  });
+  return chk;
+}
+
+// ════════════════════════════════════════
 // GUARDAR / CARGAR
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════
 function recolectarFicha(){
   var perfiles=Array.from(document.querySelectorAll('[data-perfil]:checked')).map(function(c){return c.value;});
   var dc=Array.from(document.querySelectorAll('[data-dc]:checked')).map(function(c){return c.value;});
   var personalR=document.querySelector('[name=personal]:checked');
   var acompR=document.querySelector('[name=acomp]:checked');
-
   var infra=[];
   INFRA_REQS.forEach(function(g,gi){
     g.items.forEach(function(item,ii){
-      var key='infra-'+gi+'-'+ii;
-      infra.push({ grupo:g.grupo, req:item, estado:gv(key+'-st'), evidencia:gv(key+'-ev') });
+      var k='infra-'+gi+'-'+ii;
+      infra.push({grupo:g.grupo,req:item,estado:gv(k+'-st'),evidencia:gv(k+'-ev')});
     });
   });
-
   return {
-    id: editandoId || uid(),
-    // General
-    inst:gv('inst'), nombre:gv('nombre'), nombre_corto:gv('nombre_corto'),
-    area:gv('area'), modalidad:gv('modalidad'), validez:gv('validez'),
-    plazo_legal:gv('plazo_legal'), tercero:gv('tercero'),
-    // Tiempos y costos
-    tiempo_dias:gv('tiempo_dias'), tiempo_texto:gv('tiempo_texto'),
-    metodo_pago:gv('metodo_pago'), costo:gv('costo'),
-    // Detalles
-    descripcion:gv('descripcion'), doc_entregado:gv('doc_entregado'), dirigido:gv('dirigido'),
-    info_contacto:gv('info_contacto'), horario:gv('horario'), telefono:gv('telefono'),
-    email:gv('email'), sitio_web:gv('sitio_web'), direccion:gv('direccion'),
-    // Listas
-    requisitos:getLista('req'), pasos:getLista('paso'), leyes:getLista('ley'),
-    // Enlace técnico
-    et_nombre:gv('et_nombre'), et_puesto:gv('et_puesto'), et_correo:gv('et_correo'), et_telefono:gv('et_telefono'),
-    // Infra
-    personal: personalR?personalR.value:'', perfiles:perfiles,
-    personal_ti:gv('personal_ti'), resp_sol:gv('resp_sol'), acomp: acompR?acompR.value:'',
-    dc_modalidad:gv('dc_modalidad'), dc_virtualizacion:gv('dc_virtualizacion'),
-    dc_disponibilidad:gv('dc_disponibilidad'), datacenter:dc, dc_obs:gv('dc_obs'),
-    infra:infra, plan_adecuacion:gv('plan_adecuacion'),
-    // Meta
+    id:editandoId||uid(),
+    inst:gv('inst'),nombre:gv('nombre'),nombre_corto:gv('nombre_corto'),
+    area:gv('area'),modalidad:gv('modalidad'),validez:gv('validez'),
+    plazo_legal:gv('plazo_legal'),tercero:gv('tercero'),
+    tiempo_dias:gv('tiempo_dias'),tiempo_texto:gv('tiempo_texto'),
+    metodo_pago:gv('metodo_pago'),costo:gv('costo'),
+    descripcion:gv('descripcion'),doc_entregado:gv('doc_entregado'),dirigido:gv('dirigido'),
+    info_contacto:gv('info_contacto'),horario:gv('horario'),telefono:gv('telefono'),
+    email:gv('email'),sitio_web:gv('sitio_web'),direccion:gv('direccion'),
+    requisitos:getLista('req'),pasos:getLista('paso'),leyes:getLista('ley'),
+    et_nombre:gv('et_nombre'),et_puesto:gv('et_puesto'),et_correo:gv('et_correo'),et_telefono:gv('et_telefono'),
+    personal:personalR?personalR.value:'',perfiles:perfiles,
+    personal_ti:gv('personal_ti'),resp_sol:gv('resp_sol'),acomp:acompR?acompR.value:'',
+    dc_modalidad:gv('dc_modalidad'),dc_virtualizacion:gv('dc_virtualizacion'),
+    dc_disponibilidad:gv('dc_disponibilidad'),datacenter:dc,dc_obs:gv('dc_obs'),
+    infra:infra,plan_adecuacion:gv('plan_adecuacion'),
+    enlaces:recolectarEnlaces(),
+    checklist:recolectarChecklist(),
     fecha:new Date().toISOString(),
     autor:(window.DIGER_SESSION&&window.DIGER_SESSION.email)||''
   };
@@ -620,8 +842,8 @@ function recolectarFicha(){
 
 function guardarFicha(){
   var f=recolectarFicha();
-  if(!f.inst){ alert('Seleccione una institución.'); document.getElementById('inst').focus(); return; }
-  if(!f.nombre){ alert('Ingrese el nombre del trámite.'); document.getElementById('nombre').focus(); return; }
+  if(!f.inst){ alert('Seleccione una institución.'); cambiarTab(0); document.getElementById('inst').focus(); return; }
+  if(!f.nombre){ alert('Ingrese el nombre del trámite.'); cambiarTab(0); document.getElementById('nombre').focus(); return; }
   var fichas=lsGet();
   var idx=fichas.findIndex(function(x){ return x.id===f.id; });
   if(idx>=0) fichas[idx]=f; else fichas.unshift(f);
@@ -632,28 +854,20 @@ function guardarFicha(){
 
 function cargarFicha(f){
   editandoId=f.id;
-  // General
-  sv('inst',f.inst); sv('nombre',f.nombre); sv('nombre_corto',f.nombre_corto);
-  sv('area',f.area); sv('modalidad',f.modalidad); sv('validez',f.validez);
-  sv('plazo_legal',f.plazo_legal); sv('tercero',f.tercero);
-  // Tiempos
-  sv('tiempo_dias',f.tiempo_dias); sv('tiempo_texto',f.tiempo_texto);
-  sv('metodo_pago',f.metodo_pago); sv('costo',f.costo);
-  // Detalles
-  sv('descripcion',f.descripcion); sv('doc_entregado',f.doc_entregado); sv('dirigido',f.dirigido);
-  sv('info_contacto',f.info_contacto); sv('horario',f.horario); sv('telefono',f.telefono);
-  sv('email',f.email); sv('sitio_web',f.sitio_web); sv('direccion',f.direccion);
-  // Enlace técnico
-  sv('et_nombre',f.et_nombre); sv('et_puesto',f.et_puesto); sv('et_correo',f.et_correo); sv('et_telefono',f.et_telefono);
-  // Infra simples
-  sv('personal_ti',f.personal_ti); sv('resp_sol',f.resp_sol);
-  sv('dc_modalidad',f.dc_modalidad); sv('dc_virtualizacion',f.dc_virtualizacion);
-  sv('dc_disponibilidad',f.dc_disponibilidad); sv('dc_obs',f.dc_obs); sv('plan_adecuacion',f.plan_adecuacion);
+  sv('inst',f.inst);sv('nombre',f.nombre);sv('nombre_corto',f.nombre_corto);
+  sv('area',f.area);sv('modalidad',f.modalidad);sv('validez',f.validez);
+  sv('plazo_legal',f.plazo_legal);sv('tercero',f.tercero);
+  sv('tiempo_dias',f.tiempo_dias);sv('tiempo_texto',f.tiempo_texto);
+  sv('metodo_pago',f.metodo_pago);sv('costo',f.costo);
+  sv('descripcion',f.descripcion);sv('doc_entregado',f.doc_entregado);sv('dirigido',f.dirigido);
+  sv('info_contacto',f.info_contacto);sv('horario',f.horario);sv('telefono',f.telefono);
+  sv('email',f.email);sv('sitio_web',f.sitio_web);sv('direccion',f.direccion);
+  sv('et_nombre',f.et_nombre);sv('et_puesto',f.et_puesto);sv('et_correo',f.et_correo);sv('et_telefono',f.et_telefono);
+  sv('personal_ti',f.personal_ti);sv('resp_sol',f.resp_sol);
+  sv('dc_modalidad',f.dc_modalidad);sv('dc_virtualizacion',f.dc_virtualizacion);
+  sv('dc_disponibilidad',f.dc_disponibilidad);sv('dc_obs',f.dc_obs);sv('plan_adecuacion',f.plan_adecuacion);
 
-  // Listas dinámicas
-  ['req','paso','ley'].forEach(function(t){
-    document.getElementById(t+'-list').innerHTML=''; counters[t]=0;
-  });
+  ['req','paso','ley'].forEach(function(t){ document.getElementById(t+'-list').innerHTML=''; counters[t]=0; });
   (f.requisitos||[]).forEach(function(v){ agregarItem('req',v); });
   (f.pasos||[]).forEach(function(v){ agregarItem('paso',v); });
   (f.leyes||[]).forEach(function(v){ agregarItem('ley',v); });
@@ -661,46 +875,46 @@ function cargarFicha(f){
   if(!(f.pasos||[]).length) agregarItem('paso');
   if(!(f.leyes||[]).length) agregarItem('ley');
 
-  // Radios
   setRadio('personal',f.personal); setRadio('acomp',f.acomp);
-  // Checkboxes perfiles
   document.querySelectorAll('[data-perfil]').forEach(function(c){
     c.checked=(f.perfiles||[]).indexOf(c.value)!==-1;
     c.closest('.chk-tile').classList.toggle('on',c.checked);
   });
-  // Checkboxes datacenter
   document.querySelectorAll('[data-dc]').forEach(function(c){
     c.checked=(f.datacenter||[]).indexOf(c.value)!==-1;
     c.closest('.chk-tile').classList.toggle('on',c.checked);
   });
-  // Infra checklist
   (f.infra||[]).forEach(function(row){
     INFRA_REQS.forEach(function(g,gi){
       g.items.forEach(function(item,ii){
-        if(g.grupo===row.grupo && item===row.req){
-          var key='infra-'+gi+'-'+ii;
-          var st=document.getElementById(key+'-st');
+        if(g.grupo===row.grupo&&item===row.req){
+          var k='infra-'+gi+'-'+ii;
+          var st=document.getElementById(k+'-st');
           if(st){ st.value=row.estado||'Pendiente'; onStatusChange(st); }
-          sv(key+'-ev',row.evidencia);
+          sv(k+'-ev',row.evidencia);
         }
       });
     });
   });
 
+  renderEnlaces(f);
+  renderChecklist(f);
   actualizarTitulo();
   mostrarFormulario();
+  cambiarTab(0);
 }
 
 function setRadio(name,val){
   var r=document.querySelector('[name='+name+'][value="'+val+'"]');
-  if(r){ r.checked=true; var g=r.closest('[data-radio]'); if(g){ g.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on')}); r.closest('.tp').classList.add('on'); } }
+  if(r){ r.checked=true; var g=r.closest('[data-radio]'); if(g){ g.querySelectorAll('.tp').forEach(function(p){p.classList.remove('on');}); r.closest('.tp').classList.add('on'); } }
 }
 
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════
 // HISTORIAL
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════
 function verHistorial(){
   document.getElementById('form-wrap').classList.add('hidden');
+  document.getElementById('tab-bar').style.display='none';
   document.getElementById('hist-wrap').classList.add('active');
   renderHistorial();
   window.scrollTo(0,0);
@@ -708,21 +922,21 @@ function verHistorial(){
 function mostrarFormulario(){
   document.getElementById('hist-wrap').classList.remove('active');
   document.getElementById('form-wrap').classList.remove('hidden');
+  document.getElementById('tab-bar').style.display='';
   window.scrollTo(0,0);
 }
-function nuevaFicha(){
-  resetForm();
-  mostrarFormulario();
-}
+function nuevaFicha(){ resetForm(); mostrarFormulario(); }
 function resetForm(){
   editandoId=null;
-  document.querySelectorAll('#form-wrap input, #form-wrap textarea, #form-wrap select').forEach(function(el){
+  document.querySelectorAll('#form-wrap input,#form-wrap textarea,#form-wrap select').forEach(function(el){
     if(el.type==='checkbox'||el.type==='radio') el.checked=false; else el.value='';
   });
-  document.querySelectorAll('.chk-tile').forEach(function(t){t.classList.remove('on')});
-  document.querySelectorAll('[data-radio] .tp').forEach(function(t){t.classList.remove('on')});
+  document.querySelectorAll('.chk-tile').forEach(function(t){t.classList.remove('on');});
+  document.querySelectorAll('[data-radio] .tp').forEach(function(t){t.classList.remove('on');});
   ['req','paso','ley'].forEach(function(t){ document.getElementById(t+'-list').innerHTML=''; counters[t]=0; agregarItem(t); });
   document.querySelectorAll('.infra-status').forEach(function(s){ s.value='Pendiente'; onStatusChange(s); });
+  renderEnlaces(null);
+  renderChecklist(null);
   actualizarTitulo();
 }
 
@@ -733,20 +947,23 @@ function renderHistorial(){
     lista.innerHTML='<div class="hist-empty"><div class="ico">📋</div><p>No hay fichas guardadas.<br>Crea la primera con el botón "+ Nueva ficha".</p></div>';
     return;
   }
+  var totalPasos=CHECKLIST_NUEVA_INST.reduce(function(s,fa){return s+fa.items.length;},0);
   lista.innerHTML=fichas.map(function(f){
     var ini=(f.inst||'?').replace(/[\s\/]+/g,' ').trim().split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase()||'?';
     var fecha=f.fecha?new Date(f.fecha).toLocaleDateString('es-HN',{year:'numeric',month:'short',day:'numeric'}):'—';
-    // Resumen de cumplimiento infra
     var infra=f.infra||[];
     var cumple=infra.filter(function(x){return x.estado==='Cumple';}).length;
-    var totalEval=infra.filter(function(x){return x.estado&&x.estado!=='Pendiente'&&x.estado!=='No aplica';}).length;
+    var chk=f.checklist||{};
+    var donePasos=0;
+    for(var k in chk){ if(chk[k]&&chk[k].hecho) donePasos++; }
     return '<div class="hist-item" onclick="abrirFichaPorId(\''+f.id+'\')">'+
       '<div class="hist-avatar">'+esc(ini)+'</div>'+
       '<div class="hist-info">'+
         '<div class="hist-tram">'+esc(f.nombre||'(sin nombre)')+'</div>'+
         '<div class="hist-meta">'+
           '<span>🏛 '+esc(f.inst||'—')+'</span>'+
-          '<span>✓ '+cumple+'/'+infra.length+' requerimientos cumplen</span>'+
+          '<span>🖥 '+cumple+'/'+infra.length+' reqs</span>'+
+          '<span>✅ '+donePasos+'/'+totalPasos+' pasos</span>'+
           '<span>📅 '+fecha+'</span>'+
         '</div>'+
       '</div>'+
@@ -757,8 +974,7 @@ function renderHistorial(){
 }
 
 function abrirFichaPorId(id){
-  var f=lsGet().find(function(x){return x.id===id;});
-  if(f) cargarFicha(f);
+  var f=lsGet().find(function(x){return x.id===id;}); if(f) cargarFicha(f);
 }
 function eliminarFicha(ev,id){
   ev.stopPropagation();
@@ -767,25 +983,28 @@ function eliminarFicha(ev,id){
   renderHistorial();
 }
 
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════
 // INIT
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════
 (function init(){
   poblarInstituciones();
   renderPerfiles();
   renderDatacenter();
   renderInfraChecklist();
   agregarItem('req'); agregarItem('paso'); agregarItem('ley');
+  renderEnlaces(null);
+  renderChecklist(null);
 
-  // Pre-seleccionar institución si viene en sesión (no admin) o ?inst=
   var inst='';
   try{ var qp=new URLSearchParams(window.location.search); if(qp.get('inst')) inst=qp.get('inst'); }catch(e){}
-  if(!inst && window.DIGER_SESSION && window.DIGER_SESSION.role!=='admin' && window.DIGER_SESSION.institucion){
+  if(!inst&&window.DIGER_SESSION&&window.DIGER_SESSION.role!=='admin'&&window.DIGER_SESSION.institucion){
     inst=window.DIGER_SESSION.institucion;
   }
-  if(inst){ sv('inst',inst); actualizarTitulo(); }
+  if(inst){
+    if(window.DIGER_INSTS){ DIGER_INSTS.load().then(function(){ ftInstFill(inst); actualizarTitulo(); }); }
+    else { sv('inst',inst); actualizarTitulo(); }
+  }
 
-  // Arrancar en historial si ya hay fichas, si no en el formulario
   if(lsGet().length) verHistorial(); else mostrarFormulario();
 })();
 </script>

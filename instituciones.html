@@ -217,6 +217,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="insts.js"></script>
 </head>
 <body>
 <!-- header.js prepends the shared DIGER header -->
@@ -255,15 +256,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
       </div>
       <div style="margin-bottom:.9rem">
         <label class="tf-lbl">Institución *</label>
-        <select class="tf-sel" id="tf-inst">
+        <select class="tf-sel" id="tf-inst" onchange="tfInstOtro()">
           <option value="">— Seleccione —</option>
-          <option>BANHPROVI</option><option>CANATURH / IHT</option><option>CNBS</option>
-          <option>CONATEL</option><option>CONSUCOOP</option><option>CONVIVIENDA</option>
-          <option>COPECO</option><option>IHADFA</option><option>IHCINE</option>
-          <option>IHTT</option><option>INPREMA</option><option>INPREUNAH</option>
-          <option>IP</option><option>SAG</option><option>SECAPPH</option>
-          <option>SEN</option><option>SERNA</option><option>SGJD</option>
-          <option>SIT</option><option>SRECI</option>
         </select>
       </div>
       <div class="tf-err" id="tf-err"></div>
@@ -905,8 +899,28 @@ function eliminarTramite(id){
   document.getElementById('instSelect').value = activeInst||'__ALL__';
 }
 
+// ── INSTITUCIONES (fuente única: insts.js / Supabase KV) ─────────
+var _TF_INST_OPTS = {placeholder:'— Seleccione —', otro:true, otroValue:'__OTRA__', otroLabel:'Otro (agregar nueva)…'};
+function tfInstFill(selected){
+  var sel=document.getElementById('tf-inst'); if(!sel||!window.DIGER_INSTS) return;
+  var o={}; for(var k in _TF_INST_OPTS) o[k]=_TF_INST_OPTS[k];
+  if(selected!=null) o.selected=selected;
+  DIGER_INSTS.fill(sel,o);
+}
+function tfInstOtro(){
+  var sel=document.getElementById('tf-inst');
+  if(!sel || sel.value!=='__OTRA__') return;
+  var nombre=(prompt('Nombre de la nueva institución:')||'').trim().toUpperCase();
+  if(!nombre || !window.DIGER_INSTS){ sel.value=''; return; }
+  DIGER_INSTS.add(nombre).then(function(){ tfInstFill(nombre); });
+}
+
 // ── INIT ─────────────────────────────────────────────────────────
 (async function init(){
+  // Poblar institución del formulario desde la fuente única
+  tfInstFill();
+  if(window.DIGER_INSTS) DIGER_INSTS.load().then(function(){ tfInstFill(document.getElementById('tf-inst').value); });
+
   // Cargar tramites desde Supabase
   const { data: tRow } = await sb.from('diger_tram').select('value').eq('key','tram').maybeSingle();
   tramCache = tRow?.value || {};
