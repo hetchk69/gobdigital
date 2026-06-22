@@ -1212,6 +1212,22 @@ function verDetalle(id){
   setRadio('personal', h.personal);
   setRadio('acomp',    h.acomp);
   document.getElementById('obs-estado').value = h.obsEstado||'';
+  // Restaurar equipo institucional
+  var eqDiv = document.getElementById('equipo');
+  eqDiv.innerHTML = '';
+  eqN = 0;
+  (h.equipo||[]).forEach(function(m){
+    eqN++;
+    var d = document.createElement('div');
+    d.className = 'row3';
+    d.style.marginBottom = '8px';
+    d.innerHTML =
+      '<input type="text" id="ef'+eqN+'" value="'+esc(m.funcion||'')+'" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit">'+
+      '<input type="text" id="en'+eqN+'" value="'+esc(m.nombre||'')+'" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit">'+
+      '<input type="text" id="ec'+eqN+'" value="'+esc(m.contacto||'')+'" style="padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit">';
+    eqDiv.appendChild(d);
+  });
+  if(eqN===0) addRow();
   // Ir a paso 2
   buildTramites(h.inst);
   renderDocsEstado();
