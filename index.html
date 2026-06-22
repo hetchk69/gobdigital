@@ -68,6 +68,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   .login-card{padding:2rem 1.25rem;border-radius:14px}
   .screen-login{padding:1.5rem .75rem}
 }
+
+/* ── VERSION TAG (incrementar en cada commit) ── */
+.version-tag{
+  position:fixed;bottom:10px;right:12px;z-index:50;
+  font-size:11px;font-weight:700;color:var(--muted);
+  background:rgba(255,255,255,.7);border:1px solid var(--borde);
+  border-radius:20px;padding:3px 10px;letter-spacing:.04em;
+  pointer-events:none;user-select:none;
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -77,6 +86,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 <div class="header">
   <img src="logo_diger-14.png" alt="Gobierno de Honduras — DIGER">
 </div>
+
+<!-- Version tag (incrementar +0.1 en cada commit) -->
+<div class="version-tag">v0.1</div>
 
 <!-- Login -->
 <div class="screen-login">
