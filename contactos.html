@@ -290,7 +290,10 @@ var esAdmin      = false;
 var puedeEditar  = false;   // admin o coordinador
 var editandoContacto = null; // contacto en edición (null = modo agregar)
 var instPreselect = '';
-var instFiltro = new URLSearchParams(location.search).get('inst') || '';
+var instFiltro  = new URLSearchParams(location.search).get('inst') || '';
+var unitFiltro  = new URLSearchParams(location.search).get('unit') || '';
+var UNIT_LABELS = { proyectos: 'Proyectos Especiales', talento: 'Talento Digital', digitalizacion: 'Digitalización de Trámites' };
+var unitLabel   = UNIT_LABELS[unitFiltro] || '';
 
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function normTel(val){
@@ -333,8 +336,14 @@ function normInst(val){
 
 // ── INIT ─────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function(){
-  // Si venimos del portal institucional con ?inst=, ajustar la barra de herramientas
-  if(instFiltro){
+  // Ajustar título según filtros activos
+  if(unitFiltro && unitLabel){
+    var titleEl = document.querySelector('.toolbar-title');
+    if(titleEl) titleEl.textContent = 'Directorio — ' + unitLabel;
+    document.title = 'Directorio de Contactos — ' + unitLabel + ' — DIGER';
+    var selInst = document.getElementById('filter-inst');
+    if(selInst) selInst.style.display = 'none';
+  } else if(instFiltro){
     var titleEl = document.querySelector('.toolbar-title');
     if(titleEl) titleEl.textContent = 'Directorio — ' + instFiltro;
     var selInst = document.getElementById('filter-inst');
@@ -365,16 +374,24 @@ async function cargar(){
   var [resAsis, resManuales, resReuniones] = await Promise.all([
     sb.from('asistencias').select('nombre,correo,cargo,institucion,telefono,reunion_id'),
     sb.from('contactos_manuales').select('*').order('created_at',{ascending:false}),
-    sb.from('reuniones').select('id,fecha')
+    sb.from('reuniones').select('id,fecha,tema')
   ]);
 
   var rmap = {};
-  (resReuniones.data||[]).forEach(function(r){ rmap[r.id] = r.fecha||''; });
+  var unitReunionIds = new Set();
+  (resReuniones.data||[]).forEach(function(r){
+    rmap[r.id] = r.fecha||'';
+    if(unitFiltro){
+      try{ if((JSON.parse(r.tema||'{}').unit||'') === unitFiltro) unitReunionIds.add(r.id); }catch(e){}
+    }
+  });
 
   // Deduplicar asistencias por correo (o nombre+inst)
+  // Si hay filtro de unidad, solo incluir asistencias de reuniones de esa unidad
   var seen = {};
   var listaAsis = [];
   (resAsis.data||[]).forEach(function(a){
+    if(unitFiltro && !unitReunionIds.has(a.reunion_id)) return;
     var key = (a.correo||'').trim().toLowerCase() ||
               ((a.nombre||'')+'|'+(a.institucion||'')).toLowerCase();
     if(!key||seen[key]) return;
@@ -410,14 +427,16 @@ async function cargar(){
   });
 
   // Combinar — manual tiene prioridad; oculto suprime de asistencias
+  // En vista de unidad los contactos manuales no aplican (no están vinculados a una unidad)
   var manualEmails = new Set(listaManuales.map(function(m){ return m.correo; }).filter(Boolean));
   var asisNodup = listaAsis.filter(function(a){
+    if(unitFiltro) return true; // ya filtrado por unidad; no excluir por manuales globales
     if(a.correo && (manualEmails.has(a.correo) || ocultosEmails.has(a.correo))) return false;
     if(!a.correo && ocultosKeys.has((a.nombre+'|'+a.institucion).toLowerCase())) return false;
     return true;
   });
 
-  todosContactos = listaManuales.concat(asisNodup);
+  todosContactos = (unitFiltro ? [] : listaManuales).concat(asisNodup);
   todosContactos.sort(function(a,b){
     return a.institucion.localeCompare(b.institucion) || a.nombre.localeCompare(b.nombre);
   });
@@ -429,6 +448,17 @@ async function cargar(){
   insts.forEach(function(i){
     var opt = document.createElement('option'); opt.value=i; opt.textContent=i; sel.appendChild(opt);
   });
+
+  // Vista filtrada por unidad
+  if(unitFiltro){
+    document.getElementById('stat-total').textContent = todosContactos.length;
+    document.getElementById('stat-insts').textContent = insts.length;
+    document.getElementById('stat-manuales').textContent = 0;
+    document.getElementById('stats-bar').style.display = 'flex';
+    if(insts.length > 0) gruposAbiertos[insts[0]] = true;
+    renderContactos(todosContactos);
+    return;
+  }
 
   // Si venimos con ?inst=, aplicar filtro automáticamente
   if(instFiltro){
@@ -442,7 +472,7 @@ async function cargar(){
     return;
   }
 
-  // Stats
+  // Stats generales
   document.getElementById('stat-total').textContent = todosContactos.length;
   document.getElementById('stat-insts').textContent = insts.length;
   document.getElementById('stat-manuales').textContent = listaManuales.length;

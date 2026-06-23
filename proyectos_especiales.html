@@ -247,6 +247,23 @@ input[type=file].hidden{display:none}
 .add-acuerdo-btn{margin-top:4px;padding:5px 13px;background:#fff;border:1.5px solid #c8d5ee;border-radius:7px;color:#6b7fa3;font-size:11.5px;cursor:pointer;font-weight:600;transition:all .18s}
 .add-acuerdo-btn:hover{border-color:#1455a4;color:#1455a4}
 
+/* ── WIZARD SIDEBAR ── */
+.ev-body{display:flex;min-height:500px}
+.ev-sidebar{width:190px;flex-shrink:0;background:#f0f4fc;border-right:1px solid #dde4f0;padding:1.25rem .75rem}
+.ev-step-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;transition:all .18s;margin-bottom:4px;color:#5a6e92;font-size:13px;font-weight:600}
+.ev-step-item:hover{background:#e0e8ff;color:#0a2d6e}
+.ev-step-item.active{background:#1455a4;color:#fff}
+.ev-step-item.done .ev-snum{background:#16a34a;color:#fff}
+.ev-step-item.done{color:#15803d}
+.ev-step-item.active .ev-snum{background:#fff;color:#1455a4}
+.ev-snum{width:26px;height:26px;border-radius:50%;background:#dde4f0;color:#5a6e92;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.ev-content{flex:1;padding:1.25rem 1.5rem;overflow-y:auto;max-height:calc(100vh - 180px)}
+.ev-panel{display:none}
+.ev-panel.active{display:block}
+.ev-footer{background:#f8fafd;border-top:1px solid #dde4f0;border-radius:0 0 14px 14px;padding:.9rem 1.5rem;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.ev-nav{display:flex;gap:8px}
+@media(max-width:680px){.ev-sidebar{width:46px}.ev-step-label{display:none}.ev-snum{width:30px;height:30px}}
+
 /* ── MOBILE ── */
 @media(max-width:600px){
   .container{padding:1rem .75rem 2rem}
@@ -351,7 +368,7 @@ input[type=file].hidden{display:none}
 <!-- ══════════ VISTA: LISTA DE EVENTOS ══════════ -->
 <div class="view active" id="view-list">
   <div class="top-bar">
-    <h2 class="page-title">Levantamiento de Reunión</h2>
+    <h2 class="page-title" id="main-page-title">Levantamiento de Reunión</h2>
     <button class="btnp" onclick="mostrarCrear()">+ Nuevo evento</button>
   </div>
   <div id="adm-list">
@@ -364,352 +381,378 @@ input[type=file].hidden{display:none}
 <div class="view" id="view-evento">
 <div class="ev-modal-wrap">
 
+  <!-- TOP BAR -->
   <div class="top-bar">
     <h2 class="page-title" id="ev-titulo-bar">Nuevo evento</h2>
-    <button class="btns btn-sm" onclick="volverLista()">← Volver a lista</button>
-  </div>
-
-  <!-- DOC HEADER -->
-  <div class="doc-header">
-    <div class="gov">Gobierno de la República de Honduras</div>
-    <div class="sub">Dirección de Gestión por Resultados (DIGER)</div>
-    <div class="prog">Gobierno Digital – Talento Digital</div>
-    <div class="form-title">Formato Institucional de Registro de Capacitaciones</div>
-  </div>
-
-  <!-- BARRA DE ACCIONES STICKY -->
-  <div class="action-bar">
-    <div class="action-bar-left">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span id="ev-status-badge" class="status-badge-active">● Activo</span>
       <button class="btns btn-sm" id="btn-toggle-estado" onclick="toggleEstado()" style="display:none">Cerrar formulario</button>
       <button class="btn-danger btn-sm" id="btn-eliminar" onclick="eliminarEvento()" style="display:none">🗑 Eliminar</button>
-    </div>
-    <div class="action-bar-right">
-      <button class="btn-save-inline" id="btn-guardar-todo" onclick="guardarTodo()">💾 Guardar cambios</button>
-      <button class="btnp" id="btn-enviar" onclick="enviarRegistro()">📤 Enviar registro</button>
+      <button class="btns btn-sm" onclick="volverLista()">← Volver a lista</button>
     </div>
   </div>
 
-  <!-- ═══ SECCIÓN 1: DATOS GENERALES ═══ -->
-  <div class="card">
-    <div class="stitle">Datos Generales del Evento</div>
-    <div class="field">
-      <label>Título del evento *</label>
-      <input type="text" id="g-titulo" placeholder="Ej: Taller de digitalización de trámites">
-    </div>
-    <div class="row4">
-      <div class="field">
-        <label>Fecha *</label>
-        <input type="date" id="g-fecha">
-      </div>
-      <div class="field">
-        <label>Hora</label>
-        <input type="time" id="g-hora">
-      </div>
-      <div class="field">
-        <label>Duración</label>
-        <input type="text" id="g-duracion" placeholder="Ej: 3 horas">
-      </div>
-      <div class="field">
-        <label>Modalidad *</label>
-        <select id="g-modalidad" onchange="toggleModalidadOtro()">
-          <option value="">— Seleccione —</option>
-          <option>Presencial</option>
-          <option>Virtual</option>
-          <option>Híbrida</option>
-          <option>Otro</option>
-        </select>
-      </div>
-    </div>
-    <div class="row2">
-      <div class="field">
-        <label>Lugar / Plataforma</label>
-        <input type="text" id="g-lugar" placeholder="Nombre del lugar o plataforma virtual">
-      </div>
-      <div class="field" id="field-modalidad-otro" style="display:none">
-        <label>Especifique la modalidad</label>
-        <input type="text" id="g-modalidad-otro" placeholder="Describa la modalidad...">
-      </div>
-    </div>
-    <div class="row2">
-      <div class="field">
-        <label>Institución Beneficiaria *</label>
-        <select id="g-inst" onchange="toggleInstOtro()">
-          <option value="">— Seleccione —</option>
-          <option value="Otro">Otro</option>
-        </select>
-        <div id="field-inst-otro" style="display:none;margin-top:6px">
-          <input type="text" id="g-inst-otro" placeholder="Especifique la institución">
-        </div>
-      </div>
-      <div class="field">
-        <label>Tipo de Capacitación / Evento *</label>
-        <select id="g-tipo" onchange="toggleTipoOtro()">
-          <option value="">— Seleccione —</option>
-          <option>Taller</option>
-          <option>Seminario</option>
-          <option>Charla informativa</option>
-          <option>Curso</option>
-          <option>Reunión técnica</option>
-          <option>Capacitación en el lugar de trabajo</option>
-          <option>Inducción</option>
-          <option>Conferencia</option>
-          <option>Otro</option>
-        </select>
-      </div>
-    </div>
-    <div class="field" id="field-tipo-otro" style="display:none">
-      <label>Describa el tipo de evento</label>
-      <input type="text" id="g-tipo-otro" placeholder="De qué se trata este evento...">
-    </div>
-    <!-- ¿Es capacitación de plataforma? -->
-    <div class="field" style="margin-top:.6rem">
-      <label>¿Es una capacitación de plataforma?</label>
-      <div style="display:flex;gap:18px;margin-top:6px">
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a1a">
-          <input type="radio" name="es-cap-plat" id="es-cap-si" value="si" onchange="toggleCapacitacion()">Sí
-        </label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a1a">
-          <input type="radio" name="es-cap-plat" id="es-cap-no" value="no" onchange="toggleCapacitacion()" checked>No
-        </label>
-      </div>
-    </div>
-    <div class="err-msg" id="gen-err" style="display:block"></div>
-    <!-- Botón guardar generales (nuevo evento) -->
-    <div id="btn-guardar-gen-wrap" style="margin-top:.8rem">
-      <button class="btn-success" id="btn-guardar-gen" onclick="guardarGeneral()">💾 Guardar y generar QR</button>
-    </div>
-  </div>
+  <!-- BODY: sidebar + content -->
+  <div class="ev-body">
 
-  <!-- ═══ QR CARD ═══ -->
-  <div class="qr-card" id="qr-panel" style="display:none">
-    <div class="qr-label">🔗 Enlace y QR para participantes</div>
-    <div class="qr-link-row">
-      <input class="qr-link-inp" id="qr-link-inp" type="text" readonly>
-      <button class="btn-copy" onclick="copiarLink()">Copiar</button>
-      <span class="copy-ok" id="copy-ok"></span>
-    </div>
-    <div class="qr-section">
-      <div class="qr-box">
-        <img id="qr-img" src="" alt="QR" width="180" height="180">
-        <div class="qr-box-label">Escanear para registrarse</div>
+    <!-- SIDEBAR -->
+    <div class="ev-sidebar">
+      <div class="ev-step-item active" id="ev-si-1" onclick="goEvStep(1)">
+        <div class="ev-snum">1</div><span class="ev-step-label">Generales</span>
       </div>
-      <div class="qr-actions">
-        <button class="btn-qr btn-qr-print" onclick="window.print()">🖨 Imprimir QR</button>
-        <button class="btn-qr btn-qr-dl" onclick="descargarQR()">⬇ Descargar QR</button>
-        <p style="font-size:11.5px;color:#166534;margin-top:8px;max-width:200px">Proyecte o imprima el QR para que los participantes se registren desde su celular.</p>
+      <div class="ev-step-item" id="ev-si-2" onclick="goEvStep(2)">
+        <div class="ev-snum">2</div><span class="ev-step-label">Asistencia</span>
+      </div>
+      <div class="ev-step-item" id="ev-si-3" onclick="goEvStep(3)">
+        <div class="ev-snum">3</div><span class="ev-step-label">Memorias</span>
+      </div>
+      <div class="ev-step-item" id="ev-si-4" onclick="goEvStep(4)">
+        <div class="ev-snum">4</div><span class="ev-step-label">Capacitación</span>
+      </div>
+      <div class="ev-step-item" id="ev-si-5" onclick="goEvStep(5)">
+        <div class="ev-snum">5</div><span class="ev-step-label">Cierre</span>
       </div>
     </div>
-  </div>
 
-  <!-- ═══ SECCIÓN 2: LISTA DE ASISTENCIA ═══ -->
-  <div class="sec-divider"><div class="sec-divider-line"></div><div class="sec-divider-label">✅ Lista de Asistencia</div><div class="sec-divider-line"></div></div>
+    <!-- CONTENT PANELS -->
+    <div class="ev-content">
 
-  <div class="card" id="asis-card">
-    <div class="stitle" id="det-reg-title">
-      Registros (0)
-      <span class="live-badge"><span class="live-dot"></span>En vivo</span>
-    </div>
-    <div class="stats-row" id="det-stats"></div>
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-      <button class="btns btn-sm" onclick="descargarExcelAsis()">⬇ Descargar Excel</button>
-      <button class="btn-danger btn-sm" id="btn-borrar-reg" onclick="borrarRegistros()">Borrar registros</button>
-    </div>
-    <div class="tbl-wrap">
-      <table class="atbl">
-        <thead><tr><th>N.</th><th>Nombre</th><th>Correo</th><th>Cargo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th><th></th></tr></thead>
-        <tbody id="det-tbody"></tbody>
-      </table>
-      <div class="empty-row" id="det-empty">Sin registros capturados aún. Comparta el QR con los participantes.</div>
-    </div>
-  </div>
-
-  <!-- ═══ SECCIÓN: TRANSCRIPCIÓN COWORK ═══ -->
-  <div class="card" id="transcripcion-card" style="display:none">
-    <div class="stitle">Memorias desde transcripción (Cowork)</div>
-    <p style="font-size:12.5px;color:#5a6e92;margin:0 0 12px;line-height:1.55">Pegue aquí el JSON generado por Cowork a partir de la transcripción de la reunión y presione <strong>Aplicar</strong> para llenar los campos automáticamente.</p>
-    <textarea id="tr-input" placeholder='{"titulo":"...","fecha":"YYYY-MM-DD","hora":"HH:MM","duracion":"...","modalidad":"Presencial","lugar":"...","institucion":"...","tipo":"Reunión técnica","objetivo":"...","desarrollo":"...","acuerdos":[{"compromiso":"...","responsable":"...","plazo":"YYYY-MM-DD"}],"documentos":"...","validador_diger":"..."}' style="width:100%;box-sizing:border-box;height:180px;padding:10px 12px;border:1.5px solid #d0d8e8;border-radius:8px;font-size:11.5px;font-family:monospace;resize:vertical;background:#f8fafd"></textarea>
-    <div id="tr-err" style="color:#b91c1c;font-size:12px;min-height:18px;margin-top:6px"></div>
-    <div style="display:flex;gap:10px;margin-top:10px">
-      <button class="btn-success" style="padding:9px 22px;font-size:13px" onclick="aplicarTranscripcion()">Aplicar al formulario</button>
-      <button class="btns" onclick="document.getElementById('tr-input').value='';document.getElementById('tr-err').textContent=''">Limpiar</button>
-    </div>
-  </div>
-
-  <!-- ═══ SECCIÓN 3: CAPACITACIÓN (solo visible si es cap. de plataforma) ═══ -->
-  <div id="cap-section" style="display:none">
-  <div class="sec-divider"><div class="sec-divider-line"></div><div class="sec-divider-label">🎓 Capacitación</div><div class="sec-divider-line"></div></div>
-
-  <div class="card">
-    <div class="stitle">Datos de la Capacitación</div>
-    <table class="dtable">
-      <tr>
-        <td class="lbl">Tema de capacitación *:</td>
-        <td><input type="text" id="cap-tema" placeholder="Descripción del tema principal"></td>
-      </tr>
-      <tr>
-        <td class="lbl" style="vertical-align:top;padding-top:10px">Objetivo general:</td>
-        <td><textarea id="cap-objetivo" placeholder="Describa el objetivo general..."></textarea></td>
-      </tr>
-      <tr>
-        <td class="lbl" style="vertical-align:top;padding-top:10px">Contenido desarrollado:</td>
-        <td style="padding:10px">
-          <ul class="numlist" id="contenido-list">
-            <li><span>1.</span><input type="text" id="cont1" placeholder="Punto de contenido"></li>
-            <li><span>2.</span><input type="text" id="cont2" placeholder="Punto de contenido"></li>
-            <li><span>3.</span><input type="text" id="cont3" placeholder="Punto de contenido"></li>
-            <li><span>4.</span><input type="text" id="cont4" placeholder="Punto de contenido"></li>
-          </ul>
-          <button onclick="addContenido()" style="margin-top:6px;padding:5px 12px;background:#fff;border:1.5px solid #c8d5ee;border-radius:7px;color:#6b7fa3;font-size:11.5px;cursor:pointer;font-weight:600" onmouseover="this.style.borderColor='#1455a4';this.style.color='#1455a4'" onmouseout="this.style.borderColor='#c8d5ee';this.style.color='#6b7fa3'">+ Agregar punto</button>
-        </td>
-      </tr>
-      <tr><td class="lbl" colspan="4" style="background:linear-gradient(135deg,#0d8ca0,#0a6070)">Enlace principal (Institución Beneficiaria):</td></tr>
-      <tr><td class="lbl2">- Nombre:</td><td><input type="text" id="ep-nombre" placeholder="Nombre completo"></td></tr>
-      <tr><td class="lbl2">- Cargo:</td><td><input type="text" id="ep-cargo" placeholder="Cargo / función"></td></tr>
-      <tr><td class="lbl2">- Correo:</td><td><input type="email" id="ep-correo" placeholder="correo@inst.gob.hn"></td></tr>
-      <tr><td class="lbl2">- Teléfono:</td><td>
-        <div class="tel-wrap compact">
-          <select class="tel-cc" id="ep-tel-cc" onchange="telCountryChange('ep-tel')">
-            <option value="HN" data-code="+504" data-mask="XXXX-XXXX"      data-len="8"  selected>🇭🇳 +504</option>
-            <option value="GT" data-code="+502" data-mask="XXXX-XXXX"      data-len="8"         >🇬🇹 +502</option>
-            <option value="SV" data-code="+503" data-mask="XXXX-XXXX"      data-len="8"         >🇸🇻 +503</option>
-            <option value="NI" data-code="+505" data-mask="XXXX-XXXX"      data-len="8"         >🇳🇮 +505</option>
-            <option value="CR" data-code="+506" data-mask="XXXX-XXXX"      data-len="8"         >🇨🇷 +506</option>
-            <option value="PA" data-code="+507" data-mask="XXXX-XXXX"      data-len="8"         >🇵🇦 +507</option>
-            <option value="MX" data-code="+52"  data-mask="XX XXXX-XXXX"   data-len="10"        >🇲🇽 +52</option>
-            <option value="US" data-code="+1"   data-mask="(XXX) XXX-XXXX" data-len="10"        >🇺🇸 +1</option>
-            <option value="ES" data-code="+34"  data-mask="XXX XXX XXX"    data-len="9"         >🇪🇸 +34</option>
-          </select>
-          <input type="tel" class="tel-num" id="ep-tel-num" placeholder="XXXX-XXXX" maxlength="15" oninput="telMask(this,'ep-tel')">
-        </div>
-      </td></tr>
-      <tr><td class="lbl" colspan="4" style="background:linear-gradient(135deg,#0d8ca0,#0a6070)">Facilitador (Impartido por DIGER):</td></tr>
-      <tr><td class="lbl2">- Nombre:</td><td><input type="text" id="fac-nombre" placeholder="Nombre completo"></td></tr>
-      <tr><td class="lbl2">- Cargo:</td><td><input type="text" id="fac-cargo" placeholder="Cargo / función"></td></tr>
-      <tr><td class="lbl2">- Correo:</td><td><input type="email" id="fac-correo" placeholder="correo@diger.gob.hn"></td></tr>
-    </table>
-  </div>
-
-  </div><!-- /cap-section -->
-
-  <!-- ═══ SECCIÓN 5: EVIDENCIA FOTOGRÁFICA ═══ -->
-  <div class="card">
-    <div class="stitle">Evidencia fotográfica</div>
-    <div class="foto-grid">
-      <div class="foto-box">
-        <div class="foto-header">Fotografía 1</div>
-        <div class="foto-body">
-          <div class="foto-preview" onclick="document.getElementById('f1-inp').click()">
-            <img id="f1-img" src="" alt=""><div class="foto-placeholder" id="f1-ph"><div class="icon">🖼</div><p>Clic para subir imagen</p></div>
+      <!-- ═══ PANEL 1: GENERALES ═══ -->
+      <div class="ev-panel active" id="evp1">
+        <div class="card">
+          <div class="stitle">Datos Generales del Evento</div>
+          <div class="field">
+            <label>Título del evento *</label>
+            <input type="text" id="g-titulo" placeholder="Ej: Taller de digitalización de trámites">
           </div>
-          <input type="file" class="hidden" id="f1-inp" accept="image/*" onchange="previewFoto(this,'f1-img','f1-ph')">
-          <input class="foto-inp-desc" type="text" id="f1-desc" placeholder="Descripción de la fotografía...">
-        </div>
-      </div>
-      <div class="foto-box">
-        <div class="foto-header">Fotografía 2</div>
-        <div class="foto-body">
-          <div class="foto-preview" onclick="document.getElementById('f2-inp').click()">
-            <img id="f2-img" src="" alt=""><div class="foto-placeholder" id="f2-ph"><div class="icon">🖼</div><p>Clic para subir imagen</p></div>
+          <div class="row4">
+            <div class="field">
+              <label>Fecha *</label>
+              <input type="date" id="g-fecha">
+            </div>
+            <div class="field">
+              <label>Hora</label>
+              <input type="time" id="g-hora">
+            </div>
+            <div class="field">
+              <label>Duración</label>
+              <input type="text" id="g-duracion" placeholder="Ej: 3 horas">
+            </div>
+            <div class="field">
+              <label>Modalidad *</label>
+              <select id="g-modalidad" onchange="toggleModalidadOtro()">
+                <option value="">— Seleccione —</option>
+                <option>Presencial</option>
+                <option>Virtual</option>
+                <option>Híbrida</option>
+                <option>Otro</option>
+              </select>
+            </div>
           </div>
-          <input type="file" class="hidden" id="f2-inp" accept="image/*" onchange="previewFoto(this,'f2-img','f2-ph')">
-          <input class="foto-inp-desc" type="text" id="f2-desc" placeholder="Descripción de la fotografía...">
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ SECCIÓN 6: DOCUMENTOS / RECURSOS ═══ -->
-  <div class="card">
-    <div class="stitle">Documentos, URL's y recursos</div>
-    <div class="field" style="margin:0">
-      <textarea id="docs-recursos" placeholder="Liste los documentos, URLs y recursos utilizados..."></textarea>
-    </div>
-  </div>
-
-  <!-- ═══ SECCIÓN: MEMORIAS ═══ -->
-  <div class="card">
-    <div class="stitle">Memorias de la reunión</div>
-    <div class="field">
-      <label>Objetivo de la reunión</label>
-      <textarea id="mem-agenda" placeholder="Describa el objetivo principal de esta reunión..."></textarea>
-    </div>
-    <div class="field">
-      <label>Desarrollo de la reunión</label>
-      <textarea id="mem-desarrollo" placeholder="Resuma el desarrollo de la reunión, discusiones principales y conclusiones..." style="min-height:120px"></textarea>
-    </div>
-    <div class="field">
-      <label>Acuerdos y compromisos</label>
-      <table class="acuerdos-tbl" id="acuerdos-tbl">
-        <thead>
-          <tr>
-            <th style="width:36px">N°</th>
-            <th>Compromiso</th>
-            <th style="width:155px">Responsable</th>
-            <th style="width:120px">Fecha / Plazo</th>
-            <th style="width:32px"></th>
-          </tr>
-        </thead>
-        <tbody id="acuerdos-tbody"></tbody>
-      </table>
-      <button type="button" onclick="addAcuerdo()" class="add-acuerdo-btn">+ Agregar acuerdo</button>
-    </div>
-  </div>
-
-  <!-- ═══ SECCIÓN 7: RESULTADOS (solo si es cap. de plataforma) ═══ -->
-  <div id="resultados-section" style="display:none">
-  <div class="card">
-    <div class="stitle">Resultados de la capacitación</div>
-    <table class="rtable">
-      <tr><td class="rlbl">Número de participantes convocados:</td><td><input type="number" id="r-convocados" placeholder="0" min="0" oninput="calcPct()"></td></tr>
-      <tr><td class="rlbl">Número de participantes asistentes:</td><td><input type="number" id="r-asistentes" placeholder="0" min="0" oninput="calcPct()"></td></tr>
-      <tr><td class="rlbl">Porcentaje de asistencia:</td><td><input type="text" id="r-pct" placeholder="Automático" readonly style="color:#6b7fa3"></td></tr>
-      <tr><td class="rlbl">Nivel de satisfacción (%):<span class="note">*Calificado por el enlace institucional</span></td><td><input type="number" id="r-satisfaccion" placeholder="0 – 100" min="0" max="100"></td></tr>
-      <tr>
-        <td class="rlbl" style="vertical-align:top;padding-top:12px">Compromisos / Próximos pasos:</td>
-        <td>
-          <div style="display:flex;flex-direction:column;gap:7px;padding:4px 0">
-            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">1.</span><input type="text" id="com1" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
-            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">2.</span><input type="text" id="com2" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
-            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">3.</span><input type="text" id="com3" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
-            <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">4.</span><input type="text" id="com4" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
+          <div class="row2">
+            <div class="field">
+              <label>Lugar / Plataforma</label>
+              <input type="text" id="g-lugar" placeholder="Nombre del lugar o plataforma virtual">
+            </div>
+            <div class="field" id="field-modalidad-otro" style="display:none">
+              <label>Especifique la modalidad</label>
+              <input type="text" id="g-modalidad-otro" placeholder="Describa la modalidad...">
+            </div>
           </div>
-        </td>
-      </tr>
-    </table>
-  </div>
+          <div class="row2">
+            <div class="field">
+              <label>Institución Beneficiaria *</label>
+              <select id="g-inst" onchange="toggleInstOtro()">
+                <option value="">— Seleccione —</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <div id="field-inst-otro" style="display:none;margin-top:6px">
+                <input type="text" id="g-inst-otro" placeholder="Especifique la institución">
+              </div>
+            </div>
+            <div class="field">
+              <label>Tipo de Capacitación / Evento *</label>
+              <select id="g-tipo" onchange="toggleTipoOtro()">
+                <option value="">— Seleccione —</option>
+                <option>Taller</option>
+                <option>Seminario</option>
+                <option>Charla informativa</option>
+                <option>Curso</option>
+                <option>Reunión técnica</option>
+                <option>Capacitación en el lugar de trabajo</option>
+                <option>Inducción</option>
+                <option>Conferencia</option>
+                <option>Otro</option>
+              </select>
+            </div>
+          </div>
+          <div class="field" id="field-tipo-otro" style="display:none">
+            <label>Describa el tipo de evento</label>
+            <input type="text" id="g-tipo-otro" placeholder="De qué se trata este evento...">
+          </div>
+          <!-- ¿Es capacitación de plataforma? -->
+          <div class="field" style="margin-top:.6rem">
+            <label>¿Es una capacitación de plataforma?</label>
+            <div style="display:flex;gap:18px;margin-top:6px">
+              <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a1a">
+                <input type="radio" name="es-cap-plat" id="es-cap-si" value="si">Sí
+              </label>
+              <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a1a">
+                <input type="radio" name="es-cap-plat" id="es-cap-no" value="no" checked>No
+              </label>
+            </div>
+          </div>
+          <div class="err-msg" id="gen-err" style="display:block"></div>
+          <!-- Botón guardar generales (nuevo evento) -->
+          <div id="btn-guardar-gen-wrap" style="margin-top:.8rem">
+            <button class="btn-success" id="btn-guardar-gen" onclick="guardarGeneral()">💾 Guardar generales</button>
+          </div>
+        </div>
 
-  </div><!-- /resultados-section -->
+        <!-- QR CARD (visible después de guardar) -->
+        <div class="qr-card" id="qr-panel" style="display:none">
+          <div class="qr-label">🔗 Enlace y QR para participantes</div>
+          <div class="qr-link-row">
+            <input class="qr-link-inp" id="qr-link-inp" type="text" readonly>
+            <button class="btn-copy" onclick="copiarLink()">Copiar</button>
+            <span class="copy-ok" id="copy-ok"></span>
+          </div>
+          <div class="qr-section">
+            <div class="qr-box">
+              <img id="qr-img" src="" alt="QR" width="180" height="180">
+              <div class="qr-box-label">Escanear para registrarse</div>
+            </div>
+            <div class="qr-actions">
+              <button class="btn-qr btn-qr-print" onclick="window.print()">🖨 Imprimir QR</button>
+              <button class="btn-qr btn-qr-dl" onclick="descargarQR()">⬇ Descargar QR</button>
+              <p style="font-size:11.5px;color:#166534;margin-top:8px;max-width:200px">Proyecte o imprima el QR para que los participantes se registren desde su celular.</p>
+            </div>
+          </div>
+        </div>
+      </div><!-- /evp1 -->
 
-  <!-- ═══ SECCIÓN 8: VALIDACIÓN ═══ -->
-  <div class="card">
-    <div class="stitle">Validación y aprobación</div>
-    <div class="val-grid">
-      <div class="val-box">
-        <div class="val-role">Responsable DIGER</div>
-        <div class="val-sign"></div>
-        <p class="val-hint">(Firma y sello)</p>
-        <input class="val-name" type="text" id="val-diger" placeholder="Nombre y cargo">
-      </div>
-      <div class="val-box">
-        <div class="val-role">Representante Institución Beneficiaria</div>
-        <div class="val-sign"></div>
-        <p class="val-hint">(Firma y sello)</p>
-        <input class="val-name" type="text" id="val-inst" placeholder="Nombre y cargo">
-      </div>
+      <!-- ═══ PANEL 2: ASISTENCIA ═══ -->
+      <div class="ev-panel" id="evp2">
+        <div class="card" id="asis-card">
+          <div class="stitle" id="det-reg-title">
+            Registros (0)
+            <span class="live-badge"><span class="live-dot"></span>En vivo</span>
+          </div>
+          <div class="stats-row" id="det-stats"></div>
+          <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+            <button class="btns btn-sm" onclick="descargarExcelAsis()">⬇ Descargar Excel</button>
+            <button class="btn-danger btn-sm" id="btn-borrar-reg" onclick="borrarRegistros()">Borrar registros</button>
+          </div>
+          <div class="tbl-wrap">
+            <table class="atbl">
+              <thead><tr><th>N.</th><th>Nombre</th><th>Correo</th><th>Cargo</th><th>Institución</th><th>Teléfono</th><th>Registrado</th><th></th></tr></thead>
+              <tbody id="det-tbody"></tbody>
+            </table>
+            <div class="empty-row" id="det-empty">Sin registros capturados aún. Comparta el QR con los participantes.</div>
+          </div>
+        </div>
+
+        <!-- TRANSCRIPCIÓN COWORK -->
+        <div class="card" id="transcripcion-card">
+          <div class="stitle">Memorias desde transcripción (Cowork)</div>
+          <p style="font-size:12.5px;color:#5a6e92;margin:0 0 12px;line-height:1.55">Pegue aquí el JSON generado por Cowork a partir de la transcripción de la reunión y presione <strong>Aplicar</strong> para llenar los campos automáticamente.</p>
+          <textarea id="tr-input" placeholder='{"titulo":"...","fecha":"YYYY-MM-DD","hora":"HH:MM","duracion":"...","modalidad":"Presencial","lugar":"...","institucion":"...","tipo":"Reunión técnica","objetivo":"...","desarrollo":"...","acuerdos":[{"compromiso":"...","responsable":"...","plazo":"YYYY-MM-DD"}],"documentos":"...","validador_diger":"..."}' style="width:100%;box-sizing:border-box;height:180px;padding:10px 12px;border:1.5px solid #d0d8e8;border-radius:8px;font-size:11.5px;font-family:monospace;resize:vertical;background:#f8fafd"></textarea>
+          <div id="tr-err" style="color:#b91c1c;font-size:12px;min-height:18px;margin-top:6px"></div>
+          <div style="display:flex;gap:10px;margin-top:10px">
+            <button class="btn-success" style="padding:9px 22px;font-size:13px" onclick="aplicarTranscripcion()">Aplicar al formulario</button>
+            <button class="btns" onclick="document.getElementById('tr-input').value='';document.getElementById('tr-err').textContent=''">Limpiar</button>
+          </div>
+        </div>
+      </div><!-- /evp2 -->
+
+      <!-- ═══ PANEL 3: MEMORIAS ═══ -->
+      <div class="ev-panel" id="evp3">
+        <div class="card">
+          <div class="stitle">Memorias de la reunión</div>
+          <div class="field">
+            <label>Objetivo de la reunión</label>
+            <textarea id="mem-agenda" placeholder="Describa el objetivo principal de esta reunión..."></textarea>
+          </div>
+          <div class="field">
+            <label>Desarrollo de la reunión</label>
+            <textarea id="mem-desarrollo" placeholder="Resuma el desarrollo de la reunión, discusiones principales y conclusiones..." style="min-height:120px"></textarea>
+          </div>
+          <div class="field">
+            <label>Acuerdos y compromisos</label>
+            <table class="acuerdos-tbl" id="acuerdos-tbl">
+              <thead>
+                <tr>
+                  <th style="width:36px">N°</th>
+                  <th>Compromiso</th>
+                  <th style="width:155px">Responsable</th>
+                  <th style="width:120px">Fecha / Plazo</th>
+                  <th style="width:32px"></th>
+                </tr>
+              </thead>
+              <tbody id="acuerdos-tbody"></tbody>
+            </table>
+            <button type="button" onclick="addAcuerdo()" class="add-acuerdo-btn">+ Agregar acuerdo</button>
+          </div>
+        </div>
+      </div><!-- /evp3 -->
+
+      <!-- ═══ PANEL 4: CAPACITACIÓN ═══ -->
+      <div class="ev-panel" id="evp4">
+        <div id="cap-section">
+        <div class="card">
+          <div class="stitle">Datos de la Capacitación</div>
+          <table class="dtable">
+            <tr>
+              <td class="lbl">Tema de capacitación *:</td>
+              <td><input type="text" id="cap-tema" placeholder="Descripción del tema principal"></td>
+            </tr>
+            <tr>
+              <td class="lbl" style="vertical-align:top;padding-top:10px">Objetivo general:</td>
+              <td><textarea id="cap-objetivo" placeholder="Describa el objetivo general..."></textarea></td>
+            </tr>
+            <tr>
+              <td class="lbl" style="vertical-align:top;padding-top:10px">Contenido desarrollado:</td>
+              <td style="padding:10px">
+                <ul class="numlist" id="contenido-list">
+                  <li><span>1.</span><input type="text" id="cont1" placeholder="Punto de contenido"></li>
+                  <li><span>2.</span><input type="text" id="cont2" placeholder="Punto de contenido"></li>
+                  <li><span>3.</span><input type="text" id="cont3" placeholder="Punto de contenido"></li>
+                  <li><span>4.</span><input type="text" id="cont4" placeholder="Punto de contenido"></li>
+                </ul>
+                <button onclick="addContenido()" style="margin-top:6px;padding:5px 12px;background:#fff;border:1.5px solid #c8d5ee;border-radius:7px;color:#6b7fa3;font-size:11.5px;cursor:pointer;font-weight:600" onmouseover="this.style.borderColor='#1455a4';this.style.color='#1455a4'" onmouseout="this.style.borderColor='#c8d5ee';this.style.color='#6b7fa3'">+ Agregar punto</button>
+              </td>
+            </tr>
+            <tr><td class="lbl" colspan="4" style="background:linear-gradient(135deg,#0d8ca0,#0a6070)">Enlace principal (Institución Beneficiaria):</td></tr>
+            <tr><td class="lbl2">- Nombre:</td><td><input type="text" id="ep-nombre" placeholder="Nombre completo"></td></tr>
+            <tr><td class="lbl2">- Cargo:</td><td><input type="text" id="ep-cargo" placeholder="Cargo / función"></td></tr>
+            <tr><td class="lbl2">- Correo:</td><td><input type="email" id="ep-correo" placeholder="correo@inst.gob.hn"></td></tr>
+            <tr><td class="lbl2">- Teléfono:</td><td>
+              <div class="tel-wrap compact">
+                <select class="tel-cc" id="ep-tel-cc" onchange="telCountryChange('ep-tel')">
+                  <option value="HN" data-code="+504" data-mask="XXXX-XXXX"      data-len="8"  selected>🇭🇳 +504</option>
+                  <option value="GT" data-code="+502" data-mask="XXXX-XXXX"      data-len="8"         >🇬🇹 +502</option>
+                  <option value="SV" data-code="+503" data-mask="XXXX-XXXX"      data-len="8"         >🇸🇻 +503</option>
+                  <option value="NI" data-code="+505" data-mask="XXXX-XXXX"      data-len="8"         >🇳🇮 +505</option>
+                  <option value="CR" data-code="+506" data-mask="XXXX-XXXX"      data-len="8"         >🇨🇷 +506</option>
+                  <option value="PA" data-code="+507" data-mask="XXXX-XXXX"      data-len="8"         >🇵🇦 +507</option>
+                  <option value="MX" data-code="+52"  data-mask="XX XXXX-XXXX"   data-len="10"        >🇲🇽 +52</option>
+                  <option value="US" data-code="+1"   data-mask="(XXX) XXX-XXXX" data-len="10"        >🇺🇸 +1</option>
+                  <option value="ES" data-code="+34"  data-mask="XXX XXX XXX"    data-len="9"         >🇪🇸 +34</option>
+                </select>
+                <input type="tel" class="tel-num" id="ep-tel-num" placeholder="XXXX-XXXX" maxlength="15" oninput="telMask(this,'ep-tel')">
+              </div>
+            </td></tr>
+            <tr><td class="lbl" colspan="4" style="background:linear-gradient(135deg,#0d8ca0,#0a6070)">Facilitador (Impartido por DIGER):</td></tr>
+            <tr><td class="lbl2">- Nombre:</td><td><input type="text" id="fac-nombre" placeholder="Nombre completo"></td></tr>
+            <tr><td class="lbl2">- Cargo:</td><td><input type="text" id="fac-cargo" placeholder="Cargo / función"></td></tr>
+            <tr><td class="lbl2">- Correo:</td><td><input type="email" id="fac-correo" placeholder="correo@diger.gob.hn"></td></tr>
+          </table>
+        </div>
+        </div><!-- /cap-section -->
+      </div><!-- /evp4 -->
+
+      <!-- ═══ PANEL 5: CIERRE ═══ -->
+      <div class="ev-panel" id="evp5">
+
+        <!-- EVIDENCIA FOTOGRÁFICA -->
+        <div class="card">
+          <div class="stitle">Evidencia fotográfica</div>
+          <div class="foto-grid">
+            <div class="foto-box">
+              <div class="foto-header">Fotografía 1</div>
+              <div class="foto-body">
+                <div class="foto-preview" onclick="document.getElementById('f1-inp').click()">
+                  <img id="f1-img" src="" alt=""><div class="foto-placeholder" id="f1-ph"><div class="icon">🖼</div><p>Clic para subir imagen</p></div>
+                </div>
+                <input type="file" class="hidden" id="f1-inp" accept="image/*" onchange="previewFoto(this,'f1-img','f1-ph')">
+                <input class="foto-inp-desc" type="text" id="f1-desc" placeholder="Descripción de la fotografía...">
+              </div>
+            </div>
+            <div class="foto-box">
+              <div class="foto-header">Fotografía 2</div>
+              <div class="foto-body">
+                <div class="foto-preview" onclick="document.getElementById('f2-inp').click()">
+                  <img id="f2-img" src="" alt=""><div class="foto-placeholder" id="f2-ph"><div class="icon">🖼</div><p>Clic para subir imagen</p></div>
+                </div>
+                <input type="file" class="hidden" id="f2-inp" accept="image/*" onchange="previewFoto(this,'f2-img','f2-ph')">
+                <input class="foto-inp-desc" type="text" id="f2-desc" placeholder="Descripción de la fotografía...">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DOCUMENTOS / RECURSOS -->
+        <div class="card">
+          <div class="stitle">Documentos, URL's y recursos</div>
+          <div class="field" style="margin:0">
+            <textarea id="docs-recursos" placeholder="Liste los documentos, URLs y recursos utilizados..."></textarea>
+          </div>
+        </div>
+
+        <!-- RESULTADOS (siempre visible en este panel) -->
+        <div id="resultados-section">
+        <div class="card">
+          <div class="stitle">Resultados de la capacitación</div>
+          <table class="rtable">
+            <tr><td class="rlbl">Número de participantes convocados:</td><td><input type="number" id="r-convocados" placeholder="0" min="0" oninput="calcPct()"></td></tr>
+            <tr><td class="rlbl">Número de participantes asistentes:</td><td><input type="number" id="r-asistentes" placeholder="0" min="0" oninput="calcPct()"></td></tr>
+            <tr><td class="rlbl">Porcentaje de asistencia:</td><td><input type="text" id="r-pct" placeholder="Automático" readonly style="color:#6b7fa3"></td></tr>
+            <tr><td class="rlbl">Nivel de satisfacción (%):<span class="note">*Calificado por el enlace institucional</span></td><td><input type="number" id="r-satisfaccion" placeholder="0 – 100" min="0" max="100"></td></tr>
+            <tr>
+              <td class="rlbl" style="vertical-align:top;padding-top:12px">Compromisos / Próximos pasos:</td>
+              <td>
+                <div style="display:flex;flex-direction:column;gap:7px;padding:4px 0">
+                  <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">1.</span><input type="text" id="com1" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
+                  <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">2.</span><input type="text" id="com2" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
+                  <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">3.</span><input type="text" id="com3" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
+                  <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">4.</span><input type="text" id="com4" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        </div><!-- /resultados-section -->
+
+        <!-- VALIDACIÓN -->
+        <div class="card">
+          <div class="stitle">Validación y aprobación</div>
+          <div class="val-grid">
+            <div class="val-box">
+              <div class="val-role">Responsable DIGER</div>
+              <div class="val-sign"></div>
+              <p class="val-hint">(Firma y sello)</p>
+              <input class="val-name" type="text" id="val-diger" placeholder="Nombre y cargo">
+            </div>
+            <div class="val-box">
+              <div class="val-role">Representante Institución Beneficiaria</div>
+              <div class="val-sign"></div>
+              <p class="val-hint">(Firma y sello)</p>
+              <input class="val-name" type="text" id="val-inst" placeholder="Nombre y cargo">
+            </div>
+          </div>
+        </div>
+
+        <!-- MENSAJES DE ESTADO -->
+        <div class="ok-msg" id="global-ok"></div>
+        <div class="err-msg" id="global-err" style="display:block"></div>
+
+      </div><!-- /evp5 -->
+
+    </div><!-- /ev-content -->
+  </div><!-- /ev-body -->
+
+  <!-- FOOTER -->
+  <div class="ev-footer">
+    <button class="btns" onclick="volverLista()">← Volver</button>
+    <div class="ev-nav">
+      <button class="btns btn-sm" onclick="evPrev()">← Anterior</button>
+      <button class="btns btn-sm" onclick="evNext()">Siguiente →</button>
     </div>
-  </div>
-
-  <!-- MENSAJES DE ESTADO -->
-  <div class="ok-msg" id="global-ok"></div>
-  <div class="err-msg" id="global-err" style="display:block"></div>
-
-  <!-- BARRA FINAL DE ACCIONES -->
-  <div class="ev-modal-footer">
-    <button class="btns" onclick="volverLista()">← Volver a lista</button>
-    <button class="btn-save-inline" onclick="guardarTodo()">Guardar cambios</button>
-    <button class="btnp" onclick="descargarPDF()">↓ PDF</button>
-    <button class="btn-success" id="btn-enviar2" onclick="enviarRegistro()">Enviar registro</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-save-inline" id="btn-guardar-todo" onclick="guardarTodo()">💾 Guardar</button>
+      <button class="btnp" onclick="descargarPDF()">↓ PDF</button>
+      <button class="btn-success" id="btn-enviar" onclick="enviarRegistro()">📤 Enviar registro</button>
+    </div>
   </div>
 
 </div><!-- /ev-modal-wrap -->
@@ -809,6 +852,11 @@ var SUPABASE_URL = 'https://gnpvqiyantdtksfvqtqk.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImducHZxaXlhbnRkdGtzZnZxdHFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1ODE5NDIsImV4cCI6MjA5NjE1Nzk0Mn0.u7GxYKoQ_G3gokOg2VarZ707GEGc0dnjjYJNl5n5lDw';
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 emailjs.init('xl4HDu62cetiPyDCJ');
+
+// Unidad desde URL (?unit=proyectos | talento | digitalizacion)
+var _UNIT_PARAM = new URLSearchParams(window.location.search).get('unit') || '';
+var _UNIT_LABELS = { proyectos: 'Proyectos Especiales', talento: 'Talento Digital', digitalizacion: 'Digitalización de Trámites' };
+var _UNIT_LABEL  = _UNIT_LABELS[_UNIT_PARAM] || '';
 
 var adminEmail    = '';
 var currentId     = null;
@@ -930,6 +978,13 @@ window.addEventListener('DOMContentLoaded', function(){
 });
 
 function initAdmin(){
+  // Actualizar título con la unidad si viene en la URL
+  if(_UNIT_LABEL){
+    var titleEl = document.getElementById('main-page-title');
+    if(titleEl) titleEl.textContent = 'Levantamiento de Reunión — ' + _UNIT_LABEL;
+    document.title = 'Levantamiento de Reunión — ' + _UNIT_LABEL + ' — DIGER';
+  }
+
   var s = window.DIGER_SESSION;
   var _isDiger = s && (s.institucion||'').trim().toUpperCase() === 'DIGER';
   if(s && (s.role === 'admin' || _isDiger)){
@@ -965,6 +1020,14 @@ async function renderLista(){
   cont.innerHTML = '<div class="loader"><div class="spinner"></div><br>Cargando eventos...</div>';
   var {data, error} = await sb.from('reuniones').select('*').order('created_at',{ascending:false});
   if(error){ cont.innerHTML='<div class="empty-state"><p style="color:#dc2626">Error al cargar. Verifique su conexión.</p></div>'; return; }
+
+  // Filtrar por unidad si viene ?unit= en la URL
+  if(_UNIT_PARAM){
+    data = (data||[]).filter(function(r){
+      try{ var t=JSON.parse(r.tema||'{}'); return (t.unit||'') === _UNIT_PARAM; }catch{ return false; }
+    });
+  }
+
   var _ses=window.DIGER_SESSION;
   var _isDigerSes = _ses && (_ses.institucion||'').trim().toUpperCase() === 'DIGER';
   // DIGER staff ve todo; otras instituciones solo ven reuniones cerradas de su inst.
@@ -1023,10 +1086,10 @@ function mostrarCrear(){
   document.getElementById('btn-toggle-estado').style.display='none';
   document.getElementById('btn-eliminar').style.display='none';
   document.getElementById('ev-status-badge').style.display='none';
-  document.getElementById('asis-card').style.display='none';
-  document.getElementById('transcripcion-card').style.display='none';
   ocultarMensajes();
   cambiarVista('view-evento');
+  currentEvStep = 0; // force re-init
+  goEvStep(1);
   window.scrollTo(0,0);
 }
 
@@ -1062,11 +1125,11 @@ async function abrirEvento(id){
   mostrarQR(id);
 
   // Asistencias
-  document.getElementById('asis-card').style.display='block';
-  document.getElementById('transcripcion-card').style.display='block';
   await cargarAsistencias(id);
   suscribirRealtime(id);
   ocultarMensajes();
+  currentEvStep = 0; // force re-init
+  goEvStep(1);
   window.scrollTo(0,0);
 }
 
@@ -1114,33 +1177,30 @@ async function guardarGeneral(){
   var errEl=document.getElementById('gen-err');
   errEl.style.display='none'; errEl.textContent='';
   if(!titulo){ errEl.textContent='El título del evento es obligatorio.'; errEl.style.display='block'; return; }
-  if(!fecha){  errEl.textContent='La fecha es obligatoria.'; errEl.style.display='block'; return; }
-  if(!modalidad){ errEl.textContent='Seleccione la modalidad.'; errEl.style.display='block'; return; }
-  if(!inst){ errEl.textContent='La institución beneficiaria es obligatoria.'; errEl.style.display='block'; return; }
-  if(!tipo){ errEl.textContent='Seleccione el tipo de capacitación / evento.'; errEl.style.display='block'; return; }
 
   var btn=document.getElementById('btn-guardar-gen');
   btn.disabled=true; btn.textContent='Guardando...';
 
   var datos={
-    modalidad, modalidad_otro: modalidad==='Otro'?gv('g-modalidad-otro'):'',
-    institucion_beneficiaria: inst,
-    tipo_cap: tipo, tipo_cap_otro: tipo==='Otro'?gv('g-tipo-otro'):''
+    modalidad: modalidad||'', modalidad_otro: modalidad==='Otro'?gv('g-modalidad-otro'):'',
+    institucion_beneficiaria: inst||'',
+    tipo_cap: tipo||'', tipo_cap_otro: tipo==='Otro'?gv('g-tipo-otro'):'',
+    unit: _UNIT_PARAM || ''
   };
   var id=genId();
   var {error}=await sb.from('reuniones').insert({
     id, titulo, tema: JSON.stringify(datos),
-    fecha, hora: gv('g-hora'), lugar: gv('g-lugar'),
+    fecha: fecha||'', hora: gv('g-hora'), lugar: gv('g-lugar'),
     activa: true, creada_por: adminEmail
   });
   if(error){
-    btn.disabled=false; btn.textContent='💾 Guardar y generar QR';
+    btn.disabled=false; btn.textContent='💾 Guardar generales';
     errEl.textContent='Error al guardar: '+error.message; errEl.style.display='block'; return;
   }
   currentId=id;
   var {data:r}=await sb.from('reuniones').select('*').eq('id',id).single();
   if(r) currentReunion=r;
-  guardarInstPersonalizada(inst);
+  if(inst) guardarInstPersonalizada(inst);
 
   btn.disabled=false; btn.textContent='✔ Guardado'; btn.style.background='linear-gradient(135deg,#16a34a,#15803d)';
 
@@ -1151,11 +1211,10 @@ async function guardarGeneral(){
   document.getElementById('ev-status-badge').style.display='inline-flex';
   actualizarBadgeEstado(true);
   mostrarQR(id);
-  document.getElementById('asis-card').style.display='block';
-  document.getElementById('transcripcion-card').style.display='block';
   await cargarAsistencias(id);
   suscribirRealtime(id);
-  document.getElementById('qr-panel').scrollIntoView({behavior:'smooth',block:'nearest'});
+  // Move to step 2 after first save
+  goEvStep(2);
 }
 
 // ── GUARDAR TODO (generales + cap) ────────────────────────────
@@ -1470,9 +1529,8 @@ function calcPct(){
 function toggleModalidadOtro(){ document.getElementById('field-modalidad-otro').style.display=gv('g-modalidad')==='Otro'?'block':'none'; }
 function toggleTipoOtro(){ document.getElementById('field-tipo-otro').style.display=gv('g-tipo')==='Otro'?'block':'none'; }
 function toggleCapacitacion(){
-  var esCap=document.getElementById('es-cap-si')&&document.getElementById('es-cap-si').checked;
-  document.getElementById('cap-section').style.display=esCap?'block':'none';
-  document.getElementById('resultados-section').style.display=esCap?'block':'none';
+  // cap-section and resultados-section are now always visible inside their dedicated panels
+  // This function kept for compatibility with cargarDatosCap / aplicarTranscripcion calls
 }
 function getEsCap(){ return document.getElementById('es-cap-si')&&document.getElementById('es-cap-si').checked; }
 
@@ -1900,6 +1958,94 @@ function reiniciarForm(){
 }
 
 function ocultarMensajes(){ document.getElementById('global-ok').style.display='none'; document.getElementById('global-err').style.display='none'; document.getElementById('gen-err').style.display='none'; }
+
+// ── WIZARD ────────────────────────────────────────────────────
+var currentEvStep = 1;
+
+function goEvStep(n){
+  // Auto-save silently before leaving current step
+  autoGuardarSilente();
+  currentEvStep = n;
+  // Update sidebar
+  for(var i=1;i<=5;i++){
+    var si = document.getElementById('ev-si-'+i);
+    if(!si) continue;
+    si.classList.remove('active','done');
+    if(i < n) si.classList.add('done');
+    else if(i === n) si.classList.add('active');
+  }
+  // Show correct panel
+  for(var j=1;j<=5;j++){
+    var p = document.getElementById('evp'+j);
+    if(p){ p.classList.remove('active'); }
+  }
+  var target = document.getElementById('evp'+n);
+  if(target) target.classList.add('active');
+  // Scroll content to top
+  var cont = document.querySelector('.ev-content');
+  if(cont) cont.scrollTop = 0;
+}
+
+function evPrev(){ if(currentEvStep > 1) goEvStep(currentEvStep - 1); }
+function evNext(){ if(currentEvStep < 5) goEvStep(currentEvStep + 1); }
+
+async function autoGuardarSilente(){
+  if(!currentId){
+    // If no record yet, only create if title exists
+    var titulo = gv('g-titulo');
+    if(!titulo) return;
+    // Create silently without blocking alerts
+    var fecha = gv('g-fecha'), modalidad = gv('g-modalidad'), tipo = gv('g-tipo');
+    var inst = gv('g-inst')==='Otro' ? gv('g-inst-otro').trim().toUpperCase() : gv('g-inst');
+    if(!fecha || !modalidad || !inst || !tipo) return; // not enough to save yet
+    var datos = {
+      modalidad, modalidad_otro: modalidad==='Otro'?gv('g-modalidad-otro'):'',
+      institucion_beneficiaria: inst,
+      tipo_cap: tipo, tipo_cap_otro: tipo==='Otro'?gv('g-tipo-otro'):''
+    };
+    var id = genId();
+    var {error} = await sb.from('reuniones').insert({
+      id, titulo, tema: JSON.stringify(datos),
+      fecha, hora: gv('g-hora'), lugar: gv('g-lugar'),
+      activa: true, creada_por: adminEmail
+    });
+    if(error) return;
+    currentId = id;
+    var {data:r} = await sb.from('reuniones').select('*').eq('id',id).single();
+    if(r) currentReunion = r;
+    guardarInstPersonalizada(inst);
+    document.getElementById('ev-titulo-bar').textContent = titulo;
+    document.getElementById('btn-guardar-gen-wrap').style.display = 'none';
+    document.getElementById('btn-toggle-estado').style.display = 'inline-flex';
+    document.getElementById('btn-eliminar').style.display = puedeBorrar() ? 'inline-flex' : 'none';
+    document.getElementById('ev-status-badge').style.display = 'inline-flex';
+    actualizarBadgeEstado(true);
+    mostrarQR(id);
+    await cargarAsistencias(id);
+    suscribirRealtime(id);
+    return;
+  }
+  // Already have a record — update silently
+  var titulo = gv('g-titulo');
+  if(!titulo) return;
+  var modalidad = gv('g-modalidad');
+  var inst = gv('g-inst')==='Otro' ? gv('g-inst-otro').trim().toUpperCase() : gv('g-inst');
+  var tipo = gv('g-tipo');
+  if(!modalidad || !inst || !tipo) return; // missing required, skip
+  await uploadPendingFotos();
+  var datosExistentes = {}; try{ datosExistentes = JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
+  var datosTema = Object.assign({}, datosExistentes, {
+    modalidad, modalidad_otro: modalidad==='Otro'?gv('g-modalidad-otro'):'',
+    institucion_beneficiaria: inst,
+    tipo_cap: tipo, tipo_cap_otro: tipo==='Otro'?gv('g-tipo-otro'):'',
+    cap: colectarDatosCap()
+  });
+  var {data:updated} = await sb.from('reuniones').update({
+    titulo, tema: JSON.stringify(datosTema),
+    fecha: gv('g-fecha'), hora: gv('g-hora'), lugar: gv('g-lugar')
+  }).eq('id',currentId).select().single();
+  if(updated){ currentReunion = updated; guardarInstPersonalizada(inst); document.getElementById('ev-titulo-bar').textContent = titulo; }
+}
 
 // ── NAVEGACIÓN ────────────────────────────────────────────────
 function cambiarVista(id){
