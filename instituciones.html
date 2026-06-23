@@ -1170,13 +1170,10 @@ function tfInstOtro(){
     if(btnNuevo) btnNuevo.style.display = 'inline-flex';
   }
 
-  // Admin y coordinador ven todos los trámites; colaborador/lector quedan restringidos a su institución
+  // Todos los roles ven todos los trámites (DIGER administra globalmente).
+  // instForzada solo aplica si viene del portal institucional via ?inst=
   var _ses = window.DIGER_SESSION;
   instForzada = null;
-  var _rolLibre = !_ses || _ses.role === 'admin' || _ses.role === 'coordinador';
-  if (!_rolLibre && _ses.institucion) {
-    instForzada = _ses.institucion;
-  }
   // Also read ?inst= URL param (from institution portal link)
   try {
     var _qp = new URLSearchParams(window.location.search);
