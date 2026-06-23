@@ -911,6 +911,14 @@ function dbEffective(patches){
 function dbEstado(e){ var p=dbCalcPct(e); if(p>=1)return'En operación'; if(p>0)return'En proceso'; return'No iniciado'; }
 
 async function renderInicio(unitKey) {
+  if (unitKey !== 'digitalizacion') {
+    var u = UNITS[unitKey];
+    app.innerHTML =
+      tabBreadcrumb(unitKey, 'Inicio') +
+      '<div class="welcome"><div class="badge">' + esc(u.label) + '</div><h2>Inicio</h2></div>' +
+      '<div class="card"><div class="empty" style="padding:3rem">Esta secci&oacute;n est&aacute; en blanco para esta unidad.</div></div>';
+    return;
+  }
   app.innerHTML = '<div style="padding:3rem;text-align:center;color:var(--muted)"><div style="font-size:28px;margin-bottom:.75rem">⏳</div>Cargando datos...</div>';
   var res = await sb.from('diger_tram').select('value').eq('key','tram').maybeSingle();
   var patches = (res.data && res.data.value) || {};
