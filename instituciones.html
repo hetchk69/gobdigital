@@ -215,6 +215,40 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   .notas-col,.add-nota-form,.tram-toggle,.inst-select{display:none!important}
   .tram-body{display:block!important}
 }
+
+/* MODAL TABS */
+.modal-tabs{display:flex;margin-bottom:1rem;border-bottom:2px solid var(--borde);}
+.m-tab{padding:9px 18px;font-size:13px;font-weight:700;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.m-tab.active{color:var(--azul-m);border-bottom-color:var(--azul-m);}
+.m-tab:hover:not(.active){color:var(--texto);background:#f4f7ff;}
+
+/* ETAPA CARDS (detailed view) */
+.etapa-card{border:1px solid var(--borde);border-radius:10px;margin-bottom:.6rem;overflow:hidden;}
+.etapa-hdr{display:flex;align-items:center;gap:10px;padding:.6rem 1rem;background:#f0f4fb;border-bottom:1px solid var(--borde);}
+.etapa-hdr-left{flex:1;min-width:0;}
+.etapa-num-lbl{font-size:10px;font-weight:700;color:var(--azul-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1px;}
+.etapa-titulo-lbl{font-size:13px;font-weight:700;color:var(--azul);}
+.etapa-hdr-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.etapa-pbar-mini{width:55px;height:5px;background:#dde4f0;border-radius:3px;overflow:hidden;flex-shrink:0;}
+.etapa-pbar-fill-mini{height:100%;border-radius:3px;transition:width .3s;}
+.etapa-pct-mini{font-size:11px;font-weight:700;min-width:28px;text-align:right;flex-shrink:0;}
+.etapa-nueva-tag{font-size:10px;font-weight:700;background:#dbeafe;color:#1d4ed8;padding:1px 6px;border-radius:6px;vertical-align:middle;margin-left:4px;}
+.etapa-body{padding:.55rem 1rem .75rem;}
+.sub-row{display:flex;align-items:center;gap:8px;padding:.4rem 0;border-bottom:1px solid #f1f5f9;}
+.sub-row:last-child{border-bottom:none;}
+.sub-num{font-size:10.5px;font-weight:700;color:var(--muted);min-width:30px;flex-shrink:0;}
+.sub-desc{flex:1;font-size:12px;color:var(--texto);line-height:1.4;}
+.sub-peso{font-size:10px;color:var(--muted);min-width:28px;text-align:right;flex-shrink:0;}
+.sub-st{flex-shrink:0;cursor:pointer;display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:700;border:none;white-space:nowrap;transition:all .15s;user-select:none;}
+.sub-st.s0{background:#f1f5f9;color:#64748b;}
+.sub-st.s1{background:#fef3c7;color:#b45309;}
+.sub-st.s2{background:#dcfce7;color:#15803d;}
+.aplica-toggle{display:inline-flex;border:1.5px solid var(--borde);border-radius:8px;overflow:hidden;margin-bottom:.65rem;}
+.aplica-btn{padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:none;color:var(--muted);transition:all .15s;}
+.aplica-btn.activo-si{background:#dcfce7;color:#15803d;}
+.aplica-btn.activo-no{background:#fee2e2;color:#b91c1c;}
+.etapa-futura-note{font-size:11px;color:var(--ambar);background:#fef3c7;border:1px solid #fde68a;border-radius:6px;padding:4px 10px;margin-bottom:.6rem;display:inline-block;}
+.no-aplica-label{font-size:11px;font-weight:700;background:#fee2e2;color:#b91c1c;padding:2px 9px;border-radius:8px;flex-shrink:0;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="insts.js"></script>
@@ -363,6 +397,96 @@ const ETAPAS = [
   {num:"X",    label:"Elaborar y Publicar Acuerdos / Comunicación",  peso:0.05},
   {num:"XI",   label:"Socialización (Redes y Sitios Oficiales)",     peso:0.05},
   {num:"XII",  label:"Poner a Disposición del Ciudadano",            peso:0.05},
+];
+
+// ── ETAPAS V2 (con subactividades) ──────────────────────────────
+const ETAPAS_V2 = [
+  {num:'I',    label:'Diagnóstico y línea de base',                                  peso:0.08, especial:null,
+    subs:[
+      {id:'1.1',desc:'Reunión de apertura para estructura actual',peso:0.15},
+      {id:'1.2',desc:'Mapeo de actores, roles y designación de contraparte técnica',peso:0.10},
+      {id:'1.3',desc:'Revisión normativa: leyes, reglamentos, acuerdos y disposiciones que regulan el servicio',peso:0.15},
+      {id:'1.4',desc:'Levantamiento del proceso actual (AS-IS): flujos, tiempos y pasos del trámite vigente',peso:0.20},
+      {id:'1.5',desc:'Medición de la demanda: volúmenes históricos de solicitudes y proyecciones de uso',peso:0.10},
+      {id:'1.6',desc:'Inventario de requisitos exigidos al ciudadano, formularios y gestión interna',peso:0.10},
+      {id:'1.7',desc:'Diagnóstico de infraestructura tecnológica y capacidad de interoperabilidad',peso:0.10},
+      {id:'1.8',desc:'Informe de línea de base consolidado como insumo para las siguientes fases',peso:0.10},
+    ]},
+  {num:'II',   label:'Talleres de simplificación y modelación',                      peso:0.15, especial:null,
+    subs:[
+      {id:'2.1',desc:'Diseño de talleres: metodología, materiales de facilitación y convocatoria de participantes',peso:0.10},
+      {id:'2.2',desc:'Taller AS-IS: revisión participativa, identificación de cuellos de botella y duplicidades',peso:0.20},
+      {id:'2.3',desc:'Taller de simplificación normativa: análisis de requisitos eliminables o sustituibles',peso:0.20},
+      {id:'2.4',desc:'Diseño del proceso simplificado (TO-BE) con roles, responsables y tiempos estimados',peso:0.25},
+      {id:'2.5',desc:'Validación interna del TO-BE con todas las unidades involucradas',peso:0.15},
+      {id:'2.6',desc:'Memoria de talleres: sistematización de acuerdos, compromisos y decisiones',peso:0.10},
+    ]},
+  {num:'III',  label:'Modelación en sistema (SOL)',                                  peso:0.12, especial:null,
+    subs:[
+      {id:'3.1',desc:'Especificación técnica del servicio: requerimientos funcionales, casos de uso',peso:0.10},
+      {id:'3.2',desc:'Diseño de formularios en línea con criterios de usabilidad, accesibilidad y credibilidad',peso:0.15},
+      {id:'3.3',desc:'Desarrollo de procedimientos almacenados y lógica de validación en base de datos',peso:0.20},
+      {id:'3.4',desc:'Desarrollo e integración de web services para interoperabilidad con otras instituciones (Opcional)',peso:0.20},
+      {id:'3.5',desc:'Configuración de flujos de trabajo y gestión de estados del trámite',peso:0.15},
+      {id:'3.6',desc:'Integración de firma electrónica y pasarelas de pago (cuando aplique)',peso:0.10},
+      {id:'3.7',desc:'Presentaciones de seguimiento al desarrollo con el equipo institucional',peso:0.10},
+    ]},
+  {num:'IV',   label:'Migración e instalación del ambiente SOL en infraestructura institucional', peso:0.12, especial:'aplica_toggle', nuevo:true,
+    subs:[
+      {id:'4.1',desc:'Hacer el levantamiento de requisitos mínimos',peso:1.00},
+    ]},
+  {num:'V',    label:'Pruebas en ambiente de testing',                               peso:0.08, especial:null,
+    subs:[
+      {id:'5.1',desc:'Instalación del sistema en ambiente de testing aislado del entorno productivo',peso:0.10},
+      {id:'5.2',desc:'Pruebas funcionales internas por el equipo técnico',peso:0.20},
+      {id:'5.3',desc:'Sesiones de prueba con usuarios institucionales usando casos reales o simulados',peso:0.25},
+      {id:'5.4',desc:'Registro y priorización de hallazgos por nivel de criticidad',peso:0.15},
+      {id:'5.5',desc:'Corrección e implementación de ajustes identificados en las pruebas',peso:0.20},
+      {id:'5.6',desc:'Pruebas de regresión y firma de acta de conformidad de testing',peso:0.10},
+    ]},
+  {num:'VI',   label:'Instructivos y videotutoriales ciudadanos',                    peso:0.04, especial:null,
+    subs:[
+      {id:'6.1',desc:'Definición de guiones y estructura de contenido por cada servicio digitalizado',peso:0.15},
+      {id:'6.2',desc:'Producción de videotutoriales: grabación, edición y locución',peso:0.25},
+      {id:'6.3',desc:'Elaboración de instructivos paso a paso en formato PDF o en línea',peso:0.20},
+      {id:'6.4',desc:'Diseño de sección de preguntas frecuentes (FAQ) en lenguaje ciudadano',peso:0.15},
+      {id:'6.5',desc:'Revisión y aprobación institucional de todos los materiales producidos',peso:0.15},
+      {id:'6.6',desc:'Publicación en portal institucional, YouTube y otros canales definidos',peso:0.10},
+    ]},
+  {num:'VII',  label:'Modelado y lanzamiento en producción',                         peso:0.05, especial:null,
+    subs:[
+      {id:'7.1',desc:'Despliegue del sistema validado en el entorno productivo real',peso:0.30},
+      {id:'7.2',desc:'Apoyo en la definición de la estrategia comunicacional de lanzamiento',peso:0.20},
+      {id:'7.3',desc:'Definición de mensajes, canales, públicos objetivo y cronograma de comunicación',peso:0.20},
+      {id:'7.4',desc:'Lanzamiento oficial del servicio digital para la ciudadanía',peso:0.30},
+    ]},
+  {num:'VIII', label:'Gestión de incidencias y soporte continuo',                    peso:0.08, especial:'seguimiento_futuro', nuevo:true,
+    subs:[
+      {id:'8.1',desc:'Implementación de un sistema de tickets con trazabilidad y prioridad, en sustitución de reportes por correo',peso:0.20},
+      {id:'8.2',desc:'Definición del protocolo de escalamiento de incidencias (institución → DIGER → SDE → PNUD)',peso:0.15},
+      {id:'8.3',desc:'Diagnóstico estándar con el Visor de eventos antes de aplicar cualquier parche',peso:0.20},
+      {id:'8.4',desc:'Catálogo de incidencias conocidas y sus soluciones',peso:0.20},
+      {id:'8.5',desc:'Buenas prácticas de modelado posteriores a la entrega: validar cambios con usuario de prueba',peso:0.15},
+      {id:'8.6',desc:'Publicación de avisos de mantenimiento cuando una incidencia afecte el servicio público',peso:0.10},
+    ]},
+  {num:'IX',   label:'Seguimiento y asistencia técnica',                             peso:0.04, especial:null,
+    subs:[
+      {id:'9.1',desc:'Mesa de soporte técnico activa durante las primeras semanas de operación',peso:0.20},
+      {id:'9.2',desc:'Monitoreo de indicadores: solicitudes en línea, tasas de abandono y tiempos de resolución',peso:0.25},
+      {id:'9.3',desc:'Verificación del cumplimiento del nuevo proceso por parte de los funcionarios',peso:0.25},
+      {id:'9.4',desc:'Informe de funcionamiento y recomendaciones de mejora de corto plazo',peso:0.15},
+      {id:'9.5',desc:'Sesiones de retroalimentación con el equipo institucional operador del sistema',peso:0.15},
+    ]},
+  {num:'X',    label:'Socialización y comunicación pública',                         peso:0.04, especial:null,
+    subs:[
+      {id:'10.1',desc:'Consultar del estado de socialización',peso:1.00},
+    ]},
+  {num:'XI',   label:'Gestión de calidad institucional',                             peso:0.06, especial:null,
+    subs:[
+      {id:'11.1',desc:'Implementación de encuestas de satisfacción ciudadana',peso:0.34},
+      {id:'11.2',desc:'Establecimiento del ciclo de revisión periódica: mensual o trimestral',peso:0.33},
+      {id:'11.3',desc:'Entrega formal, transferencia de responsabilidad y firma de acta de cierre',peso:0.33},
+    ]},
 ];
 
 // ── TRAMITES DATA ────────────────────────────────────────────────
@@ -651,6 +775,100 @@ function renderTramite(r, showInst){
   </div>`;
 }
 
+// ── DETALLE V2 HELPERS ──────────────────────────────────────────
+const _ST_LABEL = ['⬜ Pendiente','🟡 En proceso','✅ Completado'];
+const _ST_CLS   = ['s0','s1','s2'];
+
+function calcEtapaPct(ev2, etapa){
+  let t=0;
+  etapa.subs.forEach(function(sub,i){
+    const st=ev2[etapa.num+'-'+i]||0;
+    t+=sub.peso*(st===2?1:st===1?0.5:0);
+  });
+  return t;
+}
+
+function renderDetalleView(id){
+  const r=getRecord(id);
+  const ev2=r.etapas_v2||{};
+  let html='';
+  ETAPAS_V2.forEach(function(etapa){
+    const aplica = etapa.especial==='aplica_toggle' ? (ev2[etapa.num+'-aplica']!==false) : true;
+    const stagePct = aplica ? calcEtapaPct(ev2,etapa) : null;
+    const stagePctP = stagePct!=null ? Math.round(stagePct*100) : null;
+    const stageColor = stagePct!=null ? (stagePct>=1?'var(--verde)':stagePct>0?'var(--ambar)':'#aab6cb') : '#aab6cb';
+    const nuevoTag = etapa.nuevo ? '<span class="etapa-nueva-tag">🆕 Nueva</span>' : '';
+
+    html+=`<div class="etapa-card">
+      <div class="etapa-hdr">
+        <div class="etapa-hdr-left">
+          <div class="etapa-num-lbl">Etapa ${esc(etapa.num)} · ${Math.round(etapa.peso*100)}% del proyecto</div>
+          <div class="etapa-titulo-lbl">${esc(etapa.label)}${nuevoTag}</div>
+        </div>
+        <div class="etapa-hdr-right">
+          ${!aplica
+            ? '<span class="no-aplica-label">No aplica</span>'
+            : `<div class="etapa-pbar-mini"><div class="etapa-pbar-fill-mini" style="width:${stagePctP}%;background:${stageColor}"></div></div>
+               <span class="etapa-pct-mini" style="color:${stageColor}">${stagePctP}%</span>`
+          }
+        </div>
+      </div>
+      <div class="etapa-body">`;
+
+    if(etapa.especial==='aplica_toggle'){
+      html+=`<div class="aplica-toggle">
+        <button class="aplica-btn ${aplica?'activo-si':''}" onclick="toggleAplica(${JSON.stringify(id)},'${etapa.num}',true)">✓ Aplica</button>
+        <button class="aplica-btn ${!aplica?'activo-no':''}" onclick="toggleAplica(${JSON.stringify(id)},'${etapa.num}',false)">✕ No aplica</button>
+      </div>`;
+    }
+    if(etapa.especial==='seguimiento_futuro'){
+      html+=`<div class="etapa-futura-note">⏳ Para seguimiento en una fase posterior</div>`;
+    }
+
+    if(aplica){
+      etapa.subs.forEach(function(sub,i){
+        const st=ev2[etapa.num+'-'+i]||0;
+        html+=`<div class="sub-row">
+          <span class="sub-num">${esc(sub.id)}</span>
+          <span class="sub-desc">${esc(sub.desc)}</span>
+          <span class="sub-peso">${Math.round(sub.peso*100)}%</span>
+          <button class="sub-st ${_ST_CLS[st]}" onclick="toggleSubActiv(${JSON.stringify(id)},'${etapa.num}',${i})">${_ST_LABEL[st]}</button>
+        </div>`;
+      });
+    }
+    html+='</div></div>';
+  });
+  return html;
+}
+
+function toggleSubActiv(id,stageNum,subIdx){
+  const r=getRecord(id);
+  const ev2=Object.assign({},r.etapas_v2||{});
+  const cur=ev2[stageNum+'-'+subIdx]||0;
+  ev2[stageNum+'-'+subIdx]=(cur+1)%3;
+  patchRecord(id,{etapas_v2:ev2});
+  const detEl=document.getElementById('mv-detalle');
+  if(detEl) detEl.innerHTML=renderDetalleView(id);
+  showSaved(id);
+}
+
+function toggleAplica(id,stageNum,aplica){
+  const r=getRecord(id);
+  const ev2=Object.assign({},r.etapas_v2||{});
+  ev2[stageNum+'-aplica']=aplica;
+  patchRecord(id,{etapas_v2:ev2});
+  const detEl=document.getElementById('mv-detalle');
+  if(detEl) detEl.innerHTML=renderDetalleView(id);
+  showSaved(id);
+}
+
+function switchModalTab(tab){
+  document.getElementById('mv-simple').style.display=tab==='simple'?'':'none';
+  document.getElementById('mv-detalle').style.display=tab==='detalle'?'':'none';
+  document.getElementById('mtab-simple').classList.toggle('active',tab==='simple');
+  document.getElementById('mtab-detalle').classList.toggle('active',tab==='detalle');
+}
+
 function openModal(id){
   const r=getRecord(id);
   const pct=calcPct(r.etapas);
@@ -677,44 +895,51 @@ function openModal(id){
   ).join('');
 
   document.getElementById('modal-body').innerHTML=`
+    <div class="modal-tabs">
+      <button class="m-tab active" id="mtab-simple" onclick="switchModalTab('simple')">📋 Checklist</button>
+      <button class="m-tab" id="mtab-detalle" onclick="switchModalTab('detalle')">📊 Etapas detalladas</button>
+    </div>
     <div class="modal-prog">
       <div class="modal-pbar"><div class="modal-pbar-fill" id="modal-fill" style="width:${pctP}%;background:${color}"></div></div>
       <span class="pct-lbl" id="modal-pct" style="color:${color};min-width:36px">${pctP}%</span>
       <span class="badge ${bcls}" id="modal-badge">${esc(estado)}</span>
     </div>
-    <div class="stages-grid">${stagesHtml}</div>
-    <div class="extra-row" style="margin-top:.75rem">
-      <div class="extra-field">
-        <label class="extra-lbl">Acta firmada</label>
-        <select class="extra-sel" onchange="patchField(${id},'acta',this.value)">
-          <option ${r.acta==='Si'?'selected':''}>Si</option>
-          <option ${r.acta==='No'?'selected':''}>No</option>
-          <option ${r.acta==='en proceso'?'selected':''}>en proceso</option>
-        </select>
+    <div id="mv-simple">
+      <div class="stages-grid">${stagesHtml}</div>
+      <div class="extra-row" style="margin-top:.75rem">
+        <div class="extra-field">
+          <label class="extra-lbl">Acta firmada</label>
+          <select class="extra-sel" onchange="patchField(${id},'acta',this.value)">
+            <option ${r.acta==='Si'?'selected':''}>Si</option>
+            <option ${r.acta==='No'?'selected':''}>No</option>
+            <option ${r.acta==='en proceso'?'selected':''}>en proceso</option>
+          </select>
+        </div>
+        <div class="extra-field">
+          <label class="extra-lbl">Activo en PDI</label>
+          <select class="extra-sel" onchange="patchField(${id},'activo',this.value)">
+            <option ${r.activo==='Si'?'selected':''}>Si</option>
+            <option ${r.activo==='No'?'selected':''}>No</option>
+            <option ${r.activo==='en proceso'?'selected':''}>en proceso</option>
+          </select>
+        </div>
+        <div class="extra-field">
+          <label class="extra-lbl">Alojamiento</label>
+          <select class="extra-sel" onchange="patchField(${id},'aloj',this.value)">${alojOpts}</select>
+        </div>
+        <div class="extra-field">
+          <label class="extra-lbl">Func. en PDI</label>
+          <input class="extra-inp" value="${esc(r.pdi||'')}" placeholder="SI / NO / —" style="width:140px"
+            onchange="patchField(${id},'pdi',this.value)">
+        </div>
+        <div class="extra-field extra-obs">
+          <label class="extra-lbl">Observaciones internas</label>
+          <textarea onchange="patchField(${id},'obs',this.value)" placeholder="Notas adicionales sobre este trámite…">${esc(r.obs||'')}</textarea>
+        </div>
       </div>
-      <div class="extra-field">
-        <label class="extra-lbl">Activo en PDI</label>
-        <select class="extra-sel" onchange="patchField(${id},'activo',this.value)">
-          <option ${r.activo==='Si'?'selected':''}>Si</option>
-          <option ${r.activo==='No'?'selected':''}>No</option>
-          <option ${r.activo==='en proceso'?'selected':''}>en proceso</option>
-        </select>
-      </div>
-      <div class="extra-field">
-        <label class="extra-lbl">Alojamiento</label>
-        <select class="extra-sel" onchange="patchField(${id},'aloj',this.value)">${alojOpts}</select>
-      </div>
-      <div class="extra-field">
-        <label class="extra-lbl">Func. en PDI</label>
-        <input class="extra-inp" value="${esc(r.pdi||'')}" placeholder="SI / NO / —" style="width:140px"
-          onchange="patchField(${id},'pdi',this.value)">
-      </div>
-      <div class="extra-field extra-obs">
-        <label class="extra-lbl">Observaciones internas</label>
-        <textarea onchange="patchField(${id},'obs',this.value)" placeholder="Notas adicionales sobre este trámite…">${esc(r.obs||'')}</textarea>
-      </div>
+      <div class="save-ind" id="saved-${id}">✓ Guardado</div>
     </div>
-    <div class="save-ind" id="saved-${id}">✓ Guardado</div>`;
+    <div id="mv-detalle" style="display:none">${renderDetalleView(id)}</div>`;
 
   window._modalId=id;
   document.getElementById('tram-modal').classList.add('open');
