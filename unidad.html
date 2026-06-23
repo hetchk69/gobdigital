@@ -610,11 +610,11 @@ function renderSelector() {
     // Colaborador/lector → redirigir a su área/unidad asignada
     var acc = DIGER_ACCESS[ses.email] || {};
     if (acc.unidad && UNITS[acc.unidad]) {
-      renderUnitPage(acc.unidad, tabParam || 'inicio');
+      window.location.replace('unidad.html?u=' + encodeURIComponent(acc.unidad) + '&tab=' + (tabParam || 'inicio'));
       return;
     }
     if (acc.area) {
-      renderAreaPage(acc.area);
+      window.location.replace('unidad.html?inst=' + (instParam || 'diger') + '&area=' + encodeURIComponent(acc.area));
       return;
     }
     // Sin asignación específica → ver todas las áreas
