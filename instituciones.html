@@ -1170,10 +1170,11 @@ function tfInstOtro(){
     if(btnNuevo) btnNuevo.style.display = 'inline-flex';
   }
 
-  // Auto-select institution for non-admin users
+  // Admin y coordinador ven todos los trámites; colaborador/lector quedan restringidos a su institución
   var _ses = window.DIGER_SESSION;
   instForzada = null;
-  if (_ses && _ses.role && _ses.role !== 'admin' && _ses.institucion) {
+  var _rolLibre = !_ses || _ses.role === 'admin' || _ses.role === 'coordinador';
+  if (!_rolLibre && _ses.institucion) {
     instForzada = _ses.institucion;
   }
   // Also read ?inst= URL param (from institution portal link)
