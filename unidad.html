@@ -819,6 +819,12 @@ function renderAreaPage(areaKey) {
 // UNIT PAGE (module list — professional document view)
 // ════════════════════════════════════════════════════════════════
 function renderUnitPage(unitKey, tab) {
+  // Garantizar que la URL tenga ?u= para que header.js inyecte las tabs
+  if (!unitParam || unitParam !== unitKey) {
+    window.location.replace('unidad.html?u=' + encodeURIComponent(unitKey) + '&tab=' + (tab || 'inicio'));
+    return;
+  }
+
   var u = UNITS[unitKey];
   var tabLabels = { inicio:'Inicio', modulos:'Módulos', calendario:'Calendario', documentos:'Documentos', repositorio:'Repositorio' };
   document.title = u.label + ' — ' + (tabLabels[tab] || 'Módulos') + ' — DIGER';
