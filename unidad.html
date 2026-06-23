@@ -917,30 +917,21 @@ function dbEffective(patches){
 function dbEstado(e){ var p=dbCalcPct(e); if(p>=1)return'En operación'; if(p>0)return'En proceso'; return'No iniciado'; }
 
 async function renderInicio(unitKey) {
-  if (unitKey !== 'digitalizacion') {
-    var u = UNITS[unitKey];
-    app.innerHTML =
-      tabBreadcrumb(unitKey, 'Inicio') +
-      '<div class="welcome"><div class="badge">' + esc(u.label) + '</div><h2>Inicio</h2></div>' +
-      '<div class="card"><div class="empty" style="padding:3rem">Esta secci&oacute;n est&aacute; en blanco para esta unidad.</div></div>';
-    return;
-  }
-  app.innerHTML = '<div style="padding:3rem;text-align:center;color:var(--muted)"><div style="font-size:28px;margin-bottom:.75rem">⏳</div>Cargando datos...</div>';
-  var [res, resReun] = await Promise.all([
-    sb.from('diger_tram').select('value').eq('key','tram').maybeSingle(),
-    sb.from('reuniones').select('id,titulo,fecha,tema')
-  ]);
-  var patches = (res.data && res.data.value) || {};
-  var all = dbEffective(patches);
+  var _unitParam = unitKey === 'digitalizacion' ? '' : unitKey;
+  var u = UNITS[unitKey];
+  app.innerHTML = '<div style="padding:3rem;text-align:center;color:var(--muted)"><div style="font-size:28px;margin-bottom:.75rem">&#9203;</div>Cargando datos...</div>';
 
-  // ── Reuniones por mes (desde julio 2025) ────────────────────────
+  // Fetch reuniones for all units
+  var resReun = await sb.from('reuniones').select('id,titulo,fecha,tema');
   var _reunAll = (resReun.data||[]).filter(function(r){
-    try{ return (JSON.parse(r.tema||'{}').unit||'') === ''; }catch{ return true; }
+    try{ return (JSON.parse(r.tema||'{}').unit||'') === _unitParam; }catch{ return _unitParam===''; }
   });
+
+  // Months from April 2026
   var _HOY = new Date();
   var _months = [];
   (function(){
-    var y=2026, m=3; // abril 2026 = índice 3
+    var y=2026, m=3;
     while(y<_HOY.getFullYear()||(y===_HOY.getFullYear()&&m<=_HOY.getMonth())){
       _months.push({y:y,m:m,key:y+'-'+String(m+1).padStart(2,'0')});
       m++; if(m>11){m=0;y++;}
@@ -956,8 +947,128 @@ async function renderInicio(unitKey) {
     var inst=''; try{ inst=JSON.parse(r.tema||'{}').institucion_beneficiaria||''; }catch{}
     if(!inst) inst='Sin especificar';
     _reunByMonth[key].insts[inst]=(_reunByMonth[key].insts[inst]||0)+1;
-    _reunByMonth[key].titulos.push(r.titulo||'Sin título');
+    _reunByMonth[key].titulos.push(r.titulo||'Sin t\xedtulo');
   });
+
+  // Modal de desglose (disponible para todas las unidades)
+  window._showMeetingMonth = function(key){
+    var MNOM=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    var bucket=_reunByMonth[key]; if(!bucket) return;
+    var parts=key.split('-');
+    var lbl=MNOM[parseInt(parts[1],10)-1]+' '+parts[0];
+    var insts=bucket.insts; var tot=bucket.total;
+    var rows=Object.keys(insts).sort(function(a,b){return insts[b]-insts[a];}).map(function(inst,i){
+      var n=insts[inst]; var pct=Math.round(n/tot*100);
+      return '<tr style="border-bottom:1px solid #f0f4fb">'+
+        '<td style="padding:8px 12px;font-size:13px;color:#1c2333;font-weight:'+(i===0?'700':'400')+'">'+esc(inst)+'</td>'+
+        '<td style="padding:8px 12px;text-align:center;font-weight:700;color:#0a2d6e;font-size:13px">'+n+'</td>'+
+        '<td style="padding:8px 12px"><div style="background:#e8eef8;border-radius:20px;height:8px;width:120px;overflow:hidden"><div style="background:#1455a4;height:100%;width:'+pct+'%;border-radius:20px"></div></div></td>'+
+      '</tr>';
+    }).join('');
+    var body='<div style="margin-bottom:1rem;display:flex;gap:16px">'+
+      '<div style="text-align:center;flex:1;background:#f0f4fb;border-radius:10px;padding:12px"><div style="font-size:28px;font-weight:900;color:#0a2d6e;line-height:1">'+tot+'</div><div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:3px">Reuniones</div></div>'+
+      '<div style="text-align:center;flex:1;background:#f0f4fb;border-radius:10px;padding:12px"><div style="font-size:28px;font-weight:900;color:#16a34a;line-height:1">'+Object.keys(insts).length+'</div><div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:3px">Instituciones</div></div>'+
+    '</div>'+
+    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">'+
+      '<thead><tr style="background:#f4f7fd">'+
+        '<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">Institución</th>'+
+        '<th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">Reuniones</th>'+
+        '<th style="padding:8px 12px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">%</th>'+
+      '</tr></thead>'+
+      '<tbody>'+rows+'</tbody>'+
+    '</table></div>';
+    abrirModal('Reuniones — '+lbl, body);
+  };
+
+  // Generador del gráfico (closure sobre _months y _reunByMonth)
+  function buildReunChart() {
+    var MCOR=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    var rVals=_months.map(function(mo){ return _reunByMonth[mo.key].total; });
+    var rMax=Math.max.apply(null,rVals.concat([1]));
+    var rTotal=rVals.reduce(function(s,v){return s+v;},0);
+    var peakIdx=-1,peakV=0;
+    rVals.forEach(function(v,i){ if(v>peakV){peakV=v;peakIdx=i;} });
+    var peakMCOR=(peakIdx>=0&&_months[peakIdx]?MCOR[_months[peakIdx].m]:'—');
+    var bW=64,bGap=20,padL=36,padR=20,padT=44,padB=54,cH=230;
+    var cW=Math.max(_months.length*(bW+bGap)+padL+padR, 200);
+    var iH=cH-padT-padB;
+    var base=cH-padB;
+    var scale=rMax<=4?rMax+2:rMax<=9?10:Math.ceil(rMax/5)*5;
+    if(scale<3)scale=3;
+    var grid='', gridN=Math.min(scale,5);
+    for(var gi=0;gi<=gridN;gi++){
+      var gv=Math.round(scale*gi/gridN);
+      var gy=base-Math.round(gv/scale*iH);
+      grid+='<line x1="'+padL+'" y1="'+gy+'" x2="'+(cW-padR)+'" y2="'+gy+'" stroke="'+(gi===0?'#c8d4eb':'#eef2fa')+'" stroke-width="'+(gi===0?'2':'1')+'"/>';
+      grid+='<text x="'+(padL-6)+'" y="'+(gy+4)+'" text-anchor="end" font-family="Segoe UI,sans-serif" font-size="9.5" fill="#94a3b8">'+gv+'</text>';
+    }
+    var svgBars='', trendPts=[];
+    _months.forEach(function(mo,i){
+      var v=_reunByMonth[mo.key].total;
+      var isMax=(i===peakIdx&&v>0);
+      var bh=v>0?Math.max(12,Math.round(v/scale*iH)):0;
+      var x=padL+i*(bW+bGap); var y=base-bh; var cx=x+bW/2;
+      if(v>0) trendPts.push({x:cx,y:y});
+      if(v>0){
+        if(isMax) svgBars+='<rect x="'+(x-4)+'" y="'+(y-4)+'" width="'+(bW+8)+'" height="'+(bh+4)+'" rx="9" fill="#38bdf8" opacity="0.2"/>';
+        svgBars+='<rect x="'+x+'" y="'+y+'" width="'+bW+'" height="'+bh+'" rx="7" fill="url(#'+(isMax?'gMax':'gBar')+')" style="cursor:pointer" onclick="window._showMeetingMonth(\''+mo.key+'\')" onmouseover="this.setAttribute(\'opacity\',\'0.8\')" onmouseout="this.setAttribute(\'opacity\',\'1\')">'+
+          '<animate attributeName="height" from="0" to="'+bh+'" dur="0.5s" begin="'+(i*0.08)+'s" fill="freeze" calcMode="spline" keySplines="0.22 1 0.36 1" keyTimes="0;1"/>'+
+          '<animate attributeName="y" from="'+base+'" to="'+y+'" dur="0.5s" begin="'+(i*0.08)+'s" fill="freeze" calcMode="spline" keySplines="0.22 1 0.36 1" keyTimes="0;1"/>'+
+        '</rect>';
+        if(isMax) svgBars+='<text x="'+cx+'" y="'+(y-20)+'" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="9" font-weight="700" fill="#0891b2">&#9650; m&#225;x</text>';
+        svgBars+='<text x="'+cx+'" y="'+(y-(isMax?9:8))+'" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="'+(isMax?'17':'15')+'" font-weight="900" fill="'+(isMax?'#0891b2':'#1e40af')+'">'+v+'</text>';
+      } else {
+        svgBars+='<text x="'+cx+'" y="'+(base-10)+'" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="12" fill="#e2e8f0">—</text>';
+      }
+      svgBars+='<text x="'+cx+'" y="'+(base+17)+'" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" font-weight="700" fill="#475569">'+MCOR[mo.m]+'</text>';
+      svgBars+='<text x="'+cx+'" y="'+(base+31)+'" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="9" fill="#94a3b8">'+mo.y+'</text>';
+      if(v>0) svgBars+='<rect x="'+x+'" y="'+padT+'" width="'+bW+'" height="'+iH+'" fill="transparent" style="cursor:pointer" onclick="window._showMeetingMonth(\''+mo.key+'\')"/>';
+    });
+    var trend='';
+    if(trendPts.length>=2){
+      trend='<polyline points="'+trendPts.map(function(p){return p.x+','+p.y;}).join(' ')+'" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-dasharray="6,4" pointer-events="none"/>';
+      trendPts.forEach(function(p){ trend+='<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#fff" opacity="0.7" pointer-events="none"/>'; });
+    }
+    return '<div style="margin-bottom:1.1rem;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(10,45,110,.12)">'+
+      '<div style="background:linear-gradient(120deg,#0a2d6e 0%,#1455a4 60%,#1e6abf 100%);padding:1.1rem 1.4rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">'+
+        '<div><div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:.01em">Reuniones por mes</div>'+
+        '<div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:3px">Desde abril 2026 &middot; Clic en barra para ver desglose</div></div>'+
+        '<div style="display:flex;gap:8px">'+
+          '<div style="background:rgba(255,255,255,.12);border-radius:10px;padding:8px 16px;text-align:center">'+
+            '<div style="font-size:26px;font-weight:900;color:#fff;line-height:1">'+rTotal+'</div>'+
+            '<div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.07em;margin-top:2px">Total</div></div>'+
+          '<div style="background:rgba(56,189,248,.18);border-radius:10px;padding:8px 16px;text-align:center;border:1px solid rgba(56,189,248,.35)">'+
+            '<div style="font-size:26px;font-weight:900;color:#38bdf8;line-height:1">'+peakV+'</div>'+
+            '<div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.07em;margin-top:2px">M&#225;x &middot; '+peakMCOR+'</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="background:#fff;padding:1.1rem 1.25rem 1rem"><div style="overflow-x:auto">'+
+        '<svg viewBox="0 0 '+cW+' '+cH+'" xmlns="http://www.w3.org/2000/svg" style="display:block;min-width:'+Math.min(cW,360)+'px;width:100%">'+
+          '<defs>'+
+            '<linearGradient id="gBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563eb"/><stop offset="100%" stop-color="#0a2d6e"/></linearGradient>'+
+            '<linearGradient id="gMax" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#0284c7"/></linearGradient>'+
+          '</defs>'+
+          grid+svgBars+trend+
+        '</svg>'+
+      '</div>'+
+      (_months.length===0?'<div style="text-align:center;padding:2rem;color:#94a3b8;font-size:13px">Sin reuniones registradas para este periodo</div>':'')+
+      '</div>'+
+    '</div>';
+  }
+
+  // Unidades distintas a digitalizacion: mostrar solo el gráfico
+  if (unitKey !== 'digitalizacion') {
+    app.innerHTML =
+      tabBreadcrumb(unitKey, 'Inicio') +
+      '<div class="welcome"><div class="badge">' + esc(u.label) + '</div><h2>Inicio</h2></div>' +
+      buildReunChart();
+    return;
+  }
+
+  // Digitalizacion: también cargar datos de trámites
+  var res = await sb.from('diger_tram').select('value').eq('key','tram').maybeSingle();
+  var patches = (res.data && res.data.value) || {};
+  var all = dbEffective(patches);
 
   // ── Filtros activos ──
   var fInst  = '';
@@ -1302,122 +1413,8 @@ async function renderInicio(unitKey) {
     var alojColors=['#1455a4','#16a34a','#f59e0b','#8b5cf6','#dc2626'];
     var alojSegs=Object.keys(alojMap).map(function(k,i){ return {v:alojMap[k],c:alojColors[i%5],l:k}; });
 
-    // ── Gráfico reuniones por mes (pre-calculado) ──────────────────
-    var _MNOM=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    var _MCOR=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    var _rVals=_months.map(function(mo){ return _reunByMonth[mo.key].total; });
-    var _rMax=Math.max.apply(null,_rVals.concat([1]));
-    var _rTotal=_rVals.reduce(function(s,v){return s+v;},0);
-    var _peakIdx=-1,_peakV=0;
-    _rVals.forEach(function(v,i){ if(v>_peakV){_peakV=v;_peakIdx=i;} });
-    var _peakLbl=(_peakIdx>=0&&_months[_peakIdx])?(_MNOM[_months[_peakIdx].m]+' '+_months[_peakIdx].y):'—';
-
-    // SVG dimensions
-    var _bW=64,_bGap=20,_padL=36,_padR=20,_padT=44,_padB=54,_cH=230;
-    var _cW=_months.length*(_bW+_bGap)+_padL+_padR;
-    var _iH=_cH-_padT-_padB;
-    var _base=_cH-_padB;
-
-    // Scale: round max up to nearest nice number
-    var _scale=_rMax<=4?_rMax+1:_rMax<=8?10:Math.ceil(_rMax/5)*5;
-    if(_scale<2)_scale=2;
-
-    // Y-axis grid
-    var _grid='';
-    var _gridN=Math.min(_scale,5);
-    for(var _gi=0;_gi<=_gridN;_gi++){
-      var _gv=Math.round(_scale*_gi/_gridN);
-      var _gy=_base-Math.round(_gv/_scale*_iH);
-      var _isZero=_gi===0;
-      _grid+='<line x1="'+_padL+'" y1="'+_gy+'" x2="'+(_cW-_padR)+'" y2="'+_gy+'" stroke="'+(_isZero?'#c8d4eb':'#eef2fa')+'" stroke-width="'+(_isZero?'2':'1')+'"/>';
-      _grid+='<text x="'+(_padL-6)+'" y="'+(_gy+4)+'" text-anchor="end" font-family="Segoe UI,sans-serif" font-size="9.5" fill="#94a3b8">'+_gv+'</text>';
-    }
-
-    // Bars + labels
-    var _svgBars='';
-    var _trendPts=[];
-    _months.forEach(function(mo,i){
-      var v=_reunByMonth[mo.key].total;
-      var isMax=(i===_peakIdx&&v>0);
-      var bh=v>0?Math.max(12,Math.round(v/_scale*_iH)):0;
-      var x=_padL+i*(_bW+_bGap);
-      var y=_base-bh;
-      var cx=x+_bW/2;
-      if(v>0) _trendPts.push({x:cx,y:y,v:v});
-
-      if(v>0){
-        // Glow halo for max bar
-        if(isMax) _svgBars+='<rect x="'+(x-4)+'" y="'+(y-4)+'" width="'+(_bW+8)+'" height="'+(bh+4)+'" rx="9" fill="#38bdf8" opacity="0.2"/>';
-        // Bar — animated
-        _svgBars+='<rect x="'+x+'" y="'+y+'" width="'+_bW+'" height="'+bh+'" rx="7" fill="url(#'+(isMax?'gMax':'gBar')+')" style="cursor:pointer" onclick="window._showMeetingMonth(\''+mo.key+'\')"'+
-          ' onmouseover="this.setAttribute(\'opacity\',\'0.8\')" onmouseout="this.setAttribute(\'opacity\',\'1\')">'+
-          '<animate attributeName="height" from="0" to="'+bh+'" dur="0.5s" begin="'+(i*0.08)+'s" fill="freeze" calcMode="spline" keySplines="0.22 1 0.36 1" keyTimes="0;1"/>'+
-          '<animate attributeName="y" from="'+_base+'" to="'+y+'" dur="0.5s" begin="'+(i*0.08)+'s" fill="freeze" calcMode="spline" keySplines="0.22 1 0.36 1" keyTimes="0;1"/>'+
-        '</rect>';
-        // Value label
-        if(isMax){
-          _svgBars+='<text x="'+cx+'" y="'+(y-20)+'" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="9" font-weight="700" fill="#0891b2">▲ máx</text>';
-        }
-        _svgBars+='<text x="'+cx+'" y="'+(y-(isMax?9:8))+'" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="'+(isMax?'17':'15')+'" font-weight="900" fill="'+(isMax?'#0891b2':'#1e40af')+'">'+v+'</text>';
-      } else {
-        _svgBars+='<text x="'+cx+'" y="'+(_base-10)+'" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="12" fill="#e2e8f0">—</text>';
-      }
-      // Month name
-      _svgBars+='<text x="'+cx+'" y="'+(_base+17)+'" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" font-weight="700" fill="#475569">'+_MCOR[mo.m]+'</text>';
-      _svgBars+='<text x="'+cx+'" y="'+(_base+31)+'" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="9" fill="#94a3b8">'+mo.y+'</text>';
-      // Click zone (invisible, full column height)
-      if(v>0) _svgBars+='<rect x="'+x+'" y="'+_padT+'" width="'+_bW+'" height="'+_iH+'" fill="transparent" style="cursor:pointer" onclick="window._showMeetingMonth(\''+mo.key+'\')"/>';
-    });
-
-    // Trend line + dots (dashed, over bars)
-    var _trend='';
-    if(_trendPts.length>=2){
-      var _polyPts=_trendPts.map(function(p){return p.x+','+p.y;}).join(' ');
-      _trend='<polyline points="'+_polyPts+'" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-dasharray="6,4" pointer-events="none"/>';
-      _trendPts.forEach(function(p){
-        _trend+='<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#fff" opacity="0.7" pointer-events="none"/>';
-      });
-    }
-
-    var _reunChartHtml=
-      '<div style="margin-bottom:1.1rem;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(10,45,110,.12)">'+
-        // Header dark
-        '<div style="background:linear-gradient(120deg,#0a2d6e 0%,#1455a4 60%,#1e6abf 100%);padding:1.1rem 1.4rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">'+
-          '<div>'+
-            '<div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:.01em">Reuniones por mes</div>'+
-            '<div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:3px">Desde abril 2026 &middot; Clic en barra para ver desglose</div>'+
-          '</div>'+
-          '<div style="display:flex;gap:8px">'+
-            '<div style="background:rgba(255,255,255,.12);border-radius:10px;padding:8px 16px;text-align:center">'+
-              '<div style="font-size:26px;font-weight:900;color:#fff;line-height:1">'+_rTotal+'</div>'+
-              '<div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.07em;margin-top:2px">Total</div>'+
-            '</div>'+
-            '<div style="background:rgba(56,189,248,.18);border-radius:10px;padding:8px 16px;text-align:center;border:1px solid rgba(56,189,248,.35)">'+
-              '<div style="font-size:26px;font-weight:900;color:#38bdf8;line-height:1">'+_peakV+'</div>'+
-              '<div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.07em;margin-top:2px">Máx · '+(_peakIdx>=0&&_months[_peakIdx]?_MCOR[_months[_peakIdx].m]:'—')+'</div>'+
-            '</div>'+
-          '</div>'+
-        '</div>'+
-        // Chart body
-        '<div style="background:#fff;padding:1.1rem 1.25rem 1rem">'+
-          '<div style="overflow-x:auto">'+
-            '<svg viewBox="0 0 '+_cW+' '+_cH+'" xmlns="http://www.w3.org/2000/svg" style="display:block;min-width:'+Math.min(_cW,360)+'px;width:100%">'+
-              '<defs>'+
-                '<linearGradient id="gBar" x1="0" y1="0" x2="0" y2="1">'+
-                  '<stop offset="0%" stop-color="#2563eb"/>'+
-                  '<stop offset="100%" stop-color="#0a2d6e"/>'+
-                '</linearGradient>'+
-                '<linearGradient id="gMax" x1="0" y1="0" x2="0" y2="1">'+
-                  '<stop offset="0%" stop-color="#38bdf8"/>'+
-                  '<stop offset="100%" stop-color="#0284c7"/>'+
-                '</linearGradient>'+
-              '</defs>'+
-              _grid+_svgBars+_trend+
-            '</svg>'+
-          '</div>'+
-          (_months.length===0?'<div style="text-align:center;padding:2rem;color:#94a3b8;font-size:13px">Sin datos para mostrar</div>':'')+
-        '</div>'+
-      '</div>';
+    // ── Gráfico reuniones por mes ─────────────────────────────────
+    var _reunChartHtml = buildReunChart();
 
     var html=
       tabBreadcrumb(unitKey,'Inicio')+
@@ -1568,47 +1565,6 @@ async function renderInicio(unitKey) {
       var open=tb.style.display!=='none';
       tb.style.display=open?'none':'';
       if(ic) ic.textContent=open?'▶':'▼';
-    };
-
-    window._showMeetingMonth = function(key){
-      var MNOM=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-      var bucket=_reunByMonth[key]; if(!bucket) return;
-      var parts=key.split('-');
-      var lbl=MNOM[parseInt(parts[1],10)-1]+' '+parts[0];
-      var insts=bucket.insts; var total=bucket.total;
-      var rows=Object.keys(insts).sort(function(a,b){return insts[b]-insts[a];}).map(function(inst,i){
-        var n=insts[inst]; var pct=Math.round(n/total*100);
-        return '<tr style="border-bottom:1px solid #f0f4fb">'+
-          '<td style="padding:8px 12px;font-size:13px;color:#1c2333;font-weight:'+(i===0?'700':'400')+'">'+esc(inst)+'</td>'+
-          '<td style="padding:8px 12px;text-align:center;font-weight:700;color:#0a2d6e;font-size:13px">'+n+'</td>'+
-          '<td style="padding:8px 12px;font-size:12px;color:#64748b">'+
-            '<div style="background:#e8eef8;border-radius:20px;height:8px;width:120px;overflow:hidden">'+
-              '<div style="background:#1455a4;height:100%;width:'+pct+'%;border-radius:20px"></div>'+
-            '</div>'+
-          '</td>'+
-        '</tr>';
-      }).join('');
-      var body='<div style="margin-bottom:1rem;display:flex;gap:16px">'+
-        '<div style="text-align:center;flex:1;background:#f0f4fb;border-radius:10px;padding:12px">'+
-          '<div style="font-size:28px;font-weight:900;color:#0a2d6e;line-height:1">'+total+'</div>'+
-          '<div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:3px">Reuniones</div>'+
-        '</div>'+
-        '<div style="text-align:center;flex:1;background:#f0f4fb;border-radius:10px;padding:12px">'+
-          '<div style="font-size:28px;font-weight:900;color:#16a34a;line-height:1">'+Object.keys(insts).length+'</div>'+
-          '<div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:3px">Instituciones</div>'+
-        '</div>'+
-      '</div>'+
-      '<div style="overflow-x:auto">'+
-        '<table style="width:100%;border-collapse:collapse">'+
-          '<thead><tr style="background:#f4f7fd">'+
-            '<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">Institución</th>'+
-            '<th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">Reuniones</th>'+
-            '<th style="padding:8px 12px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em">%</th>'+
-          '</tr></thead>'+
-          '<tbody>'+rows+'</tbody>'+
-        '</table>'+
-      '</div>';
-      abrirModal('Reuniones — '+lbl, body);
     };
 
     app.innerHTML = html;
