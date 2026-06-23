@@ -1021,12 +1021,10 @@ async function renderLista(){
   var {data, error} = await sb.from('reuniones').select('*').order('created_at',{ascending:false});
   if(error){ cont.innerHTML='<div class="empty-state"><p style="color:#dc2626">Error al cargar. Verifique su conexión.</p></div>'; return; }
 
-  // Filtrar por unidad si viene ?unit= en la URL
-  if(_UNIT_PARAM){
-    data = (data||[]).filter(function(r){
-      try{ var t=JSON.parse(r.tema||'{}'); return (t.unit||'') === _UNIT_PARAM; }catch{ return false; }
-    });
-  }
+  // Aislar reuniones por unidad para que no se crucen entre módulos
+  data = (data||[]).filter(function(r){
+    try{ var u=JSON.parse(r.tema||'{}').unit||''; return u === _UNIT_PARAM; }catch{ return !_UNIT_PARAM; }
+  });
 
   var _ses=window.DIGER_SESSION;
   var _isDigerSes = _ses && (_ses.institucion||'').trim().toUpperCase() === 'DIGER';
