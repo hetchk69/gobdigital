@@ -1500,6 +1500,9 @@ function toggleTipoOtro(){
   // Tab 4 (Capacitación) solo cuando el tipo es Capacitación
   var esCap = tipo === 'Capacitación';
   document.getElementById('ev-si-4').style.display = esCap ? '' : 'none';
+  // Renumerar paso 5: si tab 4 está oculto, el cierre pasa a ser paso 4
+  var snum5 = document.querySelector('#ev-si-5 .ev-snum');
+  if(snum5) snum5.textContent = esCap ? '5' : '4';
   // Evidencia fotográfica y resultados solo para Capacitación y Taller
   var tieneEvidencia = tipo === 'Capacitación' || tipo === 'Taller';
   document.getElementById('foto-card').style.display = tieneEvidencia ? '' : 'none';
