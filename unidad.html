@@ -2533,7 +2533,10 @@ window._closeInterop = function(){
 };
 window._openDesglose = function(){
   var fr = document.getElementById('_desglose-frame');
-  if(!fr.src || fr.src === 'about:blank') fr.src = 'tramites_nac.html';
+  if(!fr.getAttribute('data-loaded')){
+    fr.src = 'tramites_nac.html';
+    fr.setAttribute('data-loaded','1');
+  }
   document.getElementById('_desglose-overlay').classList.add('open');
 };
 window._closeDesglose = function(){
