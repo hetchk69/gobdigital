@@ -2526,10 +2526,10 @@ window._ssNext = function(){ _ssIdx = (_ssIdx+1)%_SS_DATA.length; _ssRender(); }
 window._ssGo   = function(i){ _ssIdx=i; _ssRender(); };
 window._closeSlide = function(){ document.getElementById('_slide-overlay').classList.remove('open'); };
 window._openInterop = function(){
-  document.getElementById('_interop-overlay').classList.add('open');
+  document.getElementById('_interop-overlay').style.display = 'flex';
 };
 window._closeInterop = function(){
-  document.getElementById('_interop-overlay').classList.remove('open');
+  document.getElementById('_interop-overlay').style.display = 'none';
 };
 window._openDesglose = function(){
   var fr = document.getElementById('_desglose-frame');
@@ -2544,7 +2544,7 @@ window._closeDesglose = function(){
 };
 document.addEventListener('keydown', function(e){
   if(e.key==='Escape'){
-    if(document.getElementById('_interop-overlay').classList.contains('open')){ window._closeInterop(); return; }
+    if(document.getElementById('_interop-overlay').style.display==='flex'){ window._closeInterop(); return; }
     if(document.getElementById('_desglose-overlay').style.display==='flex'){ window._closeDesglose(); return; }
     var ov = document.getElementById('_slide-overlay');
     if(ov && ov.classList.contains('open')) window._closeSlide();
@@ -2558,7 +2558,7 @@ boot();
 </script>
 
 <!-- ══ INTEROPERABILIDAD MODAL ══ -->
-<div class="slide-overlay" id="_interop-overlay" onclick="if(event.target===this)window._closeInterop()" style="z-index:8100">
+<div id="_interop-overlay" onclick="if(event.target===this)window._closeInterop()" style="display:none;position:fixed;inset:0;background:rgba(5,12,35,.88);z-index:8100;align-items:center;justify-content:center">
   <div style="background:#0a1a3e;border-radius:18px;max-width:min(1020px,96vw);width:100%;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)">
     <div class="slide-head">
       <span class="slide-head-title">Interoperabilidad Institucional</span>
