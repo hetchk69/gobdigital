@@ -2245,7 +2245,7 @@ function _renderDirectorio(q){
     var chk = _dirSelected[key] ? 'checked' : '';
     var tag = yaEsta ? '<span style="font-size:10px;background:#dcfce7;color:#15803d;padding:1px 8px;border-radius:8px;font-weight:700;margin-left:6px">Ya registrado</span>' : '';
     var dis = yaEsta ? 'opacity:.45;pointer-events:none' : 'cursor:pointer';
-    return '<label style="display:flex;align-items:center;gap:12px;padding:.55rem .25rem;border-bottom:1px solid #f1f5f9;'+dis+'" onclick="_dirToggle('+i+')">' +
+    return '<label style="display:flex;align-items:center;gap:12px;padding:.55rem .25rem;border-bottom:1px solid #f1f5f9;'+dis+'" onclick="_dirToggle('+i+');event.preventDefault()">' +
       '<input type="checkbox" id="_dc-'+i+'" '+chk+' '+(yaEsta?'disabled':'')+' style="width:15px;height:15px;flex-shrink:0;pointer-events:none">' +
       '<div style="flex:1;min-width:0">' +
         '<div style="font-size:13px;font-weight:600;color:#1c2333;line-height:1.3">'+esc(c.nombre||'—')+tag+'</div>' +
