@@ -474,14 +474,11 @@ input[type=file].hidden{display:none}
               <label>Tipo de Capacitación / Evento *</label>
               <select id="g-tipo" onchange="toggleTipoOtro()">
                 <option value="">— Seleccione —</option>
-                <option>Taller</option>
-                <option>Seminario</option>
-                <option>Charla informativa</option>
-                <option>Curso</option>
+                <option>Capacitación</option>
+                <option>Reunión de seguimiento</option>
                 <option>Reunión técnica</option>
-                <option>Capacitación en el lugar de trabajo</option>
-                <option>Inducción</option>
-                <option>Conferencia</option>
+                <option>Acompañamiento</option>
+                <option>Taller</option>
                 <option>Otro</option>
               </select>
             </div>
@@ -489,18 +486,6 @@ input[type=file].hidden{display:none}
           <div class="field" id="field-tipo-otro" style="display:none">
             <label>Describa el tipo de evento</label>
             <input type="text" id="g-tipo-otro" placeholder="De qué se trata este evento...">
-          </div>
-          <!-- ¿Es capacitación de plataforma? -->
-          <div class="field" style="margin-top:.6rem">
-            <label>¿Es una capacitación de plataforma?</label>
-            <div style="display:flex;gap:18px;margin-top:6px">
-              <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a1a">
-                <input type="radio" name="es-cap-plat" id="es-cap-si" value="si">Sí
-              </label>
-              <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a1a">
-                <input type="radio" name="es-cap-plat" id="es-cap-no" value="no" checked>No
-              </label>
-            </div>
           </div>
           <div class="err-msg" id="gen-err" style="display:block"></div>
           <!-- Botón guardar generales (nuevo evento) -->
@@ -656,7 +641,7 @@ input[type=file].hidden{display:none}
       <div class="ev-panel" id="evp5">
 
         <!-- EVIDENCIA FOTOGRÁFICA -->
-        <div class="card">
+        <div class="card" id="foto-card" style="display:none">
           <div class="stitle">Evidencia fotográfica</div>
           <div class="foto-grid">
             <div class="foto-box">
@@ -1353,12 +1338,6 @@ function colectarDatosCap(){
 
 function cargarDatosCap(cap){
   if(!cap) return;
-  // Restaurar toggle capacitación
-  var esCap=!!cap.es_cap_plataforma;
-  var siEl=document.getElementById('es-cap-si'), noEl=document.getElementById('es-cap-no');
-  if(siEl) siEl.checked=esCap;
-  if(noEl) noEl.checked=!esCap;
-  toggleCapacitacion();
   sv('cap-tema',cap.tema||''); sv('cap-objetivo',cap.objetivo||'');
   sv('ep-nombre',cap.ep_nombre||''); sv('ep-cargo',cap.ep_cargo||'');
   sv('ep-correo',cap.ep_correo||''); setTelValue('ep-tel',cap.ep_tel||'');
@@ -1526,12 +1505,18 @@ function calcPct(){
 
 // ── TOGGLES ───────────────────────────────────────────────────
 function toggleModalidadOtro(){ document.getElementById('field-modalidad-otro').style.display=gv('g-modalidad')==='Otro'?'block':'none'; }
-function toggleTipoOtro(){ document.getElementById('field-tipo-otro').style.display=gv('g-tipo')==='Otro'?'block':'none'; }
-function toggleCapacitacion(){
-  // cap-section and resultados-section are now always visible inside their dedicated panels
-  // This function kept for compatibility with cargarDatosCap / aplicarTranscripcion calls
+function toggleTipoOtro(){
+  var tipo = gv('g-tipo');
+  document.getElementById('field-tipo-otro').style.display = tipo === 'Otro' ? 'block' : 'none';
+  // Tab 4 (Capacitación) solo cuando el tipo es Capacitación
+  var esCap = tipo === 'Capacitación';
+  document.getElementById('ev-si-4').style.display = esCap ? '' : 'none';
+  // Evidencia fotográfica solo para Capacitación y Taller
+  var tieneEvidencia = tipo === 'Capacitación' || tipo === 'Taller';
+  document.getElementById('foto-card').style.display = tieneEvidencia ? '' : 'none';
 }
-function getEsCap(){ return document.getElementById('es-cap-si')&&document.getElementById('es-cap-si').checked; }
+function toggleCapacitacion(){ /* kept for compat */ }
+function getEsCap(){ return gv('g-tipo') === 'Capacitación'; }
 
 // ── ENVIAR ────────────────────────────────────────────────────
 async function enviarRegistro(){
@@ -1954,6 +1939,7 @@ function reiniciarForm(){
   window._lastTxt=null;
   asisCache=[];
   if(realtimeCh){sb.removeChannel(realtimeCh);realtimeCh=null;}
+  toggleTipoOtro();
 }
 
 function ocultarMensajes(){ document.getElementById('global-ok').style.display='none'; document.getElementById('global-err').style.display='none'; document.getElementById('gen-err').style.display='none'; }
@@ -1985,8 +1971,16 @@ function goEvStep(n){
   if(cont) cont.scrollTop = 0;
 }
 
-function evPrev(){ if(currentEvStep > 1) goEvStep(currentEvStep - 1); }
-function evNext(){ if(currentEvStep < 5) goEvStep(currentEvStep + 1); }
+function evPrev(){
+  var prev = currentEvStep - 1;
+  if(prev === 4 && !getEsCap()) prev = 3;
+  if(prev >= 1) goEvStep(prev);
+}
+function evNext(){
+  var next = currentEvStep + 1;
+  if(next === 4 && !getEsCap()) next = 5;
+  if(next <= 5) goEvStep(next);
+}
 
 async function autoGuardarSilente(){
   if(!currentId){
@@ -2101,7 +2095,7 @@ function genId(){ return 'PE-'+(+new Date).toString(36).toUpperCase()+'-'+Math.r
 // ── TRANSCRIPCIÓN ─────────────────────────────────────────────
 
 var _MODALIDADES_VALIDAS=['Presencial','Virtual','Híbrida','Otro'];
-var _TIPOS_VALIDOS=['Taller','Seminario','Charla informativa','Curso','Reunión técnica','Capacitación en el lugar de trabajo','Inducción','Conferencia','Otro'];
+var _TIPOS_VALIDOS=['Capacitación','Reunión de seguimiento','Reunión técnica','Acompañamiento','Taller','Otro'];
 
 function aplicarTranscripcion(){
   var raw=document.getElementById('tr-input').value.trim();
@@ -2171,10 +2165,6 @@ function aplicarTranscripcion(){
     }
     toggleTipoOtro();
   }
-
-  // Siempre: NO capacitación de plataforma
-  var capNo=document.getElementById('es-cap-no');
-  if(capNo){ capNo.checked=true; toggleCapacitacion(); }
 
   // Acuerdos
   if(Array.isArray(d.acuerdos) && d.acuerdos.length){
