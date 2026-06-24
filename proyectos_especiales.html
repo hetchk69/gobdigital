@@ -675,8 +675,8 @@ input[type=file].hidden{display:none}
           </div>
         </div>
 
-        <!-- RESULTADOS (siempre visible en este panel) -->
-        <div id="resultados-section">
+        <!-- RESULTADOS (solo capacitación y taller) -->
+        <div id="resultados-section" style="display:none">
         <div class="card">
           <div class="stitle">Resultados de la capacitación</div>
           <table class="rtable">
@@ -684,17 +684,6 @@ input[type=file].hidden{display:none}
             <tr><td class="rlbl">Número de participantes asistentes:</td><td><input type="number" id="r-asistentes" placeholder="0" min="0" oninput="calcPct()"></td></tr>
             <tr><td class="rlbl">Porcentaje de asistencia:</td><td><input type="text" id="r-pct" placeholder="Automático" readonly style="color:#6b7fa3"></td></tr>
             <tr><td class="rlbl">Nivel de satisfacción (%):<span class="note">*Calificado por el enlace institucional</span></td><td><input type="number" id="r-satisfaccion" placeholder="0 – 100" min="0" max="100"></td></tr>
-            <tr>
-              <td class="rlbl" style="vertical-align:top;padding-top:12px">Compromisos / Próximos pasos:</td>
-              <td>
-                <div style="display:flex;flex-direction:column;gap:7px;padding:4px 0">
-                  <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">1.</span><input type="text" id="com1" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
-                  <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">2.</span><input type="text" id="com2" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
-                  <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">3.</span><input type="text" id="com3" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
-                  <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:#9aadcc;font-weight:700;flex-shrink:0;min-width:18px">4.</span><input type="text" id="com4" placeholder="Compromiso o próximo paso" style="flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12.5px;font-family:inherit;background:#fafbfd"></div>
-                </div>
-              </td>
-            </tr>
           </table>
         </div>
         </div><!-- /resultados-section -->
@@ -1511,9 +1500,10 @@ function toggleTipoOtro(){
   // Tab 4 (Capacitación) solo cuando el tipo es Capacitación
   var esCap = tipo === 'Capacitación';
   document.getElementById('ev-si-4').style.display = esCap ? '' : 'none';
-  // Evidencia fotográfica solo para Capacitación y Taller
+  // Evidencia fotográfica y resultados solo para Capacitación y Taller
   var tieneEvidencia = tipo === 'Capacitación' || tipo === 'Taller';
   document.getElementById('foto-card').style.display = tieneEvidencia ? '' : 'none';
+  document.getElementById('resultados-section').style.display = tieneEvidencia ? '' : 'none';
 }
 function toggleCapacitacion(){ /* kept for compat */ }
 function getEsCap(){ return gv('g-tipo') === 'Capacitación'; }
@@ -1939,6 +1929,7 @@ function reiniciarForm(){
   window._lastTxt=null;
   asisCache=[];
   if(realtimeCh){sb.removeChannel(realtimeCh);realtimeCh=null;}
+  document.getElementById('resultados-section').style.display='none';
   toggleTipoOtro();
 }
 
