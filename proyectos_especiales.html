@@ -542,6 +542,7 @@ input[type=file].hidden{display:none}
           <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
             <button class="btns btn-sm" onclick="descargarExcelAsis()">⬇ Descargar Excel</button>
             <button class="btn-danger btn-sm" id="btn-borrar-reg" onclick="borrarRegistros()">Borrar registros</button>
+            <button class="btns btn-sm" onclick="abrirDirectorioModal()">👥 Agregar del directorio</button>
           </div>
           <div class="tbl-wrap">
             <table class="atbl">
@@ -2188,7 +2189,125 @@ function aplicarTranscripcion(){
   document.getElementById('tr-input').value='';
   document.getElementById('g-titulo').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+
+// ── DIRECTORIO MODAL ──────────────────────────────────────────
+var _dirContacts = null;
+var _dirSelected = {};
+var _dirFiltered = [];
+
+async function abrirDirectorioModal(){
+  if(!currentId){ alert('Seleccione o guarde un evento primero.'); return; }
+  _dirSelected = {};
+  document.getElementById('_dir-overlay').style.display = 'flex';
+  document.getElementById('_dir-search').value = '';
+  document.getElementById('_dir-sel-count').textContent = '0 seleccionados';
+  var btn = document.getElementById('_dir-add-btn');
+  btn.disabled = false; btn.textContent = 'Agregar seleccionados';
+  if(!_dirContacts){
+    document.getElementById('_dir-list').innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;font-size:13px">Cargando directorio…</div>';
+    await _cargarDirectorio();
+  }
+  _renderDirectorio('');
+}
+
+function _cerrarDirectorio(){
+  document.getElementById('_dir-overlay').style.display = 'none';
+}
+
+async function _cargarDirectorio(){
+  var {data:manuales} = await sb.from('contactos_manuales').select('nombre,correo,cargo,institucion,telefono').order('nombre');
+  var {data:asis} = await sb.from('asistencias').select('nombre,correo,cargo,institucion,telefono');
+  var map = {};
+  (asis||[]).forEach(function(c){ if(c.correo) map[c.correo.toLowerCase()] = c; });
+  (manuales||[]).forEach(function(c){ if(c.correo) map[c.correo.toLowerCase()] = c; });
+  _dirContacts = Object.values(map).sort(function(a,b){ return (a.nombre||'').localeCompare(b.nombre||'','es'); });
+}
+
+function _renderDirectorio(q){
+  var list = document.getElementById('_dir-list');
+  if(!_dirContacts){ list.innerHTML = ''; return; }
+  var yaReg = {};
+  (asisCache||[]).forEach(function(a){ if(a.correo) yaReg[a.correo.toLowerCase()] = true; });
+  var q2 = (q||'').toLowerCase().trim();
+  _dirFiltered = _dirContacts.filter(function(c){
+    if(!q2) return true;
+    return (c.nombre||'').toLowerCase().includes(q2) ||
+           (c.institucion||'').toLowerCase().includes(q2) ||
+           (c.correo||'').toLowerCase().includes(q2);
+  });
+  if(!_dirFiltered.length){
+    list.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;font-size:13px">No se encontraron contactos</div>';
+    return;
+  }
+  list.innerHTML = _dirFiltered.map(function(c,i){
+    var key = (c.correo||'').toLowerCase();
+    var yaEsta = !!yaReg[key];
+    var chk = _dirSelected[key] ? 'checked' : '';
+    var tag = yaEsta ? '<span style="font-size:10px;background:#dcfce7;color:#15803d;padding:1px 8px;border-radius:8px;font-weight:700;margin-left:6px">Ya registrado</span>' : '';
+    var dis = yaEsta ? 'opacity:.45;pointer-events:none' : 'cursor:pointer';
+    return '<label style="display:flex;align-items:center;gap:12px;padding:.55rem .25rem;border-bottom:1px solid #f1f5f9;'+dis+'" onclick="_dirToggle('+i+')">' +
+      '<input type="checkbox" id="_dc-'+i+'" '+chk+' '+(yaEsta?'disabled':'')+' style="width:15px;height:15px;flex-shrink:0;pointer-events:none">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:13px;font-weight:600;color:#1c2333;line-height:1.3">'+esc(c.nombre||'—')+tag+'</div>' +
+        '<div style="font-size:11px;color:#64748b;margin-top:1px">'+esc(c.institucion||'—')+' · '+esc(c.correo||'—')+'</div>' +
+      '</div>' +
+    '</label>';
+  }).join('');
+}
+
+function _dirToggle(idx){
+  var c = _dirFiltered[idx];
+  if(!c) return;
+  var key = (c.correo||'').toLowerCase();
+  if(_dirSelected[key]) delete _dirSelected[key];
+  else _dirSelected[key] = c;
+  var cb = document.getElementById('_dc-'+idx);
+  if(cb) cb.checked = !!_dirSelected[key];
+  var n = Object.keys(_dirSelected).length;
+  document.getElementById('_dir-sel-count').textContent = n+' seleccionado'+(n!==1?'s':'');
+}
+
+async function _agregarDesdeDirectorio(){
+  var sel = Object.values(_dirSelected);
+  if(!sel.length){ alert('Seleccione al menos un contacto.'); return; }
+  if(!currentId){ alert('No hay evento activo.'); return; }
+  var btn = document.getElementById('_dir-add-btn');
+  btn.disabled = true; btn.textContent = 'Agregando…';
+  for(var i=0;i<sel.length;i++){
+    var c = sel[i];
+    await sb.from('asistencias').insert({
+      reunion_id: currentId,
+      nombre: c.nombre||'—',
+      correo: c.correo||'—',
+      cargo: c.cargo||'—',
+      institucion: c.institucion||'—',
+      telefono: c.telefono||'—'
+    });
+  }
+  _cerrarDirectorio();
+}
 </script>
+
+<!-- DIRECTORIO MODAL -->
+<div id="_dir-overlay" onclick="if(event.target===this)_cerrarDirectorio()" style="display:none;position:fixed;inset:0;z-index:9200;background:rgba(8,25,70,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#fff;border-radius:16px;max-width:620px;width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(8,25,70,.3)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1.5px solid #dde4f0;background:linear-gradient(135deg,#edf4ff,#f7fbff);border-radius:16px 16px 0 0;flex-shrink:0">
+      <div style="font-size:15px;font-weight:800;color:#0a2d6e">👥 Agregar participantes del directorio</div>
+      <button onclick="_cerrarDirectorio()" style="background:none;border:1.5px solid #dde4f0;color:#64748b;border-radius:9px;width:34px;height:34px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <div style="padding:.75rem 1.25rem;border-bottom:1px solid #eef1f7;flex-shrink:0">
+      <input id="_dir-search" type="text" placeholder="Buscar por nombre, institución o correo…" oninput="_renderDirectorio(this.value)" style="width:100%;padding:9px 13px;border:1.5px solid #dde4f0;border-radius:9px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
+    </div>
+    <div id="_dir-list" style="flex:1;overflow-y:auto;padding:.5rem 1rem;min-height:0"></div>
+    <div style="padding:.875rem 1.25rem;border-top:1.5px solid #dde4f0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#f8fbff;border-radius:0 0 16px 16px">
+      <span id="_dir-sel-count" style="font-size:12px;color:#64748b;font-weight:600">0 seleccionados</span>
+      <div style="display:flex;gap:8px">
+        <button onclick="_cerrarDirectorio()" style="padding:9px 18px;background:#f1f5f9;color:#64748b;border:1px solid #dde4f0;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">Cancelar</button>
+        <button id="_dir-add-btn" onclick="_agregarDesdeDirectorio()" style="padding:9px 22px;background:linear-gradient(135deg,#1455a4,#0a2d6e);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">Agregar seleccionados</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
