@@ -2807,6 +2807,20 @@ document.addEventListener('keydown', function(e){
 });
 
 // ── ARRANQUE (al final: todas las var ya están asignadas) ─────────
+function resetOverlays() {
+  var ids = ['_interop-overlay','_desglose-overlay','_slide-overlay'];
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (id === '_slide-overlay') el.classList.remove('open');
+    else el.style.display = 'none';
+  });
+  document.body.style.overflow = '';
+}
+// Resetear overlays al restaurar desde bfcache (back/forward)
+window.addEventListener('pageshow', function(e){
+  if (e.persisted) resetOverlays();
+});
 boot();
 </script>
 
