@@ -206,6 +206,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
   font-size:11.5px;cursor:pointer;transition:all .2s;
 }
 .btn-rm:hover{border-color:var(--rojo);color:var(--rojo);background:#fff5f5}
+.btn-edit{
+  background:#fff;border:1.5px solid var(--borde);
+  color:var(--azul-m);border-radius:7px;padding:5px 10px;
+  font-size:11.5px;cursor:pointer;transition:all .2s;
+}
+.btn-edit:hover{border-color:var(--azul-m);background:#edf4ff}
 .empty{padding:1.5rem;text-align:center;color:var(--muted);font-size:13px}
 /* ── INSTITUTION PORTAL ── */
 .inst-header{background:linear-gradient(135deg,var(--azul),var(--azul-m));color:#fff;border-radius:14px;padding:1.4rem 1.8rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1rem}
@@ -562,6 +568,27 @@ async function deleteDigerAccess(email) {
   await sb.from('diger_tram').upsert({ key: 'diger_access', value: DIGER_ACCESS });
 }
 
+// Acceso a módulos para usuarios de instituciones no-DIGER (KV en diger_tram)
+var INST_ACCESS = {};
+var INST_UNIDADES = [
+  { key: 'levantamiento_reunion',     label: 'Levantamiento de Reunión' },
+  { key: 'expediente_digitalizacion', label: 'Expediente de Digitalización' },
+  { key: 'directorio',                label: 'Directorio de Contactos' },
+  { key: 'calendario',                label: 'Calendario' }
+];
+async function loadInstAccess() {
+  var res = await sb.from('diger_tram').select('value').eq('key','inst_access').maybeSingle();
+  INST_ACCESS = (res.data && res.data.value) || {};
+}
+async function saveInstAccess(email, modulos) {
+  INST_ACCESS[email] = { modulos: modulos };
+  await sb.from('diger_tram').upsert({ key: 'inst_access', value: INST_ACCESS });
+}
+async function deleteInstAccess(email) {
+  delete INST_ACCESS[email];
+  await sb.from('diger_tram').upsert({ key: 'inst_access', value: INST_ACCESS });
+}
+
 // ── ROUTING ─────────────────────────────────────────────────────
 var params = new URLSearchParams(window.location.search);
 var unitParam = params.get('u');    // 'proyectos' | 'digitalizacion' | 'talento' | null
@@ -621,7 +648,10 @@ function renderSelector() {
     renderInstAreas('diger');
     return;
   }
-  renderInstitucionPortal();
+  // Cargar acceso institucional antes de renderizar el portal
+  var app = document.getElementById('app');
+  app.innerHTML = '<div style="padding:3rem;text-align:center;color:var(--muted)">Cargando...</div>';
+  loadInstAccess().then(function(){ renderInstitucionPortal(); });
 }
 
 // ────────────────────────────────────────────────────────────────
@@ -2228,12 +2258,20 @@ async function renderTablaCoord() {
   var inst    = MANAGED_INST || ses.institucion || '';
   var esDigerInst = inst.toUpperCase() === 'DIGER';
   var tbody   = document.getElementById('coord-tbody');
+  var thead   = document.getElementById('coord-thead');
   var empty   = document.getElementById('coord-empty');
   if (!tbody) return;
-  var colSpan = esDigerInst ? 5 : 3;
+  var colSpan = esDigerInst ? 5 : 4;
   tbody.innerHTML = '<tr><td colspan="'+colSpan+'" style="text-align:center;color:var(--muted);padding:1rem">Cargando...</td></tr>';
   var cfg = await loadConfig();
   if (esDigerInst) await loadDigerAccess();
+  else await loadInstAccess();
+  // Update thead columns
+  if (thead) {
+    thead.innerHTML = esDigerInst
+      ? '<tr><th>Correo</th><th>Rol</th><th>Área</th><th>Unidad</th><th></th></tr>'
+      : '<tr><th>Correo</th><th>Rol</th><th>Módulos</th><th></th></tr>';
+  }
   var subusers = Object.keys(cfg).filter(function(e){
     return cfg[e].institucion === inst && cfg[e].role !== 'coordinador';
   });
@@ -2243,18 +2281,34 @@ async function renderTablaCoord() {
   subusers.forEach(function(email) {
     var u   = cfg[email];
     var rol = u.role || 'colaborador';
-    var acc = esDigerInst ? (DIGER_ACCESS[email] || {}) : null;
-    var areaLabel   = acc && acc.area   ? (AREA_LABELS[acc.area]   || acc.area)   : '—';
-    var unidadLabel = acc && acc.unidad ? (UNITS[acc.unidad] ? UNITS[acc.unidad].label : acc.unidad) : '—';
     var tr = document.createElement('tr');
-    tr.innerHTML =
-      '<td class="email-cell">'+esc(email)+'</td>'+
-      '<td><span class="role-badge role-'+rol+'">'+esc(ROL_LABELS[rol]||rol)+'</span></td>'+
-      (esDigerInst
-        ? '<td style="font-size:12px;color:var(--muted)">'+esc(areaLabel)+'</td>'+
-          '<td style="font-size:12px;color:var(--muted)">'+esc(unidadLabel)+'</td>'
-        : '')+
-      '<td><button class="btn-rm" onclick="eliminarSubusuario(\''+esc(email)+'\')">Eliminar</button></td>';
+    if (esDigerInst) {
+      var acc = DIGER_ACCESS[email] || {};
+      var areaLabel   = acc.area   ? (AREA_LABELS[acc.area]   || acc.area)   : '—';
+      var unidadLabel = acc.unidad ? (UNITS[acc.unidad] ? UNITS[acc.unidad].label : acc.unidad) : '—';
+      tr.innerHTML =
+        '<td class="email-cell">'+esc(email)+'</td>'+
+        '<td><span class="role-badge role-'+rol+'">'+esc(ROL_LABELS[rol]||rol)+'</span></td>'+
+        '<td style="font-size:12px;color:var(--muted)">'+esc(areaLabel)+'</td>'+
+        '<td style="font-size:12px;color:var(--muted)">'+esc(unidadLabel)+'</td>'+
+        '<td><button class="btn-rm" onclick="eliminarSubusuario(\''+esc(email)+'\')">Eliminar</button></td>';
+    } else {
+      var iacc = INST_ACCESS[email] || {};
+      var modLabel = iacc.modulos && iacc.modulos.length
+        ? iacc.modulos.map(function(k){
+            var u2 = INST_UNIDADES.filter(function(x){ return x.key===k; })[0];
+            return u2 ? u2.label : k;
+          }).join(', ')
+        : 'Todos';
+      tr.innerHTML =
+        '<td class="email-cell">'+esc(email)+'</td>'+
+        '<td><span class="role-badge role-'+rol+'">'+esc(ROL_LABELS[rol]||rol)+'</span></td>'+
+        '<td style="font-size:12px;color:var(--muted)">'+esc(modLabel)+'</td>'+
+        '<td style="white-space:nowrap">'+
+          '<button class="btn-edit" onclick="editarAccesoInst(\''+esc(email)+'\')" style="margin-right:4px">Editar</button>'+
+          '<button class="btn-rm" onclick="eliminarSubusuario(\''+esc(email)+'\')">Eliminar</button>'+
+        '</td>';
+    }
     tbody.appendChild(tr);
   });
 }
@@ -2274,7 +2328,13 @@ function abrirModalSubusuario() {
       '<select class="access-inp" id="su-unidad" style="width:100%">'+
         '<option value="">— Sin restricción (acceso a todas) —</option>'+
       '</select></div>'
-    : '';
+    : '<div class="modal-field"><label>Módulos habilitados</label>'+
+      '<div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">'+
+      INST_UNIDADES.map(function(u){
+        return '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;font-weight:normal">'+
+          '<input type="checkbox" class="su-mod-chk" value="'+esc(u.key)+'" checked>'+esc(u.label)+'</label>';
+      }).join('')+
+      '</div></div>';
   abrirModal('Agregar usuario — '+esc(instNombre),
     '<div class="modal-field"><label>Correo electrónico</label>'+
     '<input class="access-inp" type="email" id="su-email" placeholder="correo@institucion.gob.hn" style="width:100%"></div>'+
@@ -2318,13 +2378,19 @@ async function guardarSubusuario() {
   if (existe) { err.textContent='Este correo ya está registrado.'; err.style.display='block'; return; }
   var { error } = await upsertUser(email, rol, inst);
   if (error) { err.textContent='Error al guardar. Intente de nuevo.'; err.style.display='block'; return; }
-  // Guardar asignación de área/unidad para usuarios DIGER
+  // Guardar asignación de área/unidad (DIGER) o módulos (institucional)
   if (esDigerInst) {
     var areaEl  = document.getElementById('su-area');
     var unitEl  = document.getElementById('su-unidad');
     var area    = areaEl  ? areaEl.value  : '';
     var unidad  = unitEl  ? unitEl.value  : '';
     if (area || unidad) await saveDigerAccess(email, area, unidad);
+  } else {
+    var chks = document.querySelectorAll('.su-mod-chk');
+    var modulos = [];
+    chks.forEach(function(c){ if(c.checked) modulos.push(c.value); });
+    // Solo guardar si no está todo seleccionado (restricción real)
+    if (modulos.length < INST_UNIDADES.length) await saveInstAccess(email, modulos);
   }
   cerrarModal();
   renderTablaCoord();
@@ -2333,9 +2399,39 @@ async function guardarSubusuario() {
 async function eliminarSubusuario(email) {
   if (!confirm('¿Eliminar el acceso de ' + email + '?')) return;
   await deleteUser(email);
-  if ((MANAGED_INST || ses.institucion || '').toUpperCase() === 'DIGER') {
-    await deleteDigerAccess(email);
-  }
+  var inst = (MANAGED_INST || ses.institucion || '').toUpperCase();
+  if (inst === 'DIGER') await deleteDigerAccess(email);
+  else await deleteInstAccess(email);
+  renderTablaCoord();
+}
+
+async function editarAccesoInst(email) {
+  var iacc = INST_ACCESS[email] || {};
+  var current = iacc.modulos || INST_UNIDADES.map(function(u){ return u.key; });
+  var body =
+    '<div class="modal-field"><label>Módulos habilitados para <strong>'+esc(email)+'</strong></label>'+
+    '<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">'+
+    INST_UNIDADES.map(function(u){
+      var chk = current.indexOf(u.key) !== -1 ? 'checked' : '';
+      return '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;font-weight:normal">'+
+        '<input type="checkbox" class="ea-mod-chk" value="'+esc(u.key)+'" '+chk+'>'+esc(u.label)+'</label>';
+    }).join('')+
+    '</div></div>'+
+    '<div class="modal-foot">'+
+      '<button class="btn-ghost" onclick="cerrarModal()">Cancelar</button>'+
+      '<button class="btnp" onclick="guardarAccesoInst(\''+esc(email)+'\')">Guardar</button>'+
+    '</div>';
+  abrirModal('Editar acceso — '+esc(email), body);
+}
+
+async function guardarAccesoInst(email) {
+  var chks = document.querySelectorAll('.ea-mod-chk');
+  var modulos = [];
+  chks.forEach(function(c){ if(c.checked) modulos.push(c.value); });
+  if (modulos.length === 0) { alert('Seleccione al menos un módulo.'); return; }
+  if (modulos.length < INST_UNIDADES.length) await saveInstAccess(email, modulos);
+  else await deleteInstAccess(email); // sin restricción = borrar entrada
+  cerrarModal();
   renderTablaCoord();
 }
 
@@ -2346,15 +2442,26 @@ function renderInstitucionPortal() {
   if (!ses) { window.location.replace('index.html'); return; }
   var inst = ses.institucion || '';
   var rol  = ses.role || 'colaborador';
-  var acc  = ses.access || {};
   document.title = esc(inst) + ' — DIGER SOL';
 
-  // Módulos automáticos para todos los usuarios institucionales
-  var AUTO_KEYS = ['levantamiento_reunion'];
-  var accMods = ALL_MODULOS.filter(function(m){ return AUTO_KEYS.indexOf(m.key) !== -1; });
+  // Módulos permitidos para este usuario (coordinador ve todo)
+  var iacc = rol !== 'coordinador' ? (INST_ACCESS[ses.email] || {}) : {};
+  var allowedMods = iacc.modulos || null; // null = sin restricción
 
-  // Documentos fijos disponibles en el portal institucional
-  var docsInst = (UNITS.digitalizacion.documentosFijos || []);
+  function modPermitido(key) { return !allowedMods || allowedMods.indexOf(key) !== -1; }
+
+  // Módulos automáticos filtrados por acceso
+  var AUTO_KEYS = ['levantamiento_reunion'];
+  var accMods = ALL_MODULOS.filter(function(m){
+    return AUTO_KEYS.indexOf(m.key) !== -1 && modPermitido(m.key);
+  });
+
+  // Documentos fijos disponibles (directorio filtrado por acceso)
+  var docsInst = (UNITS.digitalizacion.documentosFijos || []).filter(function(d){
+    // El directorio de contactos usa la key 'directorio'
+    if ((d.url||'').indexOf('contactos.html') !== -1) return modPermitido('directorio');
+    return true;
+  });
 
   var INST_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
 
@@ -2407,7 +2514,8 @@ function renderInstitucionPortal() {
     html += '</div>';
   }
 
-  // Calendario — acceso directo desde el portal institucional
+  // Calendario — solo si tiene acceso
+  if (modPermitido('calendario')) {
   html += '<div class="sec-title" style="margin-top:1.5rem">Calendario</div>';
   html += '<div class="inst-mod-grid">';
   html +=
@@ -2420,6 +2528,7 @@ function renderInstitucionPortal() {
       '<div class="inst-mod-card-arr">›</div>' +
     '</a>';
   html += '</div>';
+  } // end if calendario
 
   // Documentos del sistema accesibles por la institución
   if (docsInst.length > 0) {
@@ -2454,7 +2563,7 @@ function renderInstitucionPortal() {
         '</div>' +
         '<div id="coord-table-wrap">' +
           '<table class="access-table">' +
-            '<thead><tr><th>Correo</th><th>Rol</th><th></th></tr></thead>' +
+            '<thead id="coord-thead"><tr><th>Correo</th><th>Rol</th><th>Módulos</th><th></th></tr></thead>' +
             '<tbody id="coord-tbody"></tbody>' +
           '</table>' +
           '<div class="empty" id="coord-empty">No hay usuarios registrados para esta institución.</div>' +
