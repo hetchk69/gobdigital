@@ -219,20 +219,14 @@ input[type=file].hidden{display:none}
   max-width:460px;width:100%;
   overflow:hidden;
 }
-/* Franja superior de color institucional */
+/* Encabezado institucional — fondo gris claro para que el logo sea visible */
 .pub-card-header{
-  background:linear-gradient(135deg,#0a2d6e 0%,#1455a4 100%);
+  background:#f0f2f6;
+  border-bottom:3px solid #0a2d6e;
   padding:1.75rem 2rem 1.5rem;
   text-align:center;
-  position:relative;
-  overflow:hidden;
 }
-.pub-card-header::after{
-  content:'';position:absolute;bottom:-1px;left:0;right:0;height:28px;
-  background:#fff;
-  clip-path:ellipse(55% 100% at 50% 100%);
-}
-.pub-card-body{padding:0 2rem 2rem}
+.pub-card-body{padding:1.5rem 2rem 2rem}
 /* Evento */
 .pub-event{
   background:#f8faff;
@@ -380,11 +374,10 @@ input[type=file].hidden{display:none}
 <div id="pub-wrap" class="pub-wrap" style="display:none">
   <div class="pub-card" id="pub-form-card">
 
-    <!-- Encabezado institucional con fondo azul -->
+    <!-- Encabezado institucional -->
     <div class="pub-card-header">
-      <img src="logo_diger-14.png" alt="DIGER" style="height:62px;width:auto;display:block;margin:0 auto .9rem;filter:drop-shadow(0 2px 8px rgba(0,0,0,.25))">
-      <div style="font-size:10px;font-weight:800;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em">Gobierno de la República de Honduras</div>
-      <div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.07em;margin-top:3px">Dirección de Gestión por Resultados</div>
+      <img src="logo_diger-14.png" alt="DIGER" style="height:68px;width:auto;display:block;margin:0 auto .85rem">
+      <div style="font-size:11px;font-weight:700;color:#1455a4;text-transform:uppercase;letter-spacing:.08em">Digitalización de Trámites — Gobierno Digital</div>
     </div>
 
     <!-- Cuerpo -->
@@ -412,40 +405,40 @@ input[type=file].hidden{display:none}
         <div class="pub-section-label">Datos de asistencia</div>
 
         <div class="pub-field">
-          <label>Nombre completo <span style="color:#e53e3e;font-size:10px">requerido</span></label>
+          <label>Nombre completo <span style="color:#dc2626">*</span></label>
           <input type="text" id="pub-nombre" placeholder="Nombre y apellidos" autocomplete="name">
         </div>
 
         <div class="pub-field">
-          <label>Correo electrónico <span style="color:#94a3b8;font-weight:500;font-size:10px;text-transform:none;letter-spacing:0">o teléfono — al menos uno</span></label>
+          <label>Correo electrónico</label>
           <input type="email" id="pub-correo" placeholder="correo@institucion.gob.hn" autocomplete="email">
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="pub-field" style="margin-bottom:0">
-            <label>Cargo / Función</label>
-            <input type="text" id="pub-cargo" placeholder="Cargo que ejerce" autocomplete="organization-title">
-          </div>
-          <div class="pub-field" style="margin-bottom:0">
-            <label>Teléfono</label>
-            <div class="tel-wrap">
-              <select class="tel-cc" id="pub-tel-cc" onchange="telCountryChange('pub-tel')">
-                <option value="HN" data-code="+504" data-mask="XXXX-XXXX"      data-len="8"  selected>HN</option>
-                <option value="GT" data-code="+502" data-mask="XXXX-XXXX"      data-len="8"        >GT</option>
-                <option value="SV" data-code="+503" data-mask="XXXX-XXXX"      data-len="8"        >SV</option>
-                <option value="NI" data-code="+505" data-mask="XXXX-XXXX"      data-len="8"        >NI</option>
-                <option value="CR" data-code="+506" data-mask="XXXX-XXXX"      data-len="8"        >CR</option>
-                <option value="PA" data-code="+507" data-mask="XXXX-XXXX"      data-len="8"        >PA</option>
-                <option value="MX" data-code="+52"  data-mask="XX XXXX-XXXX"   data-len="10"       >MX</option>
-                <option value="US" data-code="+1"   data-mask="(XXX) XXX-XXXX" data-len="10"       >US</option>
-                <option value="ES" data-code="+34"  data-mask="XXX XXX XXX"    data-len="9"        >ES</option>
-              </select>
-              <input type="tel" class="tel-num" id="pub-tel-num" placeholder="0000-0000" maxlength="15" oninput="telMask(this,'pub-tel')">
-            </div>
-          </div>
+        <div class="pub-field">
+          <label>Cargo / Función</label>
+          <input type="text" id="pub-cargo" placeholder="Cargo que desempeña" autocomplete="organization-title">
         </div>
 
-        <div class="pub-field" style="margin-top:1rem">
+        <div class="pub-field">
+          <label>Teléfono</label>
+          <input type="tel" class="tel-num" id="pub-tel-num" placeholder="0000-0000" maxlength="15"
+            oninput="telMask(this,'pub-tel')"
+            style="width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:#1e293b;transition:border .2s,box-shadow .2s;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:6px">
+          <select class="tel-cc" id="pub-tel-cc" onchange="telCountryChange('pub-tel')"
+            style="padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12.5px;font-family:inherit;background:#fff;color:#475569;cursor:pointer;outline:none;width:auto">
+            <option value="HN" data-code="+504" data-mask="XXXX-XXXX"      data-len="8"  selected>Honduras +504</option>
+            <option value="GT" data-code="+502" data-mask="XXXX-XXXX"      data-len="8"        >Guatemala +502</option>
+            <option value="SV" data-code="+503" data-mask="XXXX-XXXX"      data-len="8"        >El Salvador +503</option>
+            <option value="NI" data-code="+505" data-mask="XXXX-XXXX"      data-len="8"        >Nicaragua +505</option>
+            <option value="CR" data-code="+506" data-mask="XXXX-XXXX"      data-len="8"        >Costa Rica +506</option>
+            <option value="PA" data-code="+507" data-mask="XXXX-XXXX"      data-len="8"        >Panamá +507</option>
+            <option value="MX" data-code="+52"  data-mask="XX XXXX-XXXX"   data-len="10"       >México +52</option>
+            <option value="US" data-code="+1"   data-mask="(XXX) XXX-XXXX" data-len="10"       >EE.UU. +1</option>
+            <option value="ES" data-code="+34"  data-mask="XXX XXX XXX"    data-len="9"        >España +34</option>
+          </select>
+        </div>
+
+        <div class="pub-field">
           <label>Institución</label>
           <select id="pub-inst">
             <option value="">— Seleccione su institución —</option>
