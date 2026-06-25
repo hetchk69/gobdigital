@@ -70,23 +70,35 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
 .doc-header .form-title{font-size:14px;font-weight:800;color:#1a1a1a;margin-top:10px;text-transform:uppercase;letter-spacing:.03em}
 
 /* ── QR CARD ── */
-.qr-card{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:14px;padding:1.4rem;margin-bottom:1.1rem}
-.qr-label{font-size:11px;font-weight:800;color:#16a34a;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.9rem;display:flex;align-items:center;gap:6px}
-.qr-link-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
-.qr-link-inp{flex:1;min-width:180px;padding:9px 12px;border:1.5px solid #bbf7d0;border-radius:7px;font-size:12.5px;background:#fff;color:#166534;font-family:monospace}
-.btn-copy{padding:9px 16px;background:#16a34a;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer}
+.qr-card{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:14px;padding:1.25rem 1.4rem;margin-bottom:1.1rem}
+.qr-label{font-size:11px;font-weight:800;color:#16a34a;text-transform:uppercase;letter-spacing:.07em;margin-bottom:1rem;display:flex;align-items:center;gap:6px}
+/* Enlace */
+.qr-link-wrap{display:flex;gap:0;align-items:stretch;border:1.5px solid #bbf7d0;border-radius:9px;overflow:hidden;background:#fff;margin-bottom:.8rem}
+.qr-link-inp{flex:1;padding:10px 12px;border:none;font-size:12px;color:#166534;font-family:monospace;outline:none;background:transparent;min-width:0}
+.btn-copy{padding:9px 16px;background:#16a34a;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:opacity .15s}
 .btn-copy:hover{opacity:.88}
-.copy-ok{font-size:12px;font-weight:700;color:#16a34a;min-width:50px}
-.qr-section{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
-.qr-box{background:#fff;border:2px solid #bbf7d0;border-radius:12px;padding:14px;text-align:center;flex-shrink:0}
-.qr-box img{display:block;border-radius:6px}
-.qr-box-label{font-size:11px;font-weight:700;color:#16a34a;margin-top:8px;text-transform:uppercase;letter-spacing:.06em}
-.qr-actions{display:flex;flex-direction:column;gap:8px;justify-content:center}
-.btn-qr{padding:8px 16px;border-radius:7px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s;border:none;white-space:nowrap}
-.btn-qr-print{background:#16a34a;color:#fff}
-.btn-qr-print:hover{opacity:.88}
-.btn-qr-dl{background:#fff;border:1.5px solid #16a34a!important;color:#16a34a}
-.btn-qr-dl:hover{background:#dcfce7}
+.copy-ok{font-size:11.5px;font-weight:700;color:#16a34a;display:block;text-align:right;min-height:16px;margin-bottom:.75rem}
+/* Botones QR */
+.qr-btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn-qr{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;border:none;font-family:inherit;white-space:nowrap}
+.btn-qr-open{background:#16a34a;color:#fff;flex:1;justify-content:center}
+.btn-qr-open:hover{opacity:.88}
+.btn-qr-share{background:#fff;border:1.5px solid #bbf7d0;color:#16a34a;flex:1;justify-content:center}
+.btn-qr-share:hover{background:#f0fdf4}
+/* Modal QR */
+.qr-modal-ov{display:none;position:fixed;inset:0;background:rgba(5,15,40,.72);z-index:9500;align-items:center;justify-content:center;padding:1.5rem 1rem;backdrop-filter:blur(4px)}
+.qr-modal-ov.open{display:flex}
+.qr-modal{background:#fff;border-radius:24px;max-width:340px;width:100%;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.4);animation:modalIn .22s ease}
+@keyframes modalIn{from{transform:scale(.9) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.qr-modal-header{background:#f0f2f6;border-bottom:2px solid #0a2d6e;padding:1.1rem 1.5rem .9rem;text-align:center}
+.qr-modal-body{padding:1.5rem;text-align:center}
+.qr-modal-title{font-size:14px;font-weight:800;color:#0a2d6e;margin-bottom:3px;line-height:1.3}
+.qr-modal-meta{font-size:11px;color:#6b7fa3;margin-top:4px}
+.qr-modal-frame{background:linear-gradient(135deg,#eef4ff,#e8f0ff);border:2px solid #c8d8f4;border-radius:16px;padding:14px;display:inline-block;margin:1rem 0}
+.qr-modal-hint{font-size:12.5px;font-weight:700;color:#1455a4;margin-bottom:3px}
+.qr-modal-sub{font-size:11px;color:#94a3b8;margin-bottom:1.25rem}
+.qr-modal-close{width:100%;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-size:13px;font-weight:700;color:#475569;cursor:pointer;font-family:inherit;transition:background .15s}
+.qr-modal-close:hover{background:#e2e8f0}
 
 /* ── LIST ITEMS ── */
 .reg-list{display:grid;gap:10px}
@@ -639,22 +651,25 @@ input[type=file].hidden{display:none}
 
         <!-- QR CARD (visible después de guardar) -->
         <div class="qr-card" id="qr-panel" style="display:none">
-          <div class="qr-label">🔗 Enlace y QR para participantes</div>
-          <div class="qr-link-row">
+          <div class="qr-label">Enlace y QR para participantes</div>
+
+          <!-- Compartir enlace -->
+          <div class="qr-link-wrap">
             <input class="qr-link-inp" id="qr-link-inp" type="text" readonly>
             <button class="btn-copy" onclick="copiarLink()">Copiar</button>
-            <span class="copy-ok" id="copy-ok"></span>
           </div>
-          <div class="qr-section">
-            <div class="qr-box">
-              <img id="qr-img" src="" alt="QR" width="180" height="180">
-              <div class="qr-box-label">Escanear para registrarse</div>
-            </div>
-            <div class="qr-actions">
-              <button class="btn-qr btn-qr-print" onclick="imprimirQR()">🖨 Imprimir QR</button>
-              <button class="btn-qr btn-qr-dl" onclick="descargarQR()">⬇ Descargar QR</button>
-              <p style="font-size:11.5px;color:#166534;margin-top:8px;max-width:200px">Proyecte o imprima el QR para que los participantes se registren desde su celular.</p>
-            </div>
+          <span class="copy-ok" id="copy-ok"></span>
+
+          <!-- Botones QR -->
+          <div class="qr-btns">
+            <button class="btn-qr btn-qr-open" onclick="abrirModalQR()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="17" y="17" width="4" height="4"/></svg>
+              Abrir QR
+            </button>
+            <button class="btn-qr btn-qr-share" onclick="compartirEnlace()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Compartir enlace
+            </button>
           </div>
         </div>
       </div><!-- /evp1 -->
@@ -1296,8 +1311,38 @@ function mostrarQR(id){
   var base = window.location.origin + window.location.pathname.replace(/[^\/]*$/,'');
   var linkUrl = base + 'proyectos_especiales.html?reg=' + id;
   document.getElementById('qr-link-inp').value = linkUrl;
-  document.getElementById('qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(linkUrl);
+  document.getElementById('qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=210x210&data='+encodeURIComponent(linkUrl);
   document.getElementById('qr-panel').style.display='block';
+}
+
+function abrirModalQR(){
+  var titulo = (document.getElementById('ev-titulo-bar')||{}).textContent || gv('g-titulo') || '';
+  var fecha  = gv('g-fecha') || '';
+  var lugar  = gv('g-lugar') || '';
+  document.getElementById('qr-modal-titulo').textContent = titulo;
+  var meta = [fecha, lugar].filter(Boolean).join('  ·  ');
+  document.getElementById('qr-modal-meta').textContent = meta;
+  document.getElementById('qr-modal-ov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalQR(){
+  document.getElementById('qr-modal-ov').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function compartirEnlace(){
+  var url = (document.getElementById('qr-link-inp')||{}).value || '';
+  var titulo = (document.getElementById('ev-titulo-bar')||{}).textContent || 'Evento DIGER';
+  if(navigator.share){
+    navigator.share({ title: titulo, text: 'Registro de asistencia — '+titulo, url: url });
+  } else {
+    // Fallback: copiar al portapapeles
+    var inp = document.getElementById('qr-link-inp');
+    if(inp){ inp.select(); document.execCommand('copy'); }
+    var ok = document.getElementById('copy-ok');
+    if(ok){ ok.textContent = '✓ Enlace copiado'; setTimeout(function(){ ok.textContent=''; }, 2500); }
+  }
 }
 
 function actualizarBadgeEstado(activa){
@@ -2676,6 +2721,30 @@ async function _agregarDesdeDirectorio(){
 
 <!-- QR print-only area (hidden; populated by imprimirQR()) -->
 <div id="qr-print-area"></div>
+
+<!-- Modal QR -->
+<div id="qr-modal-ov" class="qr-modal-ov" onclick="if(event.target===this)cerrarModalQR()">
+  <div class="qr-modal">
+    <div class="qr-modal-header">
+      <img src="logo_diger-14.png" alt="DIGER" style="height:44px;width:auto;display:block;margin:0 auto .5rem">
+      <div style="font-size:10px;font-weight:700;color:#1455a4;text-transform:uppercase;letter-spacing:.07em">Digitalización de Trámites — Gobierno Digital</div>
+    </div>
+    <div class="qr-modal-body">
+      <div class="qr-modal-title" id="qr-modal-titulo"></div>
+      <div class="qr-modal-meta" id="qr-modal-meta"></div>
+      <div class="qr-modal-frame">
+        <img id="qr-img" src="" alt="QR" width="210" height="210" style="display:block;border-radius:6px">
+      </div>
+      <div class="qr-modal-hint">Escanee el código QR</div>
+      <div class="qr-modal-sub">Abra la cámara de su teléfono y apúntela al código</div>
+      <div style="display:flex;gap:8px;margin-bottom:.75rem">
+        <button class="btn-qr btn-qr-open" style="flex:1;justify-content:center;font-size:12.5px;padding:9px 12px" onclick="descargarQR()">Descargar QR</button>
+        <button class="btn-qr btn-qr-open" style="flex:1;justify-content:center;font-size:12.5px;padding:9px 12px;background:#0a2d6e" onclick="imprimirQR()">Imprimir</button>
+      </div>
+      <button class="qr-modal-close" onclick="cerrarModalQR()">Cerrar</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
