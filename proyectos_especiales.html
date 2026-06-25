@@ -215,76 +215,108 @@ input[type=file].hidden{display:none}
 .err-msg{background:#fff5f5;border:1px solid #fecaca;color:#dc2626;border-radius:8px;padding:8px 12px;font-size:12.5px;margin-top:8px;display:none}
 .ok-msg{background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;border-radius:8px;padding:8px 12px;font-size:12.5px;margin-top:8px;display:none}
 
-/* ── PUBLIC REGISTRATION ── */
+/* ══════════════════════════════════════════════
+   PUBLIC REGISTRATION — MOBILE FIRST
+   ══════════════════════════════════════════════ */
+
+/* Fondo — visible en desktop, oculto en móvil */
 .pub-wrap{
-  min-height:100vh;
+  min-height:100dvh;
   background:#0b1e4a;
   background-image:
     radial-gradient(ellipse at 20% 50%, rgba(20,85,164,.35) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 10%, rgba(10,45,110,.5) 0%, transparent 55%);
-  display:flex;align-items:center;justify-content:center;padding:2rem 1rem;
+  display:flex;align-items:flex-start;justify-content:center;padding:0;
 }
+
+/* Tarjeta: ocupa toda la pantalla en móvil */
 .pub-card{
   background:#fff;
-  border-radius:0;
-  box-shadow:0 24px 80px rgba(0,0,0,.45);
-  max-width:460px;width:100%;
+  width:100%;max-width:480px;
+  min-height:100dvh;
+  display:flex;flex-direction:column;
   overflow:hidden;
 }
-/* Encabezado institucional — fondo gris claro para que el logo sea visible */
+
+/* Header compacto en móvil */
 .pub-card-header{
   background:#f0f2f6;
   border-bottom:3px solid #0a2d6e;
-  padding:1.75rem 2rem 1.5rem;
+  padding:1.1rem 1.25rem .9rem;
   text-align:center;
+  flex-shrink:0;
 }
-.pub-card-body{padding:1.5rem 2rem 2rem}
+.pub-card-header img{ height:48px; }
+
+/* Cuerpo desplazable */
+.pub-card-body{
+  padding:1.25rem 1.25rem 1.5rem;
+  flex:1;display:flex;flex-direction:column;
+}
+
 /* Evento */
 .pub-event{
-  background:#f8faff;
-  border-left:4px solid #1455a4;
-  border-radius:0 10px 10px 0;
-  padding:.9rem 1.1rem;
-  margin-bottom:1.6rem;
+  background:#f4f7ff;
+  border-left:3px solid #1455a4;
+  border-radius:0 8px 8px 0;
+  padding:.75rem 1rem;
+  margin-bottom:1.25rem;
 }
-.pub-event-titulo{font-size:15px;font-weight:800;color:#0a2d6e;line-height:1.3;margin-bottom:5px}
-.pub-event-meta{font-size:11px;color:#6b7fa3;display:flex;gap:8px;flex-wrap:wrap;margin-top:5px;align-items:center}
-.pub-event-meta span{display:inline-flex;align-items:center;gap:3px}
+.pub-event-titulo{font-size:14px;font-weight:800;color:#0a2d6e;line-height:1.3;margin-bottom:4px}
+.pub-event-meta{font-size:11px;color:#6b7fa3;display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;align-items:center}
+.pub-event-meta span{display:inline-flex;align-items:center}
+
 /* Separador de sección */
 .pub-section-label{
   font-size:10px;font-weight:800;color:#94a3b8;
   text-transform:uppercase;letter-spacing:.12em;
-  margin-bottom:1.1rem;padding-bottom:.5rem;
+  margin-bottom:1rem;padding-bottom:.5rem;
   border-bottom:1px solid #f1f5f9;
 }
-/* Campos */
-.pub-field{margin-bottom:1rem}
+
+/* Campos — tamaño de toque adecuado para móvil */
+.pub-field{margin-bottom:.85rem}
 .pub-field label{
-  display:block;font-size:11.5px;font-weight:700;
-  color:#475569;text-transform:uppercase;letter-spacing:.05em;
-  margin-bottom:6px;
+  display:block;font-size:11px;font-weight:700;
+  color:#475569;text-transform:uppercase;letter-spacing:.06em;
+  margin-bottom:5px;
 }
+/* font-size:16px en móvil previene el zoom automático de iOS */
 .pub-field input{
-  width:100%;padding:12px 14px;
-  border:1.5px solid #e2e8f0;border-radius:8px;
-  font-size:14px;font-family:inherit;background:#fff;
+  width:100%;padding:14px;
+  border:1.5px solid #e2e8f0;border-radius:10px;
+  font-size:16px;font-family:inherit;background:#fff;
   color:#1e293b;transition:border .2s,box-shadow .2s;
-  box-shadow:0 1px 3px rgba(0,0,0,.04);
+  -webkit-appearance:none;box-sizing:border-box;
 }
 .pub-field input:focus{
   outline:none;border-color:#1455a4;
-  box-shadow:0 0 0 3px rgba(20,85,164,.12),0 1px 3px rgba(0,0,0,.04);
+  box-shadow:0 0 0 3px rgba(20,85,164,.12);
 }
-.pub-field input::placeholder{color:#c0cce0;font-size:13.5px}
+.pub-field input::placeholder{color:#c0cce0}
 .pub-field select{
-  width:100%;padding:12px 14px;
-  border:1.5px solid #e2e8f0;border-radius:8px;
-  font-size:14px;font-family:inherit;background:#fff;
+  width:100%;padding:14px;
+  border:1.5px solid #e2e8f0;border-radius:10px;
+  font-size:16px;font-family:inherit;background:#fff;
   color:#1e293b;transition:border .2s;
-  box-shadow:0 1px 3px rgba(0,0,0,.04);
-  -webkit-appearance:auto;
+  -webkit-appearance:auto;box-sizing:border-box;
 }
 .pub-field select:focus{outline:none;border-color:#1455a4;box-shadow:0 0 0 3px rgba(20,85,164,.12)}
+
+/* Botón submit — grande y fácil de tocar */
+#pub-btn{
+  margin-top:auto;padding-top:1rem;
+}
+
+/* Desktop: tarjeta centrada con fondo visible */
+@media(min-width:540px){
+  .pub-wrap{padding:2rem 1rem;align-items:center}
+  .pub-card{min-height:auto;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.45)}
+  .pub-card-header{padding:1.5rem 2rem 1.25rem}
+  .pub-card-header img{height:60px}
+  .pub-card-body{padding:1.5rem 2rem 2rem}
+  .pub-field input,.pub-field select{font-size:14px;padding:12px 14px;border-radius:8px}
+}
 
 /* ── PHONE INPUT ── */
 .tel-wrap{display:flex;gap:6px;width:100%}
