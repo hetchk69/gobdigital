@@ -1582,6 +1582,7 @@ function toggleTipoOtro(){
   // Tab 4 (Capacitación) solo cuando el tipo es Capacitación
   var esCap = tipo === 'Capacitación';
   document.getElementById('ev-si-4').style.display = esCap ? '' : 'none';
+  document.getElementById('cap-section').style.display = esCap ? '' : 'none';
   // Renumerar paso 5: si tab 4 está oculto, el cierre pasa a ser paso 4
   var snum5 = document.querySelector('#ev-si-5 .ev-snum');
   if(snum5) snum5.textContent = esCap ? '5' : '4';
