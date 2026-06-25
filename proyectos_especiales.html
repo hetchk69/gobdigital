@@ -762,17 +762,17 @@ input[type=file].hidden{display:none}
         </div>
         </div><!-- /resultados-section -->
 
-        <!-- VALIDACIÓN -->
+        <!-- VALIDACIÓN / RESPONSABLE -->
         <div class="card" id="val-card" style="display:none">
-          <div class="stitle">Validación y aprobación</div>
+          <div class="stitle" id="val-title">Validación y aprobación</div>
           <div class="val-grid">
             <div class="val-box">
-              <div class="val-role">Responsable DIGER</div>
+              <div class="val-role" id="val-diger-role">Responsable DIGER</div>
               <div class="val-sign"></div>
               <p class="val-hint">(Firma y sello)</p>
               <input class="val-name" type="text" id="val-diger" placeholder="Nombre y cargo">
             </div>
-            <div class="val-box">
+            <div class="val-box" id="val-inst-box">
               <div class="val-role">Representante Institución Beneficiaria</div>
               <div class="val-sign"></div>
               <p class="val-hint">(Firma y sello)</p>
@@ -1590,7 +1590,15 @@ function toggleTipoOtro(){
   var tieneEvidencia = tipo === 'Capacitación' || tipo === 'Taller';
   document.getElementById('foto-card').style.display = tieneEvidencia ? '' : 'none';
   document.getElementById('resultados-section').style.display = tieneEvidencia ? '' : 'none';
-  document.getElementById('val-card').style.display = tieneEvidencia ? '' : 'none';
+  // val-card: visible para cualquier tipo seleccionado; contenido adaptativo
+  document.getElementById('val-card').style.display = tipo ? '' : 'none';
+  document.getElementById('val-inst-box').style.display = tieneEvidencia ? '' : 'none';
+  document.getElementById('val-title').textContent = tieneEvidencia
+    ? 'Validación y aprobación'
+    : 'Responsable de la memoria';
+  document.getElementById('val-diger-role').textContent = tieneEvidencia
+    ? 'Responsable DIGER'
+    : 'Responsable DIGER / Institución';
 }
 function toggleCapacitacion(){ /* kept for compat */ }
 function getEsCap(){ return gv('g-tipo') === 'Capacitación'; }
