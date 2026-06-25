@@ -2772,12 +2772,18 @@ function _ssRender(){
 window._openSlide4 = function(startIdx){
   _ssIdx = startIdx||0;
   _ssRender();
-  document.getElementById('_slide-overlay').classList.add('open');
+  var sl = document.getElementById('_slide-overlay');
+  sl.classList.add('open');
+  sl.style.setProperty('display','flex','important');
 };
 window._ssPrev = function(){ _ssIdx = (_ssIdx-1+_SS_DATA.length)%_SS_DATA.length; _ssRender(); };
 window._ssNext = function(){ _ssIdx = (_ssIdx+1)%_SS_DATA.length; _ssRender(); };
 window._ssGo   = function(i){ _ssIdx=i; _ssRender(); };
-window._closeSlide = function(){ document.getElementById('_slide-overlay').classList.remove('open'); };
+window._closeSlide = function(){
+  var sl = document.getElementById('_slide-overlay');
+  sl.classList.remove('open');
+  sl.style.setProperty('display','none','important');
+};
 window._openInterop = function(){
   document.getElementById('_interop-overlay').style.setProperty('display','flex','important');
 };
@@ -2808,12 +2814,12 @@ document.addEventListener('keydown', function(e){
 
 // ── ARRANQUE (al final: todas las var ya están asignadas) ─────────
 function resetOverlays() {
-  ['_interop-overlay','_desglose-overlay'].forEach(function(id){
+  ['_interop-overlay','_desglose-overlay','_slide-overlay'].forEach(function(id){
     var el = document.getElementById(id);
-    if (el) el.style.setProperty('display','none','important');
+    if (!el) return;
+    el.classList.remove('open');
+    el.style.setProperty('display','none','important');
   });
-  var slide = document.getElementById('_slide-overlay');
-  if (slide) slide.classList.remove('open');
   document.body.style.overflow = '';
 }
 // Resetear overlays siempre al mostrar la página (carga nueva + bfcache)
