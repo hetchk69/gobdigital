@@ -422,13 +422,26 @@ input[type=file].hidden{display:none}
         </div>
 
         <div class="pub-field">
-          <label>Correo electrónico</label>
-          <input type="email" id="pub-correo" placeholder="correo@institucion.gob.hn" autocomplete="email">
+          <label>Institución</label>
+          <select id="pub-inst">
+            <option value="">— Seleccione su institución —</option>
+            <option value="OTRA">Otro</option>
+          </select>
         </div>
 
         <div class="pub-field">
-          <label>Cargo / Función</label>
+          <label>Unidad</label>
+          <input type="text" id="pub-unidad" placeholder="Unidad o departamento" autocomplete="organization">
+        </div>
+
+        <div class="pub-field">
+          <label>Cargo</label>
           <input type="text" id="pub-cargo" placeholder="Cargo que desempeña" autocomplete="organization-title">
+        </div>
+
+        <div class="pub-field">
+          <label>Correo electrónico</label>
+          <input type="email" id="pub-correo" placeholder="correo@institucion.gob.hn" autocomplete="email">
         </div>
 
         <div class="pub-field">
@@ -448,14 +461,6 @@ input[type=file].hidden{display:none}
           <input type="tel" class="tel-num" id="pub-tel-num" placeholder="0000-0000" maxlength="15"
             oninput="telMask(this,'pub-tel')"
             style="width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:#1e293b;transition:border .2s,box-shadow .2s;box-shadow:0 1px 3px rgba(0,0,0,.04)">
-        </div>
-
-        <div class="pub-field">
-          <label>Institución</label>
-          <select id="pub-inst">
-            <option value="">— Seleccione su institución —</option>
-            <option value="OTRA">Otro</option>
-          </select>
         </div>
 
         <div class="err-msg" id="pub-err" style="margin-bottom:.5rem"></div>
@@ -1097,11 +1102,13 @@ function confirmarInstModal(){
 })();
 
 async function registrarAsistencia(){
-  var nombre = (document.getElementById('pub-nombre').value||'').trim();
-  var correo = (document.getElementById('pub-correo').value||'').trim();
-  var cargo  = (document.getElementById('pub-cargo').value||'').trim();
-  var inst = (document.getElementById('pub-inst').value||'').trim();
-  var tel    = getTelValue('pub-tel');
+  var nombre  = (document.getElementById('pub-nombre').value||'').trim();
+  var correo  = (document.getElementById('pub-correo').value||'').trim();
+  var cargo   = (document.getElementById('pub-cargo').value||'').trim();
+  var unidad  = (document.getElementById('pub-unidad').value||'').trim();
+  var inst    = (document.getElementById('pub-inst').value||'').trim();
+  var tel     = getTelValue('pub-tel');
+  var cargoFinal = [cargo, unidad].filter(Boolean).join(' / ');
   var err    = document.getElementById('pub-err');
   var btn    = document.getElementById('pub-btn');
   err.style.display = 'none';
@@ -1112,7 +1119,7 @@ async function registrarAsistencia(){
   btn.disabled=true; btn.textContent='Registrando...';
   var {error} = await sb.from('asistencias').insert({
     reunion_id: window._REG_ID, nombre, correo,
-    cargo: cargo||'—', institucion: inst||'—', telefono: tel||'—'
+    cargo: cargoFinal||'—', institucion: inst||'—', telefono: tel||'—'
   });
   btn.disabled=false; btn.textContent='✔ Registrar mi asistencia';
   if(error){ err.textContent='Error al registrar: '+error.message; err.style.display='block'; return; }
