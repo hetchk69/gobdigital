@@ -433,11 +433,8 @@ input[type=file].hidden{display:none}
 
         <div class="pub-field">
           <label>Teléfono</label>
-          <input type="tel" class="tel-num" id="pub-tel-num" placeholder="0000-0000" maxlength="15"
-            oninput="telMask(this,'pub-tel')"
-            style="width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:#1e293b;transition:border .2s,box-shadow .2s;box-shadow:0 1px 3px rgba(0,0,0,.04);margin-bottom:6px">
           <select class="tel-cc" id="pub-tel-cc" onchange="telCountryChange('pub-tel')"
-            style="padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12.5px;font-family:inherit;background:#fff;color:#475569;cursor:pointer;outline:none;width:auto">
+            style="padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12.5px;font-family:inherit;background:#fff;color:#475569;cursor:pointer;outline:none;width:auto;margin-bottom:6px;display:block">
             <option value="HN" data-code="+504" data-mask="XXXX-XXXX"      data-len="8"  selected>Honduras +504</option>
             <option value="GT" data-code="+502" data-mask="XXXX-XXXX"      data-len="8"        >Guatemala +502</option>
             <option value="SV" data-code="+503" data-mask="XXXX-XXXX"      data-len="8"        >El Salvador +503</option>
@@ -448,6 +445,9 @@ input[type=file].hidden{display:none}
             <option value="US" data-code="+1"   data-mask="(XXX) XXX-XXXX" data-len="10"       >EE.UU. +1</option>
             <option value="ES" data-code="+34"  data-mask="XXX XXX XXX"    data-len="9"        >España +34</option>
           </select>
+          <input type="tel" class="tel-num" id="pub-tel-num" placeholder="0000-0000" maxlength="15"
+            oninput="telMask(this,'pub-tel')"
+            style="width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:#1e293b;transition:border .2s,box-shadow .2s;box-shadow:0 1px 3px rgba(0,0,0,.04)">
         </div>
 
         <div class="pub-field">
