@@ -2779,10 +2779,10 @@ window._ssNext = function(){ _ssIdx = (_ssIdx+1)%_SS_DATA.length; _ssRender(); }
 window._ssGo   = function(i){ _ssIdx=i; _ssRender(); };
 window._closeSlide = function(){ document.getElementById('_slide-overlay').classList.remove('open'); };
 window._openInterop = function(){
-  document.getElementById('_interop-overlay').style.display = 'flex';
+  document.getElementById('_interop-overlay').style.setProperty('display','flex','important');
 };
 window._closeInterop = function(){
-  document.getElementById('_interop-overlay').style.display = 'none';
+  document.getElementById('_interop-overlay').style.setProperty('display','none','important');
 };
 window._openDesglose = function(){
   var fr = document.getElementById('_desglose-frame');
@@ -2790,15 +2790,15 @@ window._openDesglose = function(){
     fr.src = 'tramites_nac.html';
     fr.setAttribute('data-loaded','1');
   }
-  document.getElementById('_desglose-overlay').style.display = 'flex';
+  document.getElementById('_desglose-overlay').style.setProperty('display','flex','important');
 };
 window._closeDesglose = function(){
-  document.getElementById('_desglose-overlay').style.display = 'none';
+  document.getElementById('_desglose-overlay').style.setProperty('display','none','important');
 };
 document.addEventListener('keydown', function(e){
   if(e.key==='Escape'){
-    if(document.getElementById('_interop-overlay').style.display==='flex'){ window._closeInterop(); return; }
-    if(document.getElementById('_desglose-overlay').style.display==='flex'){ window._closeDesglose(); return; }
+    if(document.getElementById('_interop-overlay').style.getPropertyValue('display')==='flex'){ window._closeInterop(); return; }
+    if(document.getElementById('_desglose-overlay').style.getPropertyValue('display')==='flex'){ window._closeDesglose(); return; }
     var ov = document.getElementById('_slide-overlay');
     if(ov && ov.classList.contains('open')) window._closeSlide();
   }
@@ -2808,13 +2808,12 @@ document.addEventListener('keydown', function(e){
 
 // ── ARRANQUE (al final: todas las var ya están asignadas) ─────────
 function resetOverlays() {
-  var ids = ['_interop-overlay','_desglose-overlay','_slide-overlay'];
-  ids.forEach(function(id){
+  ['_interop-overlay','_desglose-overlay'].forEach(function(id){
     var el = document.getElementById(id);
-    if (!el) return;
-    if (id === '_slide-overlay') el.classList.remove('open');
-    else el.style.display = 'none';
+    if (el) el.style.setProperty('display','none','important');
   });
+  var slide = document.getElementById('_slide-overlay');
+  if (slide) slide.classList.remove('open');
   document.body.style.overflow = '';
 }
 // Resetear overlays siempre al mostrar la página (carga nueva + bfcache)
