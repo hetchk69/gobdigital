@@ -148,4 +148,17 @@
   // Expose session for pages that need it
   window.DIGER_SESSION = _ses;
 
+  // ── Fix Brave Shields / adblockers forcing display:block on fixed overlays ──
+  // Runs on every page load and bfcache restore. Finds any element whose inline
+  // style says display:none but whose computed display is not none (overridden by
+  // an extension CSS rule with !important), and re-applies it with !important.
+  function _fixHiddenOverlays() {
+    document.querySelectorAll('[style]').forEach(function(el) {
+      if (el.style.display === 'none' && getComputedStyle(el).display !== 'none') {
+        el.style.setProperty('display', 'none', 'important');
+      }
+    });
+  }
+  window.addEventListener('pageshow', _fixHiddenOverlays);
+
 })();
