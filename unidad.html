@@ -301,6 +301,17 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text
 .repo-cat{font-size:12px;font-weight:800;color:var(--azul);text-transform:uppercase;letter-spacing:.05em;margin:1.4rem 0 .75rem;display:flex;align-items:center;gap:8px}
 .repo-cat:first-child{margin-top:0}
 .repo-cat::after{content:'';flex:1;height:1px;background:var(--borde)}
+/* ── REPO FOLDERS ── */
+.repo-folder-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:13px}
+.repo-folder{background:#fff;border:1.5px solid var(--borde);border-radius:13px;padding:15px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:10px;box-shadow:0 2px 8px rgba(10,45,110,.05)}
+.repo-folder:hover{border-color:var(--azul-m);box-shadow:0 6px 20px rgba(10,45,110,.12);transform:translateY(-2px)}
+.repo-folder-ico{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#fef3c7,#fde68a);color:#92400e;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.repo-folder-name{font-size:13.5px;font-weight:700;color:var(--azul);word-break:break-word}
+.repo-folder-meta{font-size:11.5px;color:var(--muted)}
+.repo-back{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:var(--azul-m);cursor:pointer;background:none;border:none;padding:0;margin-bottom:1rem;opacity:.85;transition:opacity .15s}
+.repo-back:hover{opacity:1}
+.repo-upload-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;background:var(--azul-m);color:#fff;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s;line-height:1}
+.repo-upload-btn:hover{opacity:.88}
 
 /* ── MODAL ── */
 .modal-bg{position:fixed;inset:0;background:rgba(10,25,55,.5);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem}
@@ -2064,86 +2075,191 @@ function docDel(id) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// REPOSITORIO
+// REPOSITORIO — CARPETAS + PDFs
 // ════════════════════════════════════════════════════════════════
-var REPO_ICO = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+var FOLDER_ICO = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
+var PDF_ICO    = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
+var LINK_ICO   = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
 
-function repoKey(unitKey) { return 'diger_repo_' + unitKey; }
-function repoItems(unitKey) { return lsGet(repoKey(unitKey), []); }
+function repoKey(unitKey)    { return 'diger_repo_' + unitKey; }
+function repoItems(unitKey)  { return lsGet(repoKey(unitKey), []); }
+function repoFolders(unitKey){ return repoItems(unitKey).filter(function(x){ return x.type==='folder'; }); }
+function repoDocs(unitKey,folderId){ return repoItems(unitKey).filter(function(x){ return x.type==='doc'&&x.folderId===folderId; }); }
+
+function fmtSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes+' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1)+' KB';
+  return (bytes/1048576).toFixed(1)+' MB';
+}
 
 function renderRepositorio(unitKey) {
   CURRENT_UNIT = unitKey;
   var u = UNITS[unitKey];
   var items = repoItems(unitKey);
+  var folders = items.filter(function(x){ return x.type==='folder'; });
+  var totalDocs = items.filter(function(x){ return x.type==='doc'; }).length;
+  var legacy = items.filter(function(x){ return !x.type || x.type==='link'; });
 
-  var body;
-  if (!items.length) {
-    body = '<div class="tab-empty"><div class="ico">' + REPO_ICO.replace(/width="20" height="20"/,'width="40" height="40"') + '</div>' +
-      '<p>El repositorio está vacío.<br>Agregue enlaces a recursos, plataformas y carpetas compartidas.</p></div>';
+  var body = '';
+  if (!folders.length && !legacy.length) {
+    body = '<div class="tab-empty"><div class="ico">'+FOLDER_ICO.replace('width="22" height="22"','width="42" height="42"')+'</div>' +
+      '<p>El repositorio está vacío.<br>Cree una carpeta para organizar sus documentos PDF.</p></div>';
   } else {
-    // Agrupar por categoría
-    var groups = {};
-    items.forEach(function(it){ var c = it.categoria || 'General'; (groups[c] = groups[c] || []).push(it); });
-    var cats = Object.keys(groups).sort();
-    body = cats.map(function(cat){
-      return '<div class="repo-cat">' + esc(cat) + '</div>' +
-        groups[cat].map(function(it){
+    if (folders.length) {
+      body += '<div class="repo-folder-grid">' + folders.map(function(f) {
+        var cnt = repoDocs(unitKey, f.id).length;
+        return '<div class="repo-folder" onclick="repoVerCarpeta(\''+f.id+'\')">' +
+          '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">' +
+            '<div class="repo-folder-ico">'+FOLDER_ICO+'</div>' +
+            (puedeBorrar() ? '<button class="dr-del" style="padding:4px 8px;font-size:12px;flex-shrink:0" onclick="event.stopPropagation();repoBorrarCarpeta(\''+f.id+'\')" title="Eliminar carpeta">✕</button>' : '') +
+          '</div>' +
+          '<div class="repo-folder-name">'+esc(f.nombre)+'</div>' +
+          '<div class="repo-folder-meta">'+cnt+' documento'+(cnt!==1?'s':'')+'</div>' +
+        '</div>';
+      }).join('') + '</div>';
+    }
+    if (legacy.length) {
+      body += '<div class="repo-cat" style="margin-top:1.6rem">Recursos (enlaces)</div>' +
+        legacy.map(function(it){
           return '<div class="dr-item">' +
-            '<div class="dr-ico">' + REPO_ICO + '</div>' +
-            '<div class="dr-info"><div class="dr-name">' + esc(it.nombre) + '</div>' +
-              '<div class="dr-meta">' + (it.desc ? esc(it.desc) : esc(it.url||'')) + '</div></div>' +
+            '<div class="dr-ico">'+LINK_ICO+'</div>' +
+            '<div class="dr-info"><div class="dr-name">'+esc(it.nombre)+'</div>' +
+              '<div class="dr-meta">'+esc(it.desc||it.url||'')+'</div></div>' +
             '<div class="dr-acts">' +
-              (it.url ? '<a class="dr-open" href="' + esc(it.url) + '" target="_blank" rel="noopener">Abrir →</a>' : '') +
-              (puedeBorrar() ? '<button class="dr-del" onclick="repoDel(\'' + it.id + '\')">✕</button>' : '') +
-            '</div>' +
-          '</div>';
+              (it.url?'<a class="dr-open" href="'+esc(it.url)+'" target="_blank" rel="noopener">Abrir →</a>':'')+
+              (puedeBorrar()?'<button class="dr-del" onclick="repoDel(\''+it.id+'\')">✕</button>':'')+
+            '</div></div>';
         }).join('');
-    }).join('');
+    }
   }
 
   app.innerHTML =
     tabBreadcrumb(unitKey, 'Repositorio') +
-    '<div class="welcome"><div class="badge">' + esc(u.label) + '</div>' +
-      '<h2>Repositorio</h2><p>Enlaces a recursos, plataformas y carpetas compartidas.</p></div>' +
+    '<div class="welcome"><div class="badge">'+esc(u.label)+'</div>' +
+      '<h2>Repositorio</h2><p>Carpetas de documentos PDF organizadas por categoría.</p></div>' +
     '<div class="tab-toolbar">' +
-      '<div style="font-size:13px;color:var(--muted);font-weight:600">' + items.length + ' recurso' + (items.length!==1?'s':'') + '</div>' +
-      '<button class="btn-prim" onclick="repoAddPrompt()">+ Agregar recurso</button>' +
+      '<div style="font-size:13px;color:var(--muted);font-weight:600">'+folders.length+' carpeta'+(folders.length!==1?'s':'')+' · '+totalDocs+' documento'+(totalDocs!==1?'s':'')+'</div>' +
+      '<button class="btn-prim" onclick="repoNuevaCarpeta()">+ Nueva carpeta</button>' +
     '</div>' +
     body;
 }
 
-function repoAddPrompt() {
-  abrirModal('Nuevo recurso',
-    '<div class="modal-field"><label>Nombre *</label><input type="text" id="r-nombre" placeholder="Ej: Carpeta de actas 2026"></div>' +
-    '<div class="modal-field"><label>Categoría</label><input type="text" id="r-cat" placeholder="Ej: Actas, Plantillas, Plataformas" list="r-cats"></div>' +
-    '<datalist id="r-cats"><option>Actas</option><option>Plantillas</option><option>Plataformas</option><option>Normativa</option><option>Guías</option><option>General</option></datalist>' +
-    '<div class="modal-field"><label>Enlace (URL) *</label><input type="url" id="r-url" placeholder="https://…"></div>' +
-    '<div class="modal-field"><label>Descripción</label><textarea id="r-desc" placeholder="Breve descripción del recurso…"></textarea></div>' +
-    '<div class="modal-foot"><button class="btn-ghost" onclick="cerrarModal()">Cancelar</button>' +
-    '<button class="btn-prim" onclick="repoSave()">Guardar recurso</button></div>');
+function repoVerCarpeta(folderId) {
+  var items = repoItems(CURRENT_UNIT);
+  var folder = items.find(function(x){ return x.id===folderId; });
+  if (!folder) return;
+  var docs = repoDocs(CURRENT_UNIT, folderId);
+
+  var docsHtml = '';
+  if (!docs.length) {
+    docsHtml = '<div class="tab-empty" style="padding:2rem 0"><div class="ico">'+PDF_ICO.replace('width="20" height="20"','width="36" height="36"')+'</div>' +
+      '<p>No hay documentos en esta carpeta.<br>Suba un PDF para comenzar.</p></div>';
+  } else {
+    docsHtml = docs.map(function(d) {
+      return '<div class="dr-item">' +
+        '<div class="dr-ico" style="background:linear-gradient(135deg,#fee2e2,#fecaca);color:#b91c1c">'+PDF_ICO+'</div>' +
+        '<div class="dr-info"><div class="dr-name">'+esc(d.nombre)+'</div>' +
+          '<div class="dr-meta">'+(d.size?'<span>'+fmtSize(d.size)+'</span>':'')+(d.fecha?'<span>'+esc(d.fecha)+'</span>':'')+'</div></div>' +
+        '<div class="dr-acts">' +
+          (d.url?'<a class="dr-open" href="'+esc(d.url)+'" target="_blank" rel="noopener">Abrir →</a>':'')+
+          (puedeBorrar()?'<button class="dr-del" onclick="repoBorrarDoc(\''+d.id+'\')">✕</button>':'')+
+        '</div></div>';
+    }).join('');
+  }
+
+  app.innerHTML =
+    tabBreadcrumb(CURRENT_UNIT, 'Repositorio') +
+    '<div style="display:flex;align-items:center;gap:6px;margin-bottom:1.1rem">' +
+      '<button class="repo-back" onclick="renderRepositorio(\''+CURRENT_UNIT+'\')">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>' +
+        'Repositorio</button>' +
+      '<span style="font-size:12px;color:var(--muted)">/</span>' +
+      '<span style="font-size:13px;font-weight:700;color:var(--azul)">'+esc(folder.nombre)+'</span>' +
+    '</div>' +
+    '<div class="tab-toolbar">' +
+      '<div style="font-size:13px;color:var(--muted);font-weight:600">'+docs.length+' documento'+(docs.length!==1?'s':'')+'</div>' +
+      (puedeBorrar() ?
+        '<label class="repo-upload-btn">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>' +
+          ' Subir PDF' +
+          '<input type="file" style="display:none" accept=".pdf" onchange="repoSubirPDF(this,\''+CURRENT_UNIT+'\',\''+folderId+'\')">' +
+        '</label>' : '') +
+    '</div>' +
+    '<div id="repo-upload-status" style="font-size:12px;color:var(--azul-m);font-weight:600;margin-bottom:10px;display:none">Subiendo archivo…</div>' +
+    docsHtml;
 }
 
-function repoSave() {
-  var nombre = document.getElementById('r-nombre').value.trim();
-  var url    = document.getElementById('r-url').value.trim();
-  if (!nombre) { alert('Ingrese el nombre del recurso.'); return; }
-  if (!url)    { alert('Ingrese el enlace (URL) del recurso.'); return; }
+function repoNuevaCarpeta() {
+  abrirModal('Nueva carpeta',
+    '<div class="modal-field"><label>Nombre de la carpeta *</label>' +
+    '<input type="text" id="r-carpeta" placeholder="Ej: Actas 2026, Normativa, Informes…"></div>' +
+    '<div class="modal-foot"><button class="btn-ghost" onclick="cerrarModal()">Cancelar</button>' +
+    '<button class="btn-prim" onclick="repoGuardarCarpeta()">Crear carpeta</button></div>');
+  setTimeout(function(){ var el=document.getElementById('r-carpeta'); if(el) el.focus(); }, 120);
+}
+
+function repoGuardarCarpeta() {
+  var nombre = (document.getElementById('r-carpeta').value||'').trim();
+  if (!nombre) { alert('Ingrese el nombre de la carpeta.'); return; }
   var items = repoItems(CURRENT_UNIT);
-  items.push({
-    id: uid(), nombre: nombre, url: url,
-    categoria: document.getElementById('r-cat').value.trim() || 'General',
-    desc: document.getElementById('r-desc').value.trim()
-  });
+  items.push({ id: uid(), type: 'folder', nombre: nombre, fecha: new Date().toLocaleDateString('es-HN') });
   lsSet(repoKey(CURRENT_UNIT), items);
   cerrarModal();
   renderRepositorio(CURRENT_UNIT);
 }
 
+async function repoSubirPDF(inp, unitKey, folderId) {
+  var file = inp.files[0];
+  if (!file) return;
+  if (file.type !== 'application/pdf') { alert('Solo se permiten archivos PDF.'); inp.value=''; return; }
+  var status = document.getElementById('repo-upload-status');
+  if (status) { status.textContent='Subiendo "'+file.name+'"…'; status.style.display='block'; }
+  var safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  var path = 'repo/'+unitKey+'/'+folderId+'/'+Date.now()+'_'+safeName;
+  var { error } = await sb.storage.from('evidencias').upload(path, file, { upsert: true, contentType: 'application/pdf' });
+  if (status) status.style.display='none';
+  inp.value = '';
+  if (error) { alert('Error al subir el archivo: '+error.message); return; }
+  var url = sb.storage.from('evidencias').getPublicUrl(path).data.publicUrl;
+  var items = repoItems(unitKey);
+  items.push({
+    id: uid(), type: 'doc', nombre: file.name, folderId: folderId,
+    storagePath: path, url: url, size: file.size,
+    fecha: new Date().toLocaleDateString('es-HN')
+  });
+  lsSet(repoKey(unitKey), items);
+  repoVerCarpeta(folderId);
+}
+
+function repoBorrarCarpeta(folderId) {
+  if (!puedeBorrar()) return;
+  var items = repoItems(CURRENT_UNIT);
+  var folder = items.find(function(x){ return x.id===folderId; });
+  var cnt = repoDocs(CURRENT_UNIT, folderId).length;
+  var msg = '¿Eliminar la carpeta "'+(folder?folder.nombre:'')+'"'+(cnt?' y sus '+cnt+' documento'+(cnt!==1?'s':'')+' PDF?':'?')+'\n\nEsta acción no se puede deshacer.';
+  if (!confirm(msg)) return;
+  var toDelete = items.filter(function(x){ return x.type==='doc'&&x.folderId===folderId&&x.storagePath; });
+  if (toDelete.length) sb.storage.from('evidencias').remove(toDelete.map(function(d){ return d.storagePath; }));
+  lsSet(repoKey(CURRENT_UNIT), items.filter(function(x){ return x.id!==folderId&&x.folderId!==folderId; }));
+  renderRepositorio(CURRENT_UNIT);
+}
+
+async function repoBorrarDoc(docId) {
+  if (!puedeBorrar()) { alert('No tiene permisos para eliminar documentos.'); return; }
+  if (!confirm('¿Eliminar este documento?')) return;
+  var items = repoItems(CURRENT_UNIT);
+  var doc = items.find(function(x){ return x.id===docId; });
+  if (doc && doc.storagePath) await sb.storage.from('evidencias').remove([doc.storagePath]);
+  var folderId = doc ? doc.folderId : null;
+  lsSet(repoKey(CURRENT_UNIT), items.filter(function(x){ return x.id!==docId; }));
+  if (folderId) repoVerCarpeta(folderId); else renderRepositorio(CURRENT_UNIT);
+}
+
 function repoDel(id) {
   if (!puedeBorrar()) { alert('Solo el coordinador puede borrar contenido.'); return; }
   if (!confirm('¿Eliminar este recurso?')) return;
-  var items = repoItems(CURRENT_UNIT).filter(function(it){ return it.id !== id; });
-  lsSet(repoKey(CURRENT_UNIT), items);
+  lsSet(repoKey(CURRENT_UNIT), repoItems(CURRENT_UNIT).filter(function(it){ return it.id!==id; }));
   renderRepositorio(CURRENT_UNIT);
 }
 
