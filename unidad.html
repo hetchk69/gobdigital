@@ -2817,10 +2817,8 @@ function resetOverlays() {
   });
   document.body.style.overflow = '';
 }
-// Resetear overlays al restaurar desde bfcache (back/forward)
-window.addEventListener('pageshow', function(e){
-  if (e.persisted) resetOverlays();
-});
+// Resetear overlays siempre al mostrar la página (carga nueva + bfcache)
+window.addEventListener('pageshow', function(){ resetOverlays(); });
 boot();
 </script>
 
