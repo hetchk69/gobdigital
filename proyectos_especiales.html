@@ -204,16 +204,81 @@ input[type=file].hidden{display:none}
 .ok-msg{background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;border-radius:8px;padding:8px 12px;font-size:12.5px;margin-top:8px;display:none}
 
 /* ── PUBLIC REGISTRATION ── */
-.pub-wrap{min-height:100vh;background:linear-gradient(160deg,#e8f0ff 0%,#eef1f7 60%,#dde8ff 100%);display:flex;align-items:center;justify-content:center;padding:1.5rem 1rem}
-.pub-card{background:#fff;border-radius:20px;box-shadow:0 16px 50px rgba(10,45,110,.14);padding:2rem 2rem 1.75rem;max-width:480px;width:100%}
-.pub-event{background:linear-gradient(135deg,#f0f6ff,#e8f2ff);border:1.5px solid #c8d8f4;border-radius:13px;padding:1rem 1.2rem;margin-bottom:1.5rem}
-.pub-event-titulo{font-size:15.5px;font-weight:800;color:#0a2d6e;margin-bottom:5px;line-height:1.3}
-.pub-event-meta{font-size:11.5px;color:#5a6fa3;display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.pub-wrap{
+  min-height:100vh;
+  background:#0b1e4a;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(20,85,164,.35) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 10%, rgba(10,45,110,.5) 0%, transparent 55%);
+  display:flex;align-items:center;justify-content:center;padding:2rem 1rem;
+}
+.pub-card{
+  background:#fff;
+  border-radius:0;
+  box-shadow:0 24px 80px rgba(0,0,0,.45);
+  max-width:460px;width:100%;
+  overflow:hidden;
+}
+/* Franja superior de color institucional */
+.pub-card-header{
+  background:linear-gradient(135deg,#0a2d6e 0%,#1455a4 100%);
+  padding:1.75rem 2rem 1.5rem;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.pub-card-header::after{
+  content:'';position:absolute;bottom:-1px;left:0;right:0;height:28px;
+  background:#fff;
+  clip-path:ellipse(55% 100% at 50% 100%);
+}
+.pub-card-body{padding:0 2rem 2rem}
+/* Evento */
+.pub-event{
+  background:#f8faff;
+  border-left:4px solid #1455a4;
+  border-radius:0 10px 10px 0;
+  padding:.9rem 1.1rem;
+  margin-bottom:1.6rem;
+}
+.pub-event-titulo{font-size:15px;font-weight:800;color:#0a2d6e;line-height:1.3;margin-bottom:5px}
+.pub-event-meta{font-size:11px;color:#6b7fa3;display:flex;gap:8px;flex-wrap:wrap;margin-top:5px;align-items:center}
 .pub-event-meta span{display:inline-flex;align-items:center;gap:3px}
-.pub-field{margin-bottom:.95rem}
-.pub-field label{display:block;font-size:12.5px;font-weight:700;color:#334155;margin-bottom:5px}
-.pub-field input{width:100%;padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:14px;font-family:inherit;background:#fafbfd;transition:border .2s,box-shadow .2s}
-.pub-field input:focus{outline:none;border-color:#1455a4;background:#fff;box-shadow:0 0 0 3px rgba(20,85,164,.1)}
+/* Separador de sección */
+.pub-section-label{
+  font-size:10px;font-weight:800;color:#94a3b8;
+  text-transform:uppercase;letter-spacing:.12em;
+  margin-bottom:1.1rem;padding-bottom:.5rem;
+  border-bottom:1px solid #f1f5f9;
+}
+/* Campos */
+.pub-field{margin-bottom:1rem}
+.pub-field label{
+  display:block;font-size:11.5px;font-weight:700;
+  color:#475569;text-transform:uppercase;letter-spacing:.05em;
+  margin-bottom:6px;
+}
+.pub-field input{
+  width:100%;padding:12px 14px;
+  border:1.5px solid #e2e8f0;border-radius:8px;
+  font-size:14px;font-family:inherit;background:#fff;
+  color:#1e293b;transition:border .2s,box-shadow .2s;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.pub-field input:focus{
+  outline:none;border-color:#1455a4;
+  box-shadow:0 0 0 3px rgba(20,85,164,.12),0 1px 3px rgba(0,0,0,.04);
+}
+.pub-field input::placeholder{color:#c0cce0;font-size:13.5px}
+.pub-field select{
+  width:100%;padding:12px 14px;
+  border:1.5px solid #e2e8f0;border-radius:8px;
+  font-size:14px;font-family:inherit;background:#fff;
+  color:#1e293b;transition:border .2s;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+  -webkit-appearance:auto;
+}
+.pub-field select:focus{outline:none;border-color:#1455a4;box-shadow:0 0 0 3px rgba(20,85,164,.12)}
 
 /* ── PHONE INPUT ── */
 .tel-wrap{display:flex;gap:6px;width:100%}
@@ -314,76 +379,111 @@ input[type=file].hidden{display:none}
 ───────────────────────────────────────────────────────────────── -->
 <div id="pub-wrap" class="pub-wrap" style="display:none">
   <div class="pub-card" id="pub-form-card">
-    <!-- Header institucional -->
-    <div style="text-align:center;padding-bottom:1.25rem;border-bottom:2px solid #eef1f7;margin-bottom:1.5rem">
-      <img src="logo_diger-14.png" alt="DIGER" style="height:54px;width:auto;margin-bottom:.6rem;display:block;margin-left:auto;margin-right:auto">
-      <div style="font-size:10.5px;font-weight:800;color:#0a2d6e;text-transform:uppercase;letter-spacing:.07em">Gobierno de la República de Honduras</div>
-      <div style="font-size:10px;font-weight:700;color:#1455a4;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Dirección de Gestión por Resultados — DIGER</div>
+
+    <!-- Encabezado institucional con fondo azul -->
+    <div class="pub-card-header">
+      <img src="logo_diger-14.png" alt="DIGER" style="height:62px;width:auto;display:block;margin:0 auto .9rem;filter:drop-shadow(0 2px 8px rgba(0,0,0,.25))">
+      <div style="font-size:10px;font-weight:800;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.1em">Gobierno de la República de Honduras</div>
+      <div style="font-size:11px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.07em;margin-top:3px">Dirección de Gestión por Resultados</div>
     </div>
 
-    <!-- Loading -->
-    <div id="pub-loading" style="text-align:center;padding:2rem">
-      <div class="spinner" style="margin:0 auto .75rem"></div>
-      <p style="color:#6b7fa3;font-size:13px">Cargando información del evento...</p>
-    </div>
+    <!-- Cuerpo -->
+    <div class="pub-card-body">
 
-    <!-- Cerrado / error -->
-    <div id="pub-closed" class="pub-closed" style="display:none">
-      <div style="font-size:36px;margin-bottom:.75rem">🔒</div>
-      <p style="margin-bottom:.5rem">El registro para este evento está cerrado.</p>
-      <p style="font-size:12px;color:#b91c1c;font-weight:400">Comuníquese con el organizador del evento.</p>
-    </div>
-
-    <!-- Formulario -->
-    <div id="pub-form-inner" style="display:none">
-      <!-- Info del evento -->
-      <div class="pub-event" id="pub-event-info"></div>
-
-      <div style="font-size:13px;font-weight:800;color:#0a2d6e;margin-bottom:1.1rem;display:flex;align-items:center;gap:7px">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:#e8f0ff;border-radius:50%;font-size:14px">📋</span>
-        Registro de asistencia
+      <!-- Loading -->
+      <div id="pub-loading" style="text-align:center;padding:2.5rem 0 1.5rem">
+        <div class="spinner" style="margin:0 auto .75rem"></div>
+        <p style="color:#94a3b8;font-size:13px;font-weight:500">Cargando información del evento...</p>
       </div>
 
-      <div class="pub-field"><label>Nombre completo <span style="color:#dc2626">*</span></label><input type="text" id="pub-nombre" placeholder="Ingrese su nombre completo" autocomplete="name"></div>
-      <div class="pub-field">
-        <label>Correo electrónico <span style="color:#64748b;font-weight:400;font-size:11px">— o teléfono (al menos uno)</span></label>
-        <input type="email" id="pub-correo" placeholder="correo@institucion.gob.hn" autocomplete="email">
+      <!-- Cerrado / error -->
+      <div id="pub-closed" style="display:none;text-align:center;padding:1.5rem 0">
+        <div style="width:56px;height:56px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:26px">🔒</div>
+        <div style="font-size:15px;font-weight:800;color:#1e293b;margin-bottom:.4rem">Registro cerrado</div>
+        <p style="font-size:13px;color:#94a3b8;line-height:1.6">El registro para este evento está cerrado.<br>Comuníquese con el organizador.</p>
       </div>
-      <div class="pub-field"><label>Cargo / Función</label><input type="text" id="pub-cargo" placeholder="Cargo que desempeña" autocomplete="organization-title"></div>
-      <div class="pub-field"><label>Institución</label>
-        <select id="pub-inst" style="width:100%;padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:14px;font-family:inherit;outline:none;background:#fafbfd;color:#1c2333;transition:border .2s" onfocus="this.style.borderColor='#1455a4'" onblur="this.style.borderColor='#e2e8f0'">
-          <option value="">— Seleccione su institución —</option>
-          <option value="OTRA">Otro</option>
-        </select>
-      </div>
-      <div class="pub-field"><label>Teléfono</label>
-        <div class="tel-wrap">
-          <select class="tel-cc" id="pub-tel-cc" onchange="telCountryChange('pub-tel')">
-            <option value="HN" data-code="+504" data-mask="XXXX-XXXX"      data-len="8"  selected>HN +504</option>
-            <option value="GT" data-code="+502" data-mask="XXXX-XXXX"      data-len="8"        >GT +502</option>
-            <option value="SV" data-code="+503" data-mask="XXXX-XXXX"      data-len="8"        >SV +503</option>
-            <option value="NI" data-code="+505" data-mask="XXXX-XXXX"      data-len="8"        >NI +505</option>
-            <option value="CR" data-code="+506" data-mask="XXXX-XXXX"      data-len="8"        >CR +506</option>
-            <option value="PA" data-code="+507" data-mask="XXXX-XXXX"      data-len="8"        >PA +507</option>
-            <option value="MX" data-code="+52"  data-mask="XX XXXX-XXXX"   data-len="10"       >MX +52</option>
-            <option value="US" data-code="+1"   data-mask="(XXX) XXX-XXXX" data-len="10"       >US +1</option>
-            <option value="ES" data-code="+34"  data-mask="XXX XXX XXX"    data-len="9"        >ES +34</option>
+
+      <!-- Formulario -->
+      <div id="pub-form-inner" style="display:none;padding-top:1.5rem">
+
+        <!-- Info del evento -->
+        <div class="pub-event" id="pub-event-info"></div>
+
+        <div class="pub-section-label">Datos de asistencia</div>
+
+        <div class="pub-field">
+          <label>Nombre completo <span style="color:#e53e3e;font-size:10px">requerido</span></label>
+          <input type="text" id="pub-nombre" placeholder="Nombre y apellidos" autocomplete="name">
+        </div>
+
+        <div class="pub-field">
+          <label>Correo electrónico <span style="color:#94a3b8;font-weight:500;font-size:10px;text-transform:none;letter-spacing:0">o teléfono — al menos uno</span></label>
+          <input type="email" id="pub-correo" placeholder="correo@institucion.gob.hn" autocomplete="email">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="pub-field" style="margin-bottom:0">
+            <label>Cargo / Función</label>
+            <input type="text" id="pub-cargo" placeholder="Cargo que ejerce" autocomplete="organization-title">
+          </div>
+          <div class="pub-field" style="margin-bottom:0">
+            <label>Teléfono</label>
+            <div class="tel-wrap">
+              <select class="tel-cc" id="pub-tel-cc" onchange="telCountryChange('pub-tel')">
+                <option value="HN" data-code="+504" data-mask="XXXX-XXXX"      data-len="8"  selected>HN</option>
+                <option value="GT" data-code="+502" data-mask="XXXX-XXXX"      data-len="8"        >GT</option>
+                <option value="SV" data-code="+503" data-mask="XXXX-XXXX"      data-len="8"        >SV</option>
+                <option value="NI" data-code="+505" data-mask="XXXX-XXXX"      data-len="8"        >NI</option>
+                <option value="CR" data-code="+506" data-mask="XXXX-XXXX"      data-len="8"        >CR</option>
+                <option value="PA" data-code="+507" data-mask="XXXX-XXXX"      data-len="8"        >PA</option>
+                <option value="MX" data-code="+52"  data-mask="XX XXXX-XXXX"   data-len="10"       >MX</option>
+                <option value="US" data-code="+1"   data-mask="(XXX) XXX-XXXX" data-len="10"       >US</option>
+                <option value="ES" data-code="+34"  data-mask="XXX XXX XXX"    data-len="9"        >ES</option>
+              </select>
+              <input type="tel" class="tel-num" id="pub-tel-num" placeholder="0000-0000" maxlength="15" oninput="telMask(this,'pub-tel')">
+            </div>
+          </div>
+        </div>
+
+        <div class="pub-field" style="margin-top:1rem">
+          <label>Institución</label>
+          <select id="pub-inst">
+            <option value="">— Seleccione su institución —</option>
+            <option value="OTRA">Otro</option>
           </select>
-          <input type="tel" class="tel-num" id="pub-tel-num" placeholder="XXXX-XXXX" maxlength="15" oninput="telMask(this,'pub-tel')">
+        </div>
+
+        <div class="err-msg" id="pub-err" style="margin-bottom:.5rem"></div>
+
+        <button id="pub-btn" onclick="registrarAsistencia()" style="
+          width:100%;margin-top:.5rem;padding:15px;border:none;cursor:pointer;
+          background:linear-gradient(135deg,#1455a4 0%,#0a2d6e 100%);
+          color:#fff;font-size:14px;font-weight:800;letter-spacing:.04em;
+          text-transform:uppercase;border-radius:8px;
+          box-shadow:0 4px 16px rgba(10,45,110,.35);
+          transition:opacity .2s,transform .1s;font-family:inherit;
+        " onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform=''">
+          Registrar asistencia
+        </button>
+
+        <p style="text-align:center;font-size:11px;color:#c0cce0;margin-top:1rem">
+          Sus datos serán utilizados únicamente para registro de asistencia oficial.
+        </p>
+      </div>
+
+      <!-- Éxito -->
+      <div id="pub-ok" style="display:none;text-align:center;padding:2.5rem 1rem 2rem">
+        <div class="check-wrap" style="margin:0 auto 1.25rem"><svg viewBox="0 0 52 52"><polyline points="14,27 22,35 38,17"/></svg></div>
+        <div style="font-size:18px;font-weight:800;color:#0a2d6e;margin-bottom:.5rem">Registro completado</div>
+        <p style="font-size:13px;color:#64748b;line-height:1.7;max-width:280px;margin:0 auto" id="pub-ok-msg">
+          Su asistencia ha sido registrada correctamente.
+        </p>
+        <div style="margin-top:1.5rem;padding:.75rem 1rem;background:#f0f9f4;border-radius:8px;border:1px solid #bbf7d0">
+          <p style="font-size:12px;color:#166534;font-weight:600;margin:0">✓ Puede cerrar esta ventana</p>
         </div>
       </div>
-      <div class="err-msg" id="pub-err"></div>
-      <button class="btnp" id="pub-btn" onclick="registrarAsistencia()" style="width:100%;margin-top:.75rem;justify-content:center;padding:13px;font-size:14.5px">
-        ✔ Registrar asistencia
-      </button>
-    </div>
 
-    <!-- Éxito -->
-    <div id="pub-ok" class="pub-ok" style="display:none">
-      <div class="check-wrap"><svg viewBox="0 0 52 52"><polyline points="14,27 22,35 38,17"/></svg></div>
-      <h2 style="font-size:20px;font-weight:800;color:#0a2d6e;margin-bottom:.6rem">¡Registro exitoso!</h2>
-      <p style="color:#6b7fa3;font-size:13.5px;line-height:1.6" id="pub-ok-msg">Su asistencia ha sido registrada correctamente.</p>
-    </div>
+    </div><!-- /pub-card-body -->
   </div>
 </div>
 
