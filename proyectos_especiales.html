@@ -1082,14 +1082,14 @@ function confirmarInstModal(){
     var datos = {}; try { datos = JSON.parse(r.tema || '{}'); } catch{}
     var tipoDisplay = datos.tipo_cap || '';
     if(tipoDisplay === 'Otro' && datos.tipo_cap_otro) tipoDisplay = datos.tipo_cap_otro;
+    var metaItems = [];
+    if(r.fecha)          metaItems.push(esc(r.fecha) + (r.hora ? '  ' + esc(r.hora) : ''));
+    if(r.lugar)          metaItems.push(esc(r.lugar));
+    if(tipoDisplay)      metaItems.push(esc(tipoDisplay));
+    if(datos.modalidad)  metaItems.push(esc(datos.modalidad === 'Otro' ? (datos.modalidad_otro||'Otro') : datos.modalidad));
     document.getElementById('pub-event-info').innerHTML =
       '<div class="pub-event-titulo">' + esc(r.titulo) + '</div>' +
-      '<div class="pub-event-meta">' +
-        (r.fecha ? '<span>📅 ' + esc(r.fecha) + (r.hora ? ' · ' + esc(r.hora) : '') + '</span>' : '') +
-        (r.lugar ? '<span>📍 ' + esc(r.lugar) + '</span>' : '') +
-        (tipoDisplay ? '<span>🎓 ' + esc(tipoDisplay) + '</span>' : '') +
-        (datos.modalidad ? '<span>🔷 ' + esc(datos.modalidad === 'Otro' ? (datos.modalidad_otro||'Otro') : datos.modalidad) + '</span>' : '') +
-      '</div>';
+      (metaItems.length ? '<div class="pub-event-meta">' + metaItems.map(function(m){ return '<span>'+m+'</span>'; }).join('<span style="opacity:.35;margin:0 2px">·</span>') + '</div>' : '');
     document.getElementById('pub-form-inner').style.display = 'block';
   } catch(e) {
     document.getElementById('pub-loading').innerHTML = '<p style="color:#dc2626">Error al cargar el evento. Verifique su conexión.</p>';
