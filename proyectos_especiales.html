@@ -2066,7 +2066,7 @@ function generarPDFProfesional(d){
     if(d.memAgenda&&d.memAgenda.trim()){ sec('Objetivo de la Reunion'); para(d.memAgenda); y+=2; }
 
     // ── 4. Desarrollo ──────────────────────────────────────────
-    if(d.memDesarrollo&&d.memDesarrollo.trim()){ sec('Desarrollo de la Reunion'); para(d.memDesarrollo); y+=2; }
+    if(d.memDesarrollo&&d.memDesarrollo.trim()){ sec('Desarrollo de la Reunion'); para(rteToText(d.memDesarrollo)||d.memDesarrollo); y+=2; }
 
     // ── 5. Acuerdos y Compromisos (tabla) ─────────────────────
     if(d.acuerdos&&d.acuerdos.length>0){
@@ -2355,7 +2355,19 @@ function puedeBorrar(){
 function gv(id){ var el=document.getElementById(id); return el?(el.value||'').trim():''; }
 function sv(id,val){ var el=document.getElementById(id); if(el) el.value=val; }
 function getRTE(id){ var el=document.getElementById(id); return el?el.innerHTML:''; }
-function setRTE(id,val){ var el=document.getElementById(id); if(el) el.innerHTML=val||''; }
+function setRTE(id,val){
+  var el=document.getElementById(id); if(!el) return;
+  var content=val||'';
+  // Si el contenido tiene HTML doble-codificado (&lt;) o etiquetas de Claude.ai, decodificar
+  if(content.indexOf('&lt;')!==-1){
+    var tmp=document.createElement('textarea'); tmp.innerHTML=content; content=tmp.value;
+  }
+  el.innerHTML=content;
+}
+function rteToText(html){
+  var tmp=document.createElement('div'); tmp.innerHTML=html||'';
+  return (tmp.innerText||tmp.textContent||'').trim();
+}
 function rteCmd(cmd){ document.execCommand(cmd,false,null); }
 function rteText(id){ var el=document.getElementById(id); return el?(el.innerText||'').trim():''; }
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
