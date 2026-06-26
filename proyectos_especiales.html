@@ -1995,6 +1995,45 @@ function generarPDFProfesional(d){
       });
     }
 
+    // Paragraph with HTML bold support (<strong>, <b>)
+    function paraHTML(html,xOff){
+      if(!html||!html.trim()||html==='—') return;
+      var x=ML+(xOff||0),w=CW-(xOff||0);
+      // Parse HTML into segments [{text, bold}]
+      var segs=[]; var tmp=document.createElement('div'); tmp.innerHTML=html||'';
+      function walk(node,bold){
+        if(node.nodeType===3){ if(node.textContent) segs.push({text:node.textContent,bold:bold}); return; }
+        var tag=node.nodeName.toUpperCase();
+        if(tag==='BR'){ segs.push({text:'\n',bold:false}); return; }
+        var b=bold||tag==='STRONG'||tag==='B';
+        var isBlock=['P','DIV','H1','H2','H3','H4','H5','LI'].indexOf(tag)!==-1;
+        for(var i=0;i<node.childNodes.length;i++) walk(node.childNodes[i],b);
+        if(isBlock) segs.push({text:'\n',bold:false});
+      }
+      walk(tmp,false);
+      // Group into lines split by \n
+      var rawLines=[{segs:[]}];
+      segs.forEach(function(s){
+        if(s.text==='\n'){ rawLines.push({segs:[]}); return; }
+        rawLines[rawLines.length-1].segs.push(s);
+      });
+      rawLines.forEach(function(rl){
+        var lineText=rl.segs.map(function(s){return s.text;}).join('').trim();
+        if(!lineText){ y+=1.5; return; }
+        var allBold=rl.segs.length>0&&rl.segs.every(function(s){return s.bold;});
+        var fStyle=allBold?'bold':'normal';
+        doc.setFontSize(9.5); doc.setFont('helvetica',fStyle);
+        var wrapped=doc.splitTextToSize(normP(lineText),w);
+        wrapped.forEach(function(l,li){
+          ckPg(5.5);
+          doc.setFontSize(9.5); doc.setFont('helvetica',fStyle); doc.setTextColor(CN[0],CN[1],CN[2]);
+          doc.text(l,x,y,li<wrapped.length-1?{maxWidth:w,align:'justify'}:{});
+          y+=4.8;
+        });
+        y+=1.5;
+      });
+    }
+
     // Label: value
     function lvRow(lbl,val){
       if(!val||val==='—'||!String(val).trim()) return;
@@ -2066,7 +2105,7 @@ function generarPDFProfesional(d){
     if(d.memAgenda&&d.memAgenda.trim()){ sec('Objetivo de la Reunion'); para(d.memAgenda); y+=2; }
 
     // ── 4. Desarrollo ──────────────────────────────────────────
-    if(d.memDesarrollo&&d.memDesarrollo.trim()){ sec('Desarrollo de la Reunion'); para(rteToText(d.memDesarrollo)||d.memDesarrollo); y+=2; }
+    if(d.memDesarrollo&&d.memDesarrollo.trim()){ sec('Desarrollo de la Reunion'); paraHTML(d.memDesarrollo); y+=2; }
 
     // ── 5. Acuerdos y Compromisos (tabla) ─────────────────────
     if(d.acuerdos&&d.acuerdos.length>0){
