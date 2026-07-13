@@ -559,6 +559,10 @@ input[type=file].hidden{display:none}
     <h2 class="page-title" id="main-page-title">Levantamiento de Reunión</h2>
     <button class="btnp" onclick="mostrarCrear()">+ Nuevo evento</button>
   </div>
+  <div id="cap-filter-bar" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px">
+    <button id="btn-filtro-cap" class="btns btn-sm" onclick="toggleFiltroCap()">🎓 Solo Capacitaciones</button>
+    <div id="cap-stats" style="display:none;font-size:12.5px;color:#0a2d6e;background:#eef4ff;border:1px solid #c8dcf5;border-radius:9px;padding:7px 12px;font-weight:600"></div>
+  </div>
   <div id="adm-list">
     <div class="loader"><div class="spinner"></div><br>Cargando eventos...</div>
   </div>
@@ -1213,6 +1217,22 @@ function initAdmin(){
 }
 
 // ── LISTA ─────────────────────────────────────────────────────
+var _soloCapacitaciones = false;
+function toggleFiltroCap(){
+  _soloCapacitaciones = !_soloCapacitaciones;
+  var btn = document.getElementById('btn-filtro-cap');
+  if(btn){
+    btn.style.background = _soloCapacitaciones ? 'linear-gradient(135deg,#1455a4,#0a2d6e)' : '#fff';
+    btn.style.color = _soloCapacitaciones ? '#fff' : '#4a5568';
+    btn.style.borderColor = _soloCapacitaciones ? '#0a2d6e' : '#c8d5ee';
+  }
+  renderLista();
+}
+
+function _esCapacitacion(datos){
+  return (datos && datos.tipo_cap) === 'Capacitación';
+}
+
 async function renderLista(){
   var cont = document.getElementById('adm-list');
   cont.innerHTML = '<div class="loader"><div class="spinner"></div><br>Cargando eventos...</div>';
@@ -1242,9 +1262,46 @@ async function renderLista(){
       '<p>No hay eventos creados aún.<br>Haga clic en <strong>+ Nuevo evento</strong> para comenzar.</p></div>';
     return;
   }
-  var {data:counts} = await sb.from('asistencias').select('reunion_id');
+  var {data:counts} = await sb.from('asistencias').select('reunion_id,correo,nombre');
   var cmap={};
   (counts||[]).forEach(function(r){ cmap[r.reunion_id]=(cmap[r.reunion_id]||0)+1; });
+
+  // ── Estadísticas de capacitaciones (dentro del alcance visible) ──
+  var capIds={};
+  var capCount=0;
+  data.forEach(function(r){
+    var d={}; try{ d=JSON.parse(r.tema||'{}'); }catch{}
+    if(_esCapacitacion(d)){ capIds[r.id]=true; capCount++; }
+  });
+  var asistTotalCap=0, personasUnicas={};
+  (counts||[]).forEach(function(r){
+    if(!capIds[r.reunion_id]) return;
+    asistTotalCap++;
+    var key=(r.correo||'').trim().toLowerCase() || (r.nombre||'').trim().toLowerCase();
+    if(key) personasUnicas[key]=true;
+  });
+  var statsEl=document.getElementById('cap-stats');
+  if(statsEl){
+    if(capCount>0){
+      statsEl.style.display='inline-block';
+      statsEl.textContent='🎓 '+capCount+' capacitaci'+(capCount===1?'ón':'ones')+' · '+asistTotalCap+' asistencias registradas · '+Object.keys(personasUnicas).length+' personas capacitadas (únicas)';
+    } else {
+      statsEl.style.display='none';
+    }
+  }
+
+  if(_soloCapacitaciones){
+    data = data.filter(function(r){
+      var d={}; try{ d=JSON.parse(r.tema||'{}'); }catch{}
+      return _esCapacitacion(d);
+    });
+  }
+  if(data.length===0){
+    cont.innerHTML='<div class="empty-state"><div class="es-icon">🎓</div>' +
+      '<p>No hay capacitaciones registradas.</p></div>';
+    return;
+  }
+
   // "Abrir": admin + DIGER coord/colab; lector DIGER y otras instituciones: solo PDF
   var _canOpen = _ses && (_ses.role === 'admin' || (_isDigerSes && _ses.role !== 'lector'));
   cont.innerHTML='<div class="reg-list">'+data.map(function(r){
