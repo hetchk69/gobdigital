@@ -1309,29 +1309,39 @@ async function renderLista(){
     asistTotalCap++;
     _raw.push({correo:correo, nombre:nombre, institucion:(r.institucion||'').trim(), nk:nk, titulo:capTitulos[r.reunion_id]||'Sin título'});
   });
-  // Pasada 2: agrupar — primero por email (autoritativo), luego sin-email
-  var byEmail={}, byNk={};
+  // Pasada 2: agrupar por nk primero — clave universal, sin importar email
+  // nkMap: nk -> entrada canónica
+  var nkMap={};
+  function _addToNkMap(p){
+    if(!p.nk) return;
+    if(!nkMap[p.nk]){
+      nkMap[p.nk]={nombre:p.nombre,correo:p.correo,institucion:p.institucion,nk:p.nk,reuniones:[],emails:p.correo?[p.correo]:[]};
+    } else {
+      // si llega con email y la entrada canónica no tenía, actualizar
+      if(p.correo && !nkMap[p.nk].correo) nkMap[p.nk].correo=p.correo;
+      if(p.correo && nkMap[p.nk].emails.indexOf(p.correo)===-1) nkMap[p.nk].emails.push(p.correo);
+    }
+    if(nkMap[p.nk].reuniones.indexOf(p.titulo)===-1) nkMap[p.nk].reuniones.push(p.titulo);
+  }
+  _raw.forEach(_addToNkMap);
+  // Pasada 3: dentro de nkMap, fusionar entradas que comparten algún email en común
+  // construir emailToNk inverso
+  var emailToNk={};
+  Object.keys(nkMap).forEach(function(nk){
+    nkMap[nk].emails.forEach(function(e){ emailToNk[e]=nk; });
+  });
+  // segunda ronda con email: si un email ya mapea a otro nk, fusionar
   _raw.forEach(function(p){
-    if(p.correo){
-      if(!byEmail[p.correo]) byEmail[p.correo]={nombre:p.nombre,correo:p.correo,institucion:p.institucion,nk:p.nk,reuniones:[]};
-      if(byEmail[p.correo].reuniones.indexOf(p.titulo)===-1) byEmail[p.correo].reuniones.push(p.titulo);
-    } else if(p.nk){
-      if(!byNk[p.nk]) byNk[p.nk]={nombre:p.nombre,correo:'',institucion:p.institucion,nk:p.nk,reuniones:[]};
-      if(byNk[p.nk].reuniones.indexOf(p.titulo)===-1) byNk[p.nk].reuniones.push(p.titulo);
+    if(!p.correo||!p.nk) return;
+    var canonNk=emailToNk[p.correo];
+    if(canonNk && canonNk!==p.nk && nkMap[canonNk] && nkMap[p.nk]){
+      // fusionar p.nk en canonNk
+      nkMap[p.nk].reuniones.forEach(function(t){ if(nkMap[canonNk].reuniones.indexOf(t)===-1) nkMap[canonNk].reuniones.push(t); });
+      nkMap[p.nk].emails.forEach(function(e){ if(nkMap[canonNk].emails.indexOf(e)===-1) nkMap[canonNk].emails.push(e); emailToNk[e]=canonNk; });
+      delete nkMap[p.nk];
     }
   });
-  // Pasada 3: fusionar entradas sin-email que coincidan con una entrada con-email por nk
-  Object.keys(byNk).forEach(function(nk){
-    var emailKey=null;
-    Object.keys(byEmail).some(function(ek){ if(byEmail[ek].nk===nk){emailKey=ek;return true;} });
-    if(emailKey){
-      byNk[nk].reuniones.forEach(function(t){ if(byEmail[emailKey].reuniones.indexOf(t)===-1) byEmail[emailKey].reuniones.push(t); });
-      delete byNk[nk];
-    }
-  });
-  var personasUnicas={};
-  Object.keys(byEmail).forEach(function(k){ personasUnicas[k]=byEmail[k]; });
-  Object.keys(byNk).forEach(function(k){ personasUnicas[k]=byNk[k]; });
+  var personasUnicas=nkMap;
   var statsEl=document.getElementById('cap-stats');
   var digerPanel=document.getElementById('diger-facilitadores-panel');
   var digerLista=document.getElementById('diger-facilitadores-lista');
