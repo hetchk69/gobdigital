@@ -1262,7 +1262,7 @@ async function renderLista(){
       '<p>No hay eventos creados aún.<br>Haga clic en <strong>+ Nuevo evento</strong> para comenzar.</p></div>';
     return;
   }
-  var {data:counts} = await sb.from('asistencias').select('reunion_id,correo,nombre');
+  var {data:counts} = await sb.from('asistencias').select('reunion_id,correo,nombre,institucion');
   var cmap={};
   (counts||[]).forEach(function(r){ cmap[r.reunion_id]=(cmap[r.reunion_id]||0)+1; });
 
@@ -1273,18 +1273,26 @@ async function renderLista(){
     var d={}; try{ d=JSON.parse(r.tema||'{}'); }catch{}
     if(_esCapacitacion(d)){ capIds[r.id]=true; capCount++; }
   });
-  var asistTotalCap=0, personasUnicas={};
+  var asistTotalCap=0, personasUnicas={}, digerUnicas={};
   (counts||[]).forEach(function(r){
     if(!capIds[r.reunion_id]) return;
-    asistTotalCap++;
+    var instUp=(r.institucion||'').trim().toUpperCase();
+    var isDigerAsis = instUp==='DIGER';
     var key=(r.correo||'').trim().toLowerCase() || (r.nombre||'').trim().toLowerCase();
-    if(key) personasUnicas[key]=true;
+    if(isDigerAsis){
+      if(key) digerUnicas[key]={nombre:r.nombre||'', correo:r.correo||''};
+    } else {
+      asistTotalCap++;
+      if(key) personasUnicas[key]=true;
+    }
   });
   var statsEl=document.getElementById('cap-stats');
   if(statsEl){
     if(capCount>0){
       statsEl.style.display='inline-block';
-      statsEl.textContent='🎓 '+capCount+' capacitaci'+(capCount===1?'ón':'ones')+' · '+asistTotalCap+' asistencias registradas · '+Object.keys(personasUnicas).length+' personas capacitadas (únicas)';
+      var digerCount=Object.keys(digerUnicas).length;
+      var digerExtra=digerCount>0?' · <span title="Facilitadores DIGER (no contados como capacitados)">'+digerCount+' facilitador'+(digerCount===1?'':'es')+' DIGER</span>':'';
+      statsEl.innerHTML='🎓 '+capCount+' capacitaci'+(capCount===1?'ón':'ones')+' · '+asistTotalCap+' asistencias registradas · '+Object.keys(personasUnicas).length+' personas capacitadas (únicas)'+digerExtra;
     } else {
       statsEl.style.display='none';
     }
