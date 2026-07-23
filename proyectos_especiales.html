@@ -1275,11 +1275,11 @@ async function renderLista(){
   (counts||[]).forEach(function(r){ cmap[r.reunion_id]=(cmap[r.reunion_id]||0)+1; });
 
   // ── Estadísticas de capacitaciones (dentro del alcance visible) ──
-  var capIds={};
+  var capIds={}, capTitulos={};
   var capCount=0;
   data.forEach(function(r){
     var d={}; try{ d=JSON.parse(r.tema||'{}'); }catch{}
-    if(_esCapacitacion(d)){ capIds[r.id]=true; capCount++; }
+    if(_esCapacitacion(d)){ capIds[r.id]=true; capTitulos[r.id]=r.titulo||'Sin título'; capCount++; }
   });
   var asistTotalCap=0, personasUnicas={}, digerUnicas={};
   (counts||[]).forEach(function(r){
@@ -1291,7 +1291,11 @@ async function renderLista(){
       if(key) digerUnicas[key]={nombre:r.nombre||'', correo:r.correo||''};
     } else {
       asistTotalCap++;
-      if(key) personasUnicas[key]={nombre:r.nombre||'', correo:r.correo||'', institucion:r.institucion||''};
+      if(key){
+        if(!personasUnicas[key]) personasUnicas[key]={nombre:r.nombre||'', correo:r.correo||'', institucion:r.institucion||'', reuniones:[]};
+        var titulo=capTitulos[r.reunion_id]||'Sin título';
+        if(personasUnicas[key].reuniones.indexOf(titulo)===-1) personasUnicas[key].reuniones.push(titulo);
+      }
     }
   });
   var statsEl=document.getElementById('cap-stats');
@@ -1306,23 +1310,37 @@ async function renderLista(){
       statsEl.style.display='inline-block';
       var digerExtra=digerCount>0?' · '+digerCount+' facilitador'+(digerCount===1?'':'es')+' DIGER':'';
       statsEl.innerHTML='🎓 '+capCount+' capacitaci'+(capCount===1?'ón':'ones')+' · '+asistTotalCap+' asistencias registradas · '+personasCount+' personas capacitadas (únicas)'+digerExtra;
-      // Panel desplegable de personas capacitadas (no DIGER)
       var toggleLabel=document.getElementById('diger-toggle-label');
-      if(toggleLabel) toggleLabel.textContent='Personas capacitadas ('+personasCount+' únicas)';
+      if(toggleLabel) toggleLabel.textContent='Ver listado de personas capacitadas ('+personasCount+')';
       if(digerPanel && digerLista){
         if(personasCount>0){
           var sorted=personasKeys.slice().sort(function(a,b){
             return (personasUnicas[a].nombre||a).localeCompare(personasUnicas[b].nombre||b);
           });
-          digerLista.innerHTML=sorted.map(function(k){
-            var p=personasUnicas[k];
-            var label=p.nombre||(p.correo||k);
-            var meta=[];
-            if(p.institucion) meta.push(p.institucion);
-            if(p.correo) meta.push(p.correo);
-            var sub=meta.length?'<div style="font-size:10px;color:#555;margin-top:1px">'+meta.join(' · ')+'</div>':'';
-            return '<div style="background:#f0f7ff;border:1px solid #c8dcf5;border-radius:7px;padding:6px 11px;font-size:12px;color:#0a2d6e;font-weight:600">'+label+sub+'</div>';
-          }).join('');
+          digerLista.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:12.5px">'+
+            '<thead><tr style="border-bottom:2px solid #c8dcf5;text-align:left;color:#4a5568">'+
+              '<th style="padding:6px 10px;font-weight:700;color:#0a2d6e">Nombre</th>'+
+              '<th style="padding:6px 10px;font-weight:700;color:#0a2d6e">Capacitación</th>'+
+              '<th style="padding:6px 10px;font-weight:700;color:#0a2d6e;white-space:nowrap">Participación</th>'+
+            '</tr></thead>'+
+            '<tbody>'+sorted.map(function(k,i){
+              var p=personasUnicas[k];
+              var nombre=p.nombre||(p.correo||k);
+              var bgRow=i%2===0?'#f7faff':'#ffffff';
+              var multiple=p.reuniones.length>1;
+              var capCell=multiple
+                ? p.reuniones.map(function(t){ return '<div>• '+esc(t)+'</div>'; }).join('')
+                : esc(p.reuniones[0]||'—');
+              var badge=multiple
+                ? '<span style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap">Múltiples ('+p.reuniones.length+')</span>'
+                : '<span style="background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap">Única vez</span>';
+              return '<tr style="background:'+bgRow+';border-bottom:1px solid #e8f0fb">'+
+                '<td style="padding:7px 10px;font-weight:600;color:#1a3a6b">'+esc(nombre)+(p.institucion?'<div style="font-size:10px;color:#6b7280;font-weight:400">'+esc(p.institucion)+'</div>':'')+'</td>'+
+                '<td style="padding:7px 10px;color:#374151">'+capCell+'</td>'+
+                '<td style="padding:7px 10px">'+badge+'</td>'+
+              '</tr>';
+            }).join('')+
+            '</tbody></table>';
           digerPanel.style.display='block';
         } else {
           digerPanel.style.display='none';
