@@ -1286,7 +1286,10 @@ async function renderLista(){
     if(!capIds[r.reunion_id]) return;
     var instUp=(r.institucion||'').trim().toUpperCase();
     var isDigerAsis = instUp==='DIGER';
-    var key=(r.correo||'').trim().toLowerCase() || (r.nombre||'').trim().toLowerCase();
+    var _correo=(r.correo||'').trim().toLowerCase();
+    var _nombre=(r.nombre||'').trim();
+    var _nombreKey=(function(n){ var parts=n.toLowerCase().split(/\s+/).filter(Boolean); return parts.length>1?parts[0]+' '+parts[parts.length-1]:parts[0]||''; })(_nombre);
+    var key=_correo||_nombreKey;
     if(isDigerAsis){
       if(key) digerUnicas[key]={nombre:r.nombre||'', correo:r.correo||''};
     } else {
