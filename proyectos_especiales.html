@@ -1282,51 +1282,51 @@ async function renderLista(){
     if(_esCapacitacion(d)){ capIds[r.id]=true; capTitulos[r.id]=r.titulo||'Sin título'; capCount++; }
   });
   function _normNombre(n){
-    var parts=(n||'').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(/\s+/).filter(Boolean);
+    var s=(n||'').trim().toLowerCase()
+      .replace(/[áàäâ]/g,'a').replace(/[éèëê]/g,'e').replace(/[íìïî]/g,'i')
+      .replace(/[óòöô]/g,'o').replace(/[úùüû]/g,'u').replace(/[ñ]/g,'n');
+    var parts=s.split(/\s+/).filter(Boolean);
     return parts.length>1 ? parts[0]+' '+parts[parts.length-1] : parts[0]||'';
   }
   var asistTotalCap=0, digerUnicas={};
-  // emailMap: keyed by email; nameMap: keyed by normNombre (solo cuando no hay email)
-  var emailMap={}, nameMap={};
+  // Pasada 1: recopilar todos los registros crudos
+  var _raw=[];
   (counts||[]).forEach(function(r){
     if(!capIds[r.reunion_id]) return;
     var instUp=(r.institucion||'').trim().toUpperCase();
-    var isDigerAsis = instUp==='DIGER';
     var correo=(r.correo||'').trim().toLowerCase();
     var nombre=(r.nombre||'').trim();
     var nk=_normNombre(nombre);
-    if(isDigerAsis){
-      var dk=correo||nk;
-      if(dk) digerUnicas[dk]={nombre:nombre, correo:correo};
-    } else {
-      asistTotalCap++;
-      var titulo=capTitulos[r.reunion_id]||'Sin título';
-      if(correo){
-        // clave principal: email
-        if(!emailMap[correo]) emailMap[correo]={nombre:nombre, correo:correo, institucion:r.institucion||'', nk:nk, reuniones:[]};
-        if(emailMap[correo].reuniones.indexOf(titulo)===-1) emailMap[correo].reuniones.push(titulo);
-        // si existía una entrada por nombre, fusionarla
-        if(nk && nameMap[nk]){
-          nameMap[nk].reuniones.forEach(function(t){ if(emailMap[correo].reuniones.indexOf(t)===-1) emailMap[correo].reuniones.push(t); });
-          delete nameMap[nk];
-        }
-      } else if(nk){
-        // buscar si ya hay una entrada por email con el mismo nombre normalizado
-        var matchEmail=null;
-        Object.keys(emailMap).forEach(function(ek){ if(emailMap[ek].nk===nk) matchEmail=ek; });
-        if(matchEmail){
-          if(emailMap[matchEmail].reuniones.indexOf(titulo)===-1) emailMap[matchEmail].reuniones.push(titulo);
-        } else {
-          if(!nameMap[nk]) nameMap[nk]={nombre:nombre, correo:'', institucion:r.institucion||'', nk:nk, reuniones:[]};
-          if(nameMap[nk].reuniones.indexOf(titulo)===-1) nameMap[nk].reuniones.push(titulo);
-        }
-      }
+    if(instUp==='DIGER'){
+      var dk=correo||nk; if(dk) digerUnicas[dk]={nombre:nombre,correo:correo};
+      return;
+    }
+    asistTotalCap++;
+    _raw.push({correo:correo, nombre:nombre, institucion:(r.institucion||'').trim(), nk:nk, titulo:capTitulos[r.reunion_id]||'Sin título'});
+  });
+  // Pasada 2: agrupar — primero por email (autoritativo), luego sin-email
+  var byEmail={}, byNk={};
+  _raw.forEach(function(p){
+    if(p.correo){
+      if(!byEmail[p.correo]) byEmail[p.correo]={nombre:p.nombre,correo:p.correo,institucion:p.institucion,nk:p.nk,reuniones:[]};
+      if(byEmail[p.correo].reuniones.indexOf(p.titulo)===-1) byEmail[p.correo].reuniones.push(p.titulo);
+    } else if(p.nk){
+      if(!byNk[p.nk]) byNk[p.nk]={nombre:p.nombre,correo:'',institucion:p.institucion,nk:p.nk,reuniones:[]};
+      if(byNk[p.nk].reuniones.indexOf(p.titulo)===-1) byNk[p.nk].reuniones.push(p.titulo);
     }
   });
-  // unir ambos mapas
+  // Pasada 3: fusionar entradas sin-email que coincidan con una entrada con-email por nk
+  Object.keys(byNk).forEach(function(nk){
+    var emailKey=null;
+    Object.keys(byEmail).some(function(ek){ if(byEmail[ek].nk===nk){emailKey=ek;return true;} });
+    if(emailKey){
+      byNk[nk].reuniones.forEach(function(t){ if(byEmail[emailKey].reuniones.indexOf(t)===-1) byEmail[emailKey].reuniones.push(t); });
+      delete byNk[nk];
+    }
+  });
   var personasUnicas={};
-  Object.keys(emailMap).forEach(function(k){ personasUnicas[k]=emailMap[k]; });
-  Object.keys(nameMap).forEach(function(k){ personasUnicas[k]=nameMap[k]; });
+  Object.keys(byEmail).forEach(function(k){ personasUnicas[k]=byEmail[k]; });
+  Object.keys(byNk).forEach(function(k){ personasUnicas[k]=byNk[k]; });
   var statsEl=document.getElementById('cap-stats');
   var digerPanel=document.getElementById('diger-facilitadores-panel');
   var digerLista=document.getElementById('diger-facilitadores-lista');
