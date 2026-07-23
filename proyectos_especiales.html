@@ -1281,17 +1281,19 @@ async function renderLista(){
     var d={}; try{ d=JSON.parse(r.tema||'{}'); }catch{}
     if(_esCapacitacion(d)){ capIds[r.id]=true; capTitulos[r.id]=r.titulo||'Sin título'; capCount++; }
   });
-  function _normNombre(n){
-    var s=(n||'').trim().toLowerCase()
+  function _stripAcentos(s){
+    return s.toLowerCase()
       .replace(/[áàäâ]/g,'a').replace(/[éèëê]/g,'e').replace(/[íìïî]/g,'i')
       .replace(/[óòöô]/g,'o').replace(/[úùüû]/g,'u').replace(/[ñ]/g,'n');
-    var parts=s.split(/\s+/).filter(Boolean);
-    if(parts.length===0) return '';
-    if(parts.length===1) return parts[0];
-    // nombres latinoamericanos: [nombre] [2do_nombre?] [1er_apellido] [2do_apellido?]
-    // usar siempre parts[0] + parts[min(2, último)] para capturar primer nombre + primer apellido
-    var idx=Math.min(2, parts.length-1);
-    return parts[0]+' '+parts[idx];
+  }
+  // Devuelve TODOS los candidatos posibles: primera_palabra + cada_otra_palabra
+  // Ej: "Byron Duarte Zavala" → ["byron duarte","byron zavala"]
+  // Ej: "Ricardo Stiven Mendez Bonilla" → ["ricardo stiven","ricardo mendez","ricardo bonilla"]
+  function _normCandidatos(n){
+    var parts=_stripAcentos((n||'').trim()).split(/\s+/).filter(Boolean);
+    if(parts.length===0) return [];
+    if(parts.length===1) return [parts[0]];
+    return parts.slice(1).map(function(p){ return parts[0]+' '+p; });
   }
   var asistTotalCap=0, digerUnicas={};
   // Pasada 1: recopilar todos los registros crudos
@@ -1301,45 +1303,42 @@ async function renderLista(){
     var instUp=(r.institucion||'').trim().toUpperCase();
     var correo=(r.correo||'').trim().toLowerCase();
     var nombre=(r.nombre||'').trim();
-    var nk=_normNombre(nombre);
+    var candidatos=_normCandidatos(nombre);
     if(instUp==='DIGER'){
-      var dk=correo||nk; if(dk) digerUnicas[dk]={nombre:nombre,correo:correo};
+      var dk=correo||(candidatos[0]||''); if(dk) digerUnicas[dk]={nombre:nombre,correo:correo};
       return;
     }
     asistTotalCap++;
-    _raw.push({correo:correo, nombre:nombre, institucion:(r.institucion||'').trim(), nk:nk, titulo:capTitulos[r.reunion_id]||'Sin título'});
+    _raw.push({correo:correo, nombre:nombre, institucion:(r.institucion||'').trim(), candidatos:candidatos, titulo:capTitulos[r.reunion_id]||'Sin título'});
   });
-  // Pasada 2: agrupar por nk primero — clave universal, sin importar email
-  // nkMap: nk -> entrada canónica
-  var nkMap={};
-  function _addToNkMap(p){
-    if(!p.nk) return;
-    if(!nkMap[p.nk]){
-      nkMap[p.nk]={nombre:p.nombre,correo:p.correo,institucion:p.institucion,nk:p.nk,reuniones:[],emails:p.correo?[p.correo]:[]};
-    } else {
-      // si llega con email y la entrada canónica no tenía, actualizar
-      if(p.correo && !nkMap[p.nk].correo) nkMap[p.nk].correo=p.correo;
-      if(p.correo && nkMap[p.nk].emails.indexOf(p.correo)===-1) nkMap[p.nk].emails.push(p.correo);
+  // nkMap: canonKey -> entrada; candidatoToKey: cualquier candidato -> canonKey
+  var nkMap={}, candidatoToKey={};
+  function _canonKeyDe(candidatos, correo){
+    // buscar si algún candidato ya existe en el mapa
+    if(correo && candidatoToKey['__email__'+correo]) return candidatoToKey['__email__'+correo];
+    for(var i=0;i<candidatos.length;i++){
+      if(candidatoToKey[candidatos[i]]) return candidatoToKey[candidatos[i]];
     }
-    if(nkMap[p.nk].reuniones.indexOf(p.titulo)===-1) nkMap[p.nk].reuniones.push(p.titulo);
+    return null;
   }
-  _raw.forEach(_addToNkMap);
-  // Pasada 3: dentro de nkMap, fusionar entradas que comparten algún email en común
-  // construir emailToNk inverso
-  var emailToNk={};
-  Object.keys(nkMap).forEach(function(nk){
-    nkMap[nk].emails.forEach(function(e){ emailToNk[e]=nk; });
-  });
-  // segunda ronda con email: si un email ya mapea a otro nk, fusionar
+  function _registrarCandidatos(canonKey, candidatos, correo){
+    candidatos.forEach(function(c){ if(!candidatoToKey[c]) candidatoToKey[c]=canonKey; });
+    if(correo) candidatoToKey['__email__'+correo]=canonKey;
+  }
   _raw.forEach(function(p){
-    if(!p.correo||!p.nk) return;
-    var canonNk=emailToNk[p.correo];
-    if(canonNk && canonNk!==p.nk && nkMap[canonNk] && nkMap[p.nk]){
-      // fusionar p.nk en canonNk
-      nkMap[p.nk].reuniones.forEach(function(t){ if(nkMap[canonNk].reuniones.indexOf(t)===-1) nkMap[canonNk].reuniones.push(t); });
-      nkMap[p.nk].emails.forEach(function(e){ if(nkMap[canonNk].emails.indexOf(e)===-1) nkMap[canonNk].emails.push(e); emailToNk[e]=canonNk; });
-      delete nkMap[p.nk];
+    var canon=_canonKeyDe(p.candidatos, p.correo);
+    if(!canon){
+      // nueva entrada — usar primer candidato o email como clave
+      canon=p.correo||p.candidatos[0];
+      if(!canon) return;
+      nkMap[canon]={nombre:p.nombre,correo:p.correo,institucion:p.institucion,reuniones:[]};
+      _registrarCandidatos(canon, p.candidatos, p.correo);
+    } else {
+      // fusionar en la entrada existente
+      if(p.correo && !nkMap[canon].correo) nkMap[canon].correo=p.correo;
+      _registrarCandidatos(canon, p.candidatos, p.correo);
     }
+    if(nkMap[canon].reuniones.indexOf(p.titulo)===-1) nkMap[canon].reuniones.push(p.titulo);
   });
   var personasUnicas=nkMap;
   var statsEl=document.getElementById('cap-stats');
