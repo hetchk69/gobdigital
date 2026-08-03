@@ -72,6 +72,25 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
 /* ── QR CARD ── */
 .qr-card{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:14px;padding:1.25rem 1.4rem;margin-bottom:1.1rem}
 .qr-label{font-size:11px;font-weight:800;color:#16a34a;text-transform:uppercase;letter-spacing:.07em;margin-bottom:1rem;display:flex;align-items:center;gap:6px}
+/* Interruptor del enlace de invitación */
+.qr-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:14px;background:#fff;border:1.5px solid #bbf7d0;border-radius:9px;padding:10px 13px;margin-bottom:.8rem}
+.qr-toggle-title{font-size:12.5px;font-weight:800;color:#166534}
+.qr-toggle-sub{font-size:11px;color:#64748b;margin-top:2px;line-height:1.45}
+.lnk-switch{position:relative;flex-shrink:0;width:46px;height:26px;padding:0;border:none;border-radius:99px;background:#16a34a;cursor:pointer;transition:background .18s}
+.lnk-switch[aria-checked="false"]{background:#cbd5e1}
+.lnk-switch:disabled{opacity:.55;cursor:progress}
+.lnk-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.28);transition:transform .18s}
+.lnk-switch[aria-checked="true"] .lnk-knob{transform:translateX(20px)}
+/* Estado desactivado: la tarjeta completa pasa a gris */
+.qr-card.link-off{background:#f8fafc;border-color:#e2e8f0}
+.qr-card.link-off .qr-label{color:#64748b}
+.qr-card.link-off .qr-toggle-row{border-color:#e2e8f0}
+.qr-card.link-off .qr-toggle-title{color:#475569}
+.qr-card.link-off .qr-link-wrap{border-color:#e2e8f0}
+.qr-card.link-off .qr-link-inp{color:#94a3b8;text-decoration:line-through}
+.qr-card.link-off .btn-copy{background:#94a3b8;cursor:not-allowed}
+.qr-card.link-off .btn-qr-open{background:#94a3b8;cursor:not-allowed}
+.qr-card.link-off .btn-qr-share{border-color:#e2e8f0;color:#94a3b8;cursor:not-allowed}
 /* Enlace */
 .qr-link-wrap{display:flex;gap:0;align-items:stretch;border:1.5px solid #bbf7d0;border-radius:9px;overflow:hidden;background:#fff;margin-bottom:.8rem}
 .qr-link-inp{flex:1;padding:10px 12px;border:none;font-size:12px;color:#166534;font-family:monospace;outline:none;background:transparent;min-width:0}
@@ -112,6 +131,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;color:#1a1a1a;ba
 .badge-activa{background:#e0f5f6;color:#0a7282;border:1px solid #b2e4e8}
 .badge-cerrada{background:#f1f5f9;color:#64748b;border:1px solid #dde4f0}
 .badge-tipo{background:#e8f0ff;color:#1455a4;border:1px solid #c0d0f0}
+.badge-linkoff{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
 .reg-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:12.5px;color:#5a6a88}
 .reg-meta span{display:inline-flex;align-items:center;gap:5px}
 .reg-meta .sep{color:#c8d3e8;font-size:10px}
@@ -702,6 +722,18 @@ input[type=file].hidden{display:none}
         <div class="qr-card" id="qr-panel" style="display:none">
           <div class="qr-label">Enlace y QR para participantes</div>
 
+          <!-- Interruptor: activar / desactivar el enlace de invitación -->
+          <div class="qr-toggle-row">
+            <div>
+              <div class="qr-toggle-title">Enlace de invitación</div>
+              <div class="qr-toggle-sub" id="lnk-estado-txt">Activo — cualquiera con el enlace puede registrarse.</div>
+            </div>
+            <button type="button" class="lnk-switch" id="lnk-switch" role="switch" aria-checked="true"
+                    aria-label="Activar o desactivar el enlace de invitación" onclick="toggleEnlace()">
+              <span class="lnk-knob"></span>
+            </button>
+          </div>
+
           <!-- Compartir enlace -->
           <div class="qr-link-wrap">
             <input class="qr-link-inp" id="qr-link-inp" type="text" readonly>
@@ -1129,6 +1161,17 @@ function confirmarInstModal(){
     }
     if(!r.activa){ document.getElementById('pub-closed').style.display = 'block'; return; }
     var datos = {}; try { datos = JSON.parse(r.tema || '{}'); } catch{}
+    // Enlace de invitación desactivado por el organizador
+    if(datos.link_activo === false){
+      document.getElementById('pub-form-inner').style.display = 'none';
+      var pc = document.getElementById('pub-closed');
+      pc.style.display = 'block';
+      pc.innerHTML =
+        '<div style="width:56px;height:56px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:26px">🔗</div>' +
+        '<div style="font-size:15px;font-weight:800;color:#1e293b;margin-bottom:.4rem">Enlace desactivado</div>' +
+        '<p style="font-size:13px;color:#94a3b8;line-height:1.6">El enlace de invitación de este evento fue desactivado.<br>Comuníquese con el organizador.</p>';
+      return;
+    }
     var tipoDisplay = datos.tipo_cap || '';
     if(tipoDisplay === 'Otro' && datos.tipo_cap_otro) tipoDisplay = datos.tipo_cap_otro;
     var metaItems = [];
@@ -1424,6 +1467,7 @@ async function renderLista(){
       '<div>'+
         '<div class="reg-badges">'+
           '<span class="reg-badge '+(r.activa?'badge-activa':'badge-cerrada')+'">'+(r.activa?'Activo':'Cerrado')+'</span>'+
+          (datos.link_activo===false?'<span class="reg-badge badge-linkoff">Enlace desactivado</span>':'')+
           (tipoDisplay?'<span class="reg-badge badge-tipo">'+esc(tipoDisplay)+'</span>':'')+
         '</div>'+
         '<div class="reg-titulo">'+esc(r.titulo)+'</div>'+
@@ -1514,9 +1558,63 @@ function mostrarQR(id){
   document.getElementById('qr-link-inp').value = linkUrl;
   document.getElementById('qr-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=210x210&data='+encodeURIComponent(linkUrl);
   document.getElementById('qr-panel').style.display='block';
+  actualizarUIEnlace(linkActivo(currentReunion));
+}
+
+// ── ENLACE DE INVITACIÓN: activar / desactivar ────────────────
+// El estado se guarda dentro del JSON `tema` (clave `link_activo`) para no
+// requerir cambios de esquema en Supabase. Ausente = activo (eventos previos).
+function linkActivo(r){
+  if(!r) return true;
+  var d={}; try{ d=JSON.parse(r.tema||'{}'); }catch(e){}
+  return d.link_activo !== false;
+}
+
+function actualizarUIEnlace(activo){
+  var card=document.getElementById('qr-panel');
+  var sw=document.getElementById('lnk-switch');
+  var txt=document.getElementById('lnk-estado-txt');
+  if(!card||!sw||!txt) return;
+  if(activo) card.classList.remove('link-off'); else card.classList.add('link-off');
+  sw.setAttribute('aria-checked', activo?'true':'false');
+  txt.textContent = activo
+    ? 'Activo — cualquiera con el enlace puede registrarse.'
+    : 'Desactivado — el enlace y el QR no permiten registrar asistencia.';
+}
+
+// Bloquea copiar/compartir/QR cuando el enlace está desactivado.
+function enlaceBloqueado(){
+  if(linkActivo(currentReunion)) return false;
+  var ok=document.getElementById('copy-ok');
+  if(ok){
+    ok.style.color='#dc2626';
+    ok.textContent='El enlace está desactivado. Actívelo para compartirlo.';
+    setTimeout(function(){ ok.textContent=''; ok.style.color=''; }, 3000);
+  }
+  return true;
+}
+
+async function toggleEnlace(){
+  if(!currentId) return;
+  var sw=document.getElementById('lnk-switch');
+  var nuevo = sw.getAttribute('aria-checked') !== 'true';
+  if(!nuevo && !confirm('¿Desactivar el enlace de invitación?\n\nQuienes abran el enlace o escaneen el QR no podrán registrar su asistencia hasta que lo reactive.')) return;
+  sw.disabled=true;
+  // Releer el registro para no pisar cambios hechos por otro usuario
+  var {data:actual}=await sb.from('reuniones').select('tema').eq('id',currentId).single();
+  var temaSrc = (actual&&actual.tema) || (currentReunion&&currentReunion.tema) || '{}';
+  var d={}; try{ d=JSON.parse(temaSrc||'{}'); }catch(e){}
+  d.link_activo = nuevo;
+  var {data:upd, error}=await sb.from('reuniones').update({tema:JSON.stringify(d)}).eq('id',currentId).select().single();
+  sw.disabled=false;
+  if(error){ alert('No se pudo cambiar el estado del enlace: '+error.message); return; }
+  if(upd) currentReunion=upd;
+  else if(currentReunion) currentReunion.tema=JSON.stringify(d);
+  actualizarUIEnlace(nuevo);
 }
 
 function abrirModalQR(){
+  if(enlaceBloqueado()) return;
   var titulo = (document.getElementById('ev-titulo-bar')||{}).textContent || gv('g-titulo') || '';
   var fecha  = gv('g-fecha') || '';
   var lugar  = gv('g-lugar') || '';
@@ -1533,6 +1631,7 @@ function cerrarModalQR(){
 }
 
 function compartirEnlace(){
+  if(enlaceBloqueado()) return;
   var url = (document.getElementById('qr-link-inp')||{}).value || '';
   var titulo = (document.getElementById('ev-titulo-bar')||{}).textContent || 'Evento DIGER';
   if(navigator.share){
@@ -1573,7 +1672,8 @@ async function guardarGeneral(){
     modalidad: modalidad||'', modalidad_otro: modalidad==='Otro'?gv('g-modalidad-otro'):'',
     institucion_beneficiaria: inst||'',
     tipo_cap: tipo||'', tipo_cap_otro: tipo==='Otro'?gv('g-tipo-otro'):'',
-    unit: _UNIT_PARAM || ''
+    unit: _UNIT_PARAM || '',
+    link_activo: true
   };
   var id=genId();
   var {error}=await sb.from('reuniones').insert({
@@ -1802,10 +1902,12 @@ function descargarExcelAsis(){
 
 // ── QR ────────────────────────────────────────────────────────
 function copiarLink(){
+  if(enlaceBloqueado()) return;
   var inp=document.getElementById('qr-link-inp'); inp.select(); document.execCommand('copy');
   var ok=document.getElementById('copy-ok'); ok.textContent='✓ Copiado'; setTimeout(function(){ ok.textContent=''; },2000);
 }
 function descargarQR(){
+  if(enlaceBloqueado()) return;
   var a=document.createElement('a');
   a.href=document.getElementById('qr-img').src; a.download='QR_DIGER_'+Date.now()+'.png'; a.click();
 }
@@ -2460,7 +2562,8 @@ async function autoGuardarSilente(){
     var datos = {
       modalidad, modalidad_otro: modalidad==='Otro'?gv('g-modalidad-otro'):'',
       institucion_beneficiaria: inst,
-      tipo_cap: tipo, tipo_cap_otro: tipo==='Otro'?gv('g-tipo-otro'):''
+      tipo_cap: tipo, tipo_cap_otro: tipo==='Otro'?gv('g-tipo-otro'):'',
+      link_activo: true
     };
     var id = genId();
     var {error} = await sb.from('reuniones').insert({

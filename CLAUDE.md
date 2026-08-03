@@ -54,6 +54,7 @@ Single project: `gnpvqiyantdtksfvqtqk.supabase.co`. The anon key is hardcoded in
 |-------|---------|
 | `usuarios_sol` | Registered users: `email`, `role`, `institucion` |
 | `reuniones` | Events/meetings: `id`, `titulo`, `fecha`, `hora`, `lugar`, `activa`, `tema` (JSON), `creada_por` |
+| ↳ `tema` JSON | Holds `unit`, `modalidad`, `institucion_beneficiaria`, `tipo_cap`, `cap`, and `link_activo` (invitation-link switch; absent = active) |
 | `asistencias` | QR attendance: `reunion_id`, `nombre`, `correo`, `cargo`, `institucion`, `telefono` |
 | `contactos_manuales` | Manually added contacts: `nombre`, `correo`, `cargo`, `institucion`, `telefono`, `notas` |
 | `diger_tram` | KV store — `key='tram'`, `value=JSON` — tramite stage patches for `instituciones.html` |
@@ -118,6 +119,8 @@ All data stored in `localStorage` under `diger_fichas_tramite_v1`. Accepts `?ins
 - No `?reg=` → **admin mode**: event management (CRUD), live attendance list, capacitación form, PDF/Excel export
 
 Key features: real-time attendance via Supabase subscription, QR code generation, email notifications (emailjs), photo evidence, agreements table.
+
+**Invitation link switch**: the QR card has a toggle (`#lnk-switch` → `toggleEnlace()`) that writes `link_activo` into the event's `tema` JSON. When off, the public `?reg=` view shows "Enlace desactivado" instead of the form, copy/share/QR actions are blocked, and the event list shows an "Enlace desactivado" badge. This is a client-side gate only — it does not stop a direct `insert` into `asistencias` with the anon key; enforcing that requires an RLS policy on `asistencias`.
 
 **Institution select**: populated dynamically from `INSTS_BASE` (20 hardcoded) + distinct institutions from `asistencias` table. Custom institutions are cached in `localStorage` and normalized to uppercase. Both `g-inst` (admin) and `pub-inst` (public form) are built entirely by JS and sorted alphabetically.
 
