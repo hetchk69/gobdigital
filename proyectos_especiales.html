@@ -988,7 +988,8 @@ input[type=file].hidden{display:none}
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn-save-inline" id="btn-guardar-todo" onclick="guardarTodo()">💾 Guardar</button>
-      <button class="btnp" onclick="descargarPDF()">↓ PDF</button>
+      <button class="btnp" onclick="descargarPDF(false)">↓ PDF final</button>
+      <button class="btns" onclick="descargarPDF(true)">↓ PDF completo</button>
       <button class="btn-success" id="btn-enviar" onclick="enviarRegistro()">📤 Enviar registro</button>
     </div>
   </div>
@@ -1004,7 +1005,8 @@ input[type=file].hidden{display:none}
       <div class="check-wrap"><svg viewBox="0 0 52 52"><polyline points="14,27 22,35 38,17"/></svg></div>
       <h2 style="font-size:22px;font-weight:700;color:#0a2d6e;margin-bottom:.5rem">¡Registro enviado!</h2>
       <p style="color:#6b7fa3;font-size:13.5px;margin-bottom:1.5rem;line-height:1.6">El formato fue enviado al equipo de coordinación y quedó guardado.</p>
-      <button class="btnp" onclick="descargarPDF()" style="margin-bottom:12px">⬇ Descargar PDF</button><br>
+      <button class="btnp" onclick="descargarPDF(false)" style="margin-bottom:12px">⬇ Descargar PDF final</button>
+      <button class="btns" onclick="descargarPDF(true)" style="margin-bottom:12px">⬇ Descargar PDF completo</button><br>
       <button class="btns" onclick="volverLista()" style="margin-top:10px;font-size:13px">← Ver todos los eventos</button>
     </div>
   </div>
@@ -1462,7 +1464,7 @@ async function renderLista(){
     if(modalDisplay) metaParts.push('<span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'+esc(modalDisplay)+'</span>');
     var accionBtn = _canOpen
       ? '<button class="btnp btn-sm" onclick="abrirEvento(\''+r.id+'\')">Abrir</button>'
-      : '<button class="btns btn-sm" id="pdf-btn-'+r.id+'" onclick="descargarPDFDirecto(\''+r.id+'\')">&#8595; Descargar PDF</button>';
+      : '<button class="btns btn-sm" onclick="descargarPDFDirecto(\''+r.id+'\',false,this)">&#8595; PDF final</button><button class="btns btn-sm" onclick="descargarPDFDirecto(\''+r.id+'\',true,this)">&#8595; PDF completo</button>';
     return '<div class="reg-item'+(r.activa?' activa':'')+'">'+
       '<div>'+
         '<div class="reg-badges">'+
@@ -2115,7 +2117,7 @@ function buildTexto(){
 }
 
 // ── PDF ───────────────────────────────────────────────────────
-async function descargarPDF(){
+async function descargarPDF(incluirDesarrollo){
   if(!currentId){ alert('Abra un evento primero.'); return; }
   var datos={}; try{ datos=JSON.parse(currentReunion?currentReunion.tema||'{}':'{}'); }catch{}
   var cap=datos.cap||{};
@@ -2146,17 +2148,17 @@ async function descargarPDF(){
     valInst:gv('val-inst')||cap.val_inst||'',
     foto1:foto1, foto1desc:gv('f1-desc')||cap.foto1_desc||'',
     foto2:foto2, foto2desc:gv('f2-desc')||cap.foto2_desc||'',
-    logo:logo
+    logo:logo, incluirDesarrollo:incluirDesarrollo===true
   });
 }
 
 // ── PDF DIRECTO (sin abrir formulario — para usuarios institucionales) ──
-async function descargarPDFDirecto(id){
-  var btn=document.getElementById('pdf-btn-'+id);
+async function descargarPDFDirecto(id,incluirDesarrollo,btn){
+  var etiquetaOriginal=btn?btn.innerHTML:'';
   if(btn){ btn.disabled=true; btn.textContent='Generando...'; }
 
   var {data:r,error}=await sb.from('reuniones').select('*').eq('id',id).single();
-  if(error||!r){ alert('No se pudo cargar la reunión.'); if(btn){btn.disabled=false;btn.innerHTML='&#8595; Descargar PDF';} return; }
+  if(error||!r){ alert('No se pudo cargar la reunión.'); if(btn){btn.disabled=false;btn.innerHTML=etiquetaOriginal;} return; }
 
   var {data:asis}=await sb.from('asistencias').select('*').eq('reunion_id',id);
 
@@ -2189,10 +2191,10 @@ async function descargarPDFDirecto(id){
     valDiger:cap.val_diger||'', valInst:cap.val_inst||'',
     foto1:foto1, foto1desc:cap.foto1_desc||'',
     foto2:foto2, foto2desc:cap.foto2_desc||'',
-    logo:logo
+    logo:logo, incluirDesarrollo:incluirDesarrollo===true
   });
 
-  if(btn){ btn.disabled=false; btn.innerHTML='&#8595; Descargar PDF'; }
+  if(btn){ btn.disabled=false; btn.innerHTML=etiquetaOriginal; }
 }
 
 function normP(str){ return String(str||'').replace(/[ÁÀÄÂÃ]/g,'A').replace(/[áàäâã]/g,'a').replace(/[ÉÈËÊ]/g,'E').replace(/[éèëê]/g,'e').replace(/[ÍÌÏÎ]/g,'I').replace(/[íìïî]/g,'i').replace(/[ÓÒÖÔÕ]/g,'O').replace(/[óòöôõ]/g,'o').replace(/[ÚÙÜÛ]/g,'U').replace(/[úùüû]/g,'u').replace(/[Ñ]/g,'N').replace(/[ñ]/g,'n').replace(/[—–]/g,'-'); }
@@ -2368,8 +2370,8 @@ function generarPDFProfesional(d){
     // ── 3. Objetivo ────────────────────────────────────────────
     if(d.memAgenda&&d.memAgenda.trim()){ sec('Objetivo de la Reunion'); para(d.memAgenda); y+=2; }
 
-    // ── 4. Desarrollo ──────────────────────────────────────────
-    if(d.memDesarrollo&&d.memDesarrollo.trim()){ sec('Desarrollo de la Reunion'); paraHTML(d.memDesarrollo); y+=2; }
+    // ── 4. Desarrollo (solo PDF completo) ─────────────────────
+    if(d.incluirDesarrollo&&d.memDesarrollo&&d.memDesarrollo.trim()){ sec('Desarrollo de la Reunion'); paraHTML(d.memDesarrollo); y+=2; }
 
     // ── 5. Acuerdos y Compromisos (tabla) ─────────────────────
     if(d.acuerdos&&d.acuerdos.length>0){
@@ -2473,7 +2475,7 @@ function generarPDFProfesional(d){
     doc.setFontSize(7.5); doc.setFont('helvetica','italic'); doc.setTextColor(CG[0],CG[1],CG[2]);
     doc.text('Generado por el Sistema DIGER - Plataforma SOL',PW/2,y,{align:'center'});
 
-    doc.save('Registro_'+normP(d.inst||'DIGER').replace(/[\s\/]/g,'_').substring(0,22)+'_'+(d.fecha||new Date().toISOString().split('T')[0])+'.pdf');
+    doc.save('Registro_'+normP(d.inst||'DIGER').replace(/[\s\/]/g,'_').substring(0,22)+'_'+(d.fecha||new Date().toISOString().split('T')[0])+'_'+(d.incluirDesarrollo?'completo':'final')+'.pdf');
   }catch(e){ console.error('PDF error:',e); alert('Error al generar PDF. Verifique la consola.'); }
 }
 
